@@ -217,6 +217,13 @@ type SyncState struct {
 	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
 }
 
+// BulkDeleteState holds state for bulk deletion operations
+type BulkDeleteState struct {
+	Type       string             // "dns" or "caddy"
+	MenuCursor int                // Menu navigation cursor
+	Entries    []diff.SyncedEntry // Entries to be bulk deleted
+}
+
 // AddFormData represents the state of the add entry form
 // ProfileEditData holds the form data for editing a profile
 type ProfileEditData struct {
@@ -289,9 +296,7 @@ type Model struct {
 	sync   SyncState   // Single-entry sync state
 
 	// Bulk delete state
-	bulkDeleteType       string             // "dns" or "caddy"
-	bulkDeleteMenuCursor int                // Menu navigation cursor
-	bulkDeleteEntries    []diff.SyncedEntry // Entries to be bulk deleted
+	bulkDelete BulkDeleteState
 
 	// Backup manager state
 	backupCursor        int          // Currently selected backup

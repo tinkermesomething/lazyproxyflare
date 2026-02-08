@@ -189,7 +189,7 @@ func (m Model) renderBulkDeleteMenu() string {
 
 	// Option 1: Delete all orphaned DNS
 	option1Style := normalStyle
-	if m.bulkDeleteMenuCursor == 0 {
+	if m.bulkDelete.MenuCursor == 0 {
 		option1Style = StyleSelected
 	}
 	b.WriteString(option1Style.Render(fmt.Sprintf("  Delete all orphaned DNS records (%d entries)", orphanedDNSCount)))
@@ -197,7 +197,7 @@ func (m Model) renderBulkDeleteMenu() string {
 
 	// Option 2: Delete all orphaned Caddy
 	option2Style := normalStyle
-	if m.bulkDeleteMenuCursor == 1 {
+	if m.bulkDelete.MenuCursor == 1 {
 		option2Style = StyleSelected
 	}
 	b.WriteString(option2Style.Render(fmt.Sprintf("  Delete all orphaned Caddy entries (%d entries)", orphanedCaddyCount)))
@@ -220,7 +220,7 @@ func (m Model) renderConfirmBulkDeleteView() string {
 	var b strings.Builder
 
 	// Warning
-	b.WriteString(StyleError.Render(fmt.Sprintf("⚠ WARNING: You are about to delete %d entries!", len(m.bulkDeleteEntries))))
+	b.WriteString(StyleError.Render(fmt.Sprintf("⚠ WARNING: You are about to delete %d entries!", len(m.bulkDelete.Entries))))
 	b.WriteString("\n\n")
 
 	// List entries to be deleted
@@ -236,12 +236,12 @@ func (m Model) renderConfirmBulkDeleteView() string {
 
 	listContent := strings.Builder{}
 	maxDisplay := 10
-	for i, entry := range m.bulkDeleteEntries {
+	for i, entry := range m.bulkDelete.Entries {
 		if i >= maxDisplay {
-			listContent.WriteString(StyleDim.Render(fmt.Sprintf("\n... and %d more entries", len(m.bulkDeleteEntries)-maxDisplay)))
+			listContent.WriteString(StyleDim.Render(fmt.Sprintf("\n... and %d more entries", len(m.bulkDelete.Entries)-maxDisplay)))
 			break
 		}
-		if m.bulkDeleteType == "dns" {
+		if m.bulkDelete.Type == "dns" {
 			listContent.WriteString(fmt.Sprintf("%s (DNS: %s → %s)\n", entry.Domain, entry.DNS.Type, entry.DNS.Content))
 		} else {
 			listContent.WriteString(fmt.Sprintf("%s (Caddy: %s:%d)\n", entry.Domain, entry.Caddy.Target, entry.Caddy.Port))

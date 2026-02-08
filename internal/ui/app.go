@@ -2098,7 +2098,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.success {
 			// Success - return to list view, clear bulk delete state and selections, and refresh
 			m.currentView = ViewList
-			m.bulkDeleteEntries = nil
+			m.bulkDelete.Entries = nil
 			m.selectedEntries = make(map[string]bool) // Clear selections after batch operations
 			m.err = nil
 			// Show success message with count

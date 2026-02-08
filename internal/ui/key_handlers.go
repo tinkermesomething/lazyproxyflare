@@ -205,13 +205,13 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// If in bulk delete menu, return to list
 			if m.currentView == ViewBulkDeleteMenu {
 				m.currentView = ViewList
-				m.bulkDeleteMenuCursor = 0
+				m.bulkDelete.MenuCursor = 0
 				return m, nil
 			}
 			// If in confirm bulk delete, return to list
 			if m.currentView == ViewConfirmBulkDelete {
 				m.currentView = ViewList
-				m.bulkDeleteEntries = nil
+				m.bulkDelete.Entries = nil
 				m.err = nil // Clear any error
 				return m, nil
 			}
@@ -718,7 +718,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		case "D":
 			// Bulk delete menu (only from list view)
 			if m.currentView == ViewList && !m.loading {
-				m.bulkDeleteMenuCursor = 0
+				m.bulkDelete.MenuCursor = 0
 				m.currentView = ViewBulkDeleteMenu
 				return m, nil
 			}
@@ -1073,32 +1073,32 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		// In bulk delete menu: select option
 		if m.currentView == ViewBulkDeleteMenu {
 			// Collect entries based on selection
-			if m.bulkDeleteMenuCursor == 0 {
+			if m.bulkDelete.MenuCursor == 0 {
 				// Delete all orphaned DNS
-				m.bulkDeleteType = "dns"
-				m.bulkDeleteEntries = []diff.SyncedEntry{}
+				m.bulkDelete.Type = "dns"
+				m.bulkDelete.Entries = []diff.SyncedEntry{}
 				for _, entry := range m.entries {
 					if entry.Status == diff.StatusOrphanedDNS {
-						m.bulkDeleteEntries = append(m.bulkDeleteEntries, entry)
+						m.bulkDelete.Entries = append(m.bulkDelete.Entries, entry)
 					}
 				}
-			} else if m.bulkDeleteMenuCursor == 1 {
+			} else if m.bulkDelete.MenuCursor == 1 {
 				// Delete all orphaned Caddy
-				m.bulkDeleteType = "caddy"
-				m.bulkDeleteEntries = []diff.SyncedEntry{}
+				m.bulkDelete.Type = "caddy"
+				m.bulkDelete.Entries = []diff.SyncedEntry{}
 				for _, entry := range m.entries {
 					if entry.Status == diff.StatusOrphanedCaddy {
-						m.bulkDeleteEntries = append(m.bulkDeleteEntries, entry)
+						m.bulkDelete.Entries = append(m.bulkDelete.Entries, entry)
 					}
 				}
 			}
 
 			// Only proceed if there are entries to delete
-			if len(m.bulkDeleteEntries) > 0 {
+			if len(m.bulkDelete.Entries) > 0 {
 				m.currentView = ViewConfirmBulkDelete
 			} else {
 				// No entries to delete, show error and return to list
-				m.err = fmt.Errorf("No %s entries to delete", m.bulkDeleteType)
+				m.err = fmt.Errorf("No %s entries to delete", m.bulkDelete.Type)
 				m.currentView = ViewList
 			}
 			return m, nil
@@ -1292,15 +1292,15 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Confirm bulk delete (only in confirm bulk delete screen)
 			if m.currentView == ViewConfirmBulkDelete && !m.loading {
 				m.loading = true
-				if m.bulkDeleteType == "dns" {
+				if m.bulkDelete.Type == "dns" {
 					apiToken, err := m.config.GetAPIToken()
 					if err != nil {
 						m.err = fmt.Errorf("failed to get API token: %w", err)
 						return m, nil
 					}
-					return m, bulkDeleteDNSCmd(m.config, m.bulkDeleteEntries, apiToken)
-				} else if m.bulkDeleteType == "caddy" {
-					return m, bulkDeleteCaddyCmd(m.config, m.bulkDeleteEntries)
+					return m, bulkDeleteDNSCmd(m.config, m.bulkDelete.Entries, apiToken)
+				} else if m.bulkDelete.Type == "caddy" {
+					return m, bulkDeleteCaddyCmd(m.config, m.bulkDelete.Entries)
 				}
 			}
 			// Confirm batch delete selected (only in confirm batch delete screen)
@@ -1363,7 +1363,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Cancel bulk delete (only in confirm bulk delete screen)
 			if m.currentView == ViewConfirmBulkDelete {
 				m.currentView = ViewList
-				m.bulkDeleteEntries = nil
+				m.bulkDelete.Entries = nil
 				m.err = nil
 				return m, nil
 			}
@@ -1726,8 +1726,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In bulk delete menu: navigate down
-			if m.currentView == ViewBulkDeleteMenu && m.bulkDeleteMenuCursor < 1 {
-				m.bulkDeleteMenuCursor++
+			if m.currentView == ViewBulkDeleteMenu && m.bulkDelete.MenuCursor < 1 {
+				m.bulkDelete.MenuCursor++
 				return m, nil
 			}
 			// In add/edit form: navigate to next field
@@ -1923,8 +1923,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In bulk delete menu: navigate up
-			if m.currentView == ViewBulkDeleteMenu && m.bulkDeleteMenuCursor > 0 {
-				m.bulkDeleteMenuCursor--
+			if m.currentView == ViewBulkDeleteMenu && m.bulkDelete.MenuCursor > 0 {
+				m.bulkDelete.MenuCursor--
 				return m, nil
 			}
 			// In add/edit form: navigate to previous field
