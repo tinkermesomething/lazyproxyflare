@@ -205,6 +205,18 @@ func (s SortMode) String() string {
 	}
 }
 
+// DeleteState holds state for single-entry deletion
+type DeleteState struct {
+	EntryIndex  int         // Index of entry being deleted
+	Scope       DeleteScope // What to delete (All/DNS/Caddy)
+	ScopeCursor int         // Cursor for delete scope selection (0-2)
+}
+
+// SyncState holds state for single-entry sync
+type SyncState struct {
+	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
+}
+
 // AddFormData represents the state of the add entry form
 // ProfileEditData holds the form data for editing a profile
 type ProfileEditData struct {
@@ -273,10 +285,8 @@ type Model struct {
 	// Form data
 	addForm          AddFormData       // Add/Edit entry form state
 	editingEntry     *diff.SyncedEntry // Entry being edited (nil if adding new)
-	deleteEntryIndex int               // Index of entry being deleted
-	deleteScope      DeleteScope       // What to delete (All/DNS/Caddy)
-	deleteScopeCursor int              // Cursor for delete scope selection (0-2)
-	syncEntry        *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
+	delete DeleteState // Single-entry deletion state
+	sync   SyncState   // Single-entry sync state
 
 	// Bulk delete state
 	bulkDeleteType       string             // "dns" or "caddy"

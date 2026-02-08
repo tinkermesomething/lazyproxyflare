@@ -708,9 +708,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 			// Delete selected entry (from list view)
 			if m.currentView == ViewList && !m.searching && !m.loading && len(m.getFilteredEntries()) > 0 {
-				m.deleteEntryIndex = m.cursor
-				m.deleteScopeCursor = 0         // Reset cursor
-				m.deleteScope = DeleteAll       // Default to delete all
+				m.delete.EntryIndex = m.cursor
+				m.delete.ScopeCursor = 0         // Reset cursor
+				m.delete.Scope = DeleteAll       // Default to delete all
 				m.currentView = ViewDeleteScope // Go to scope selection first
 				return m, nil
 			}
@@ -1179,7 +1179,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 					// Only allow sync on orphaned entries
 					if entry.Status == diff.StatusOrphanedDNS || entry.Status == diff.StatusOrphanedCaddy {
 						// Store the entry to sync (handles filtered lists correctly)
-						m.syncEntry = &entry
+						m.sync.Entry = &entry
 						m.currentView = ViewConfirmSync
 						return m, nil
 					}
@@ -1268,25 +1268,25 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if m.currentView == ViewConfirmDelete && !m.loading {
 				m.loading = true
 				filteredEntries := m.getFilteredEntries()
-				if m.deleteEntryIndex < len(filteredEntries) {
+				if m.delete.EntryIndex < len(filteredEntries) {
 					apiToken, err := m.config.GetAPIToken()
 					if err != nil {
 						m.err = fmt.Errorf("failed to get API token: %w", err)
 						return m, nil
 					}
-					return m, deleteEntryCmd(m.config, filteredEntries[m.deleteEntryIndex], m.deleteScope, apiToken)
+					return m, deleteEntryCmd(m.config, filteredEntries[m.delete.EntryIndex], m.delete.Scope, apiToken)
 				}
 			}
 			// Confirm and sync entry (only in confirm sync screen)
 			if m.currentView == ViewConfirmSync && !m.loading {
 				m.loading = true
-				if m.syncEntry != nil {
+				if m.sync.Entry != nil {
 					apiToken, err := m.config.GetAPIToken()
 					if err != nil {
 						m.err = fmt.Errorf("failed to get API token: %w", err)
 						return m, nil
 					}
-					return m, syncEntryCmd(m.config, *m.syncEntry, apiToken)
+					return m, syncEntryCmd(m.config, *m.sync.Entry, apiToken)
 				}
 			}
 			// Confirm bulk delete (only in confirm bulk delete screen)
@@ -1676,10 +1676,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In delete scope selection: navigate down
-			if m.currentView == ViewDeleteScope && !m.loading && m.deleteScopeCursor < 2 {
-				m.deleteScopeCursor++
+			if m.currentView == ViewDeleteScope && !m.loading && m.delete.ScopeCursor < 2 {
+				m.delete.ScopeCursor++
 				// Update selected scope based on cursor
-				m.deleteScope = DeleteScope(m.deleteScopeCursor)
+				m.delete.Scope = DeleteScope(m.delete.ScopeCursor)
 				return m, nil
 			}
 			// In restore scope selection: navigate down
@@ -1899,10 +1899,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In delete scope selection: navigate up
-			if m.currentView == ViewDeleteScope && !m.loading && m.deleteScopeCursor > 0 {
-				m.deleteScopeCursor--
+			if m.currentView == ViewDeleteScope && !m.loading && m.delete.ScopeCursor > 0 {
+				m.delete.ScopeCursor--
 				// Update selected scope based on cursor
-				m.deleteScope = DeleteScope(m.deleteScopeCursor)
+				m.delete.Scope = DeleteScope(m.delete.ScopeCursor)
 				return m, nil
 			}
 			// In restore scope selection: navigate up

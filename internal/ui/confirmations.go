@@ -15,10 +15,10 @@ func (m Model) renderConfirmDeleteView() string {
 
 	// Get the entry to delete
 	filteredEntries := m.getFilteredEntries()
-	if m.deleteEntryIndex >= len(filteredEntries) {
+	if m.delete.EntryIndex >= len(filteredEntries) {
 		return "Error: Invalid entry index"
 	}
-	entry := filteredEntries[m.deleteEntryIndex]
+	entry := filteredEntries[m.delete.EntryIndex]
 
 	// Show what will be deleted
 	b.WriteString("You are about to delete:\n\n")
@@ -100,10 +100,10 @@ func (m Model) renderConfirmSyncView() string {
 	var b strings.Builder
 
 	// Get the entry to sync (stored when 's' was pressed)
-	if m.syncEntry == nil {
+	if m.sync.Entry == nil {
 		return "Error: No entry selected for sync"
 	}
-	entry := *m.syncEntry
+	entry := *m.sync.Entry
 
 	// Show what will be synced
 	b.WriteString("You are about to sync:\n\n")
@@ -405,10 +405,10 @@ func (m Model) renderDeleteScopeView() string {
 
 	// Get the entry to delete
 	filteredEntries := m.getFilteredEntries()
-	if m.deleteEntryIndex >= len(filteredEntries) {
+	if m.delete.EntryIndex >= len(filteredEntries) {
 		return StyleError.Render("Error: Invalid entry index")
 	}
-	entry := filteredEntries[m.deleteEntryIndex]
+	entry := filteredEntries[m.delete.EntryIndex]
 
 	// Show entry info
 	b.WriteString(StyleInfo.Render(fmt.Sprintf("Delete: %s", entry.Domain)))
@@ -445,7 +445,7 @@ func (m Model) renderDeleteScopeView() string {
 		// Build option line
 		var line string
 		// Map to cursor position
-		cursorPos := m.deleteScopeCursor
+		cursorPos := m.delete.ScopeCursor
 		if cursorPos >= len(availableScopes) {
 			cursorPos = len(availableScopes) - 1
 		}
