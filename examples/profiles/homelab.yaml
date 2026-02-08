@@ -1,0 +1,35 @@
+# Example Profile: Homelab Environment
+# Location: ~/.config/lazyproxyflare/profiles/homelab.yaml
+#
+# This profile demonstrates a typical homelab setup with Caddy running in Docker.
+
+profile:
+  name: "homelab"
+  description: "Home lab environment"
+  created: "2025-01-01T00:00:00Z"
+
+cloudflare:
+  api_token: "your_cloudflare_api_token_here"
+  zone_id: "your_32_character_zone_id_here"
+
+domain: "example.com"
+
+proxy:
+  type: "caddy"              # Reverse proxy type (currently only "caddy" supported)
+  deployment: "docker"        # Deployment method (currently only "docker" supported)
+  caddy:
+    caddyfile_path: "/etc/caddy/Caddyfile"
+    container_name: "caddy"
+    # Uses default: docker exec {container} caddy validate --config {path}
+    # Uses default: docker restart {container}
+
+defaults:
+  cname_target: "mail.example.com"   # Default CNAME target for new entries
+  proxied: true                      # Enable Cloudflare proxy by default
+  port: 80                           # Default reverse proxy port
+  ssl: false                         # Use HTTP for upstream (Caddy handles TLS)
+  lan_subnet: "10.0.0.0/24"         # Optional: Restrict access to LAN subnet
+  allowed_external_ip: ""            # Optional: Allow specific external IP
+
+ui:
+  theme: "default"

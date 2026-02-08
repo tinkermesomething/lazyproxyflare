@@ -1,0 +1,198 @@
+# LazyProxyFlare Configuration File
+# Copy this file to ~/.config/lazyproxyflare/config.yaml or specify a custom path
+# All paths can be absolute or relative to your home directory
+
+# ============================================================================
+# Cloudflare Configuration (REQUIRED)
+# ============================================================================
+cloudflare:
+  # Your Cloudflare API Token (REQUIRED)
+  # Create at: https://dash.cloudflare.com/profile/api-tokens
+  # Permissions needed: Zone.DNS (Edit)
+  #
+  # Option 1: Environment variable (RECOMMENDED for security)
+  # Set before running: export CLOUDFLARE_API_TOKEN="your_token_here"
+  # Then use the ${VAR_NAME} syntax:
+  api_token: "${CLOUDFLARE_API_TOKEN}"
+  #
+  # Option 2: Direct value (plain text - ensure file is not committed to git!)
+  # api_token: "your_cloudflare_api_token_here"
+
+  # Your Cloudflare Zone ID (REQUIRED)
+  # Find at: Cloudflare Dashboard → Select Domain → Overview → Zone ID (right sidebar)
+  # Format: 32-character hexadecimal string
+  zone_id: "your_zone_id_32_hex_characters"
+
+# ============================================================================
+# Domain Configuration (REQUIRED)
+# ============================================================================
+# The primary domain you're managing
+# Example: example.com
+# All subdomains will be created under this domain
+domain: "example.com"
+
+# ============================================================================
+# Caddy Configuration (REQUIRED)
+# ============================================================================
+caddy:
+  # Path to your Caddyfile (REQUIRED)
+  # LazyProxyFlare will read from and write to this file
+  # Backup files are created automatically before modifications
+  # Example: /etc/caddy/Caddyfile or ./Caddyfile
+  caddyfile_path: "/etc/caddy/Caddyfile"
+
+  # Docker container name for Caddy (REQUIRED)
+  # Used to restart Caddy after configuration changes
+  # Example: caddy, caddy-server, my-caddy-container
+  container_name: "caddy"
+
+# ============================================================================
+# Default Values for New Entries (OPTIONAL)
+# ============================================================================
+# These values are pre-filled in forms when adding new entries
+defaults:
+  # Default CNAME target for new DNS records
+  # Typically your main server's hostname or IP
+  # Example: mail.example.com or server.example.com
+  cname_target: "mail.example.com"
+
+  # Enable Cloudflare proxy (orange cloud) by default
+  # true = Traffic proxied through Cloudflare (DDoS protection, caching)
+  # false = DNS-only mode (gray cloud)
+  proxied: true
+
+  # Default port for reverse_proxy in Caddy
+  # Common ports: 80 (HTTP), 443 (HTTPS), 3000 (apps), 8080 (apps)
+  port: 80
+
+  # Use HTTPS (true) or HTTP (false) for upstream connections
+  # true = Caddy connects to backend via https://
+  # false = Caddy connects to backend via http://
+  ssl: false
+
+  # Default LAN subnet for IP restriction (OPTIONAL)
+  # Used with @external matcher to block external access
+  # Format: CIDR notation (IP/prefix)
+  # Example: 10.0.0.0/24, 192.168.1.0/24
+  # Leave empty to disable by default
+  lan_subnet: "10.0.0.0/24"
+
+  # Allowed external IP for whitelisting (OPTIONAL)
+  # Single IP or subnet allowed to bypass LAN restriction
+  # Format: CIDR notation
+  # Example: 203.0.113.5/32 (single IP), 203.0.113.0/24 (subnet)
+  # Leave empty to disable
+  allowed_external_ip: ""
+
+# ============================================================================
+# UI Configuration (OPTIONAL)
+# ============================================================================
+ui:
+  # Color theme (currently only "auto" is supported)
+  # Future: "dark", "light", custom themes
+  theme: "auto"
+
+# ============================================================================
+# Configuration Examples
+# ============================================================================
+#
+# Example 1: Basic home server setup
+# ----------------------------------------------------------------------------
+# cloudflare:
+#   api_token: "abc123..."
+#   zone_id: "def456..."
+# domain: "homelab.example.com"
+# caddy:
+#   caddyfile_path: "/home/user/caddy/Caddyfile"
+#   container_name: "caddy"
+# defaults:
+#   cname_target: "home.example.com"
+#   proxied: true
+#   port: 80
+#   ssl: false
+#   lan_subnet: "192.168.1.0/24"
+#
+# Example 2: Production server with HTTPS backends
+# ----------------------------------------------------------------------------
+# cloudflare:
+#   api_token: "xyz789..."
+#   zone_id: "ghi012..."
+# domain: "mycompany.com"
+# caddy:
+#   caddyfile_path: "/etc/caddy/Caddyfile"
+#   container_name: "caddy-prod"
+# defaults:
+#   cname_target: "lb.mycompany.com"
+#   proxied: false  # DNS-only for direct server access
+#   port: 443
+#   ssl: true  # Backends use HTTPS
+#   lan_subnet: "10.0.0.0/16"
+#   allowed_external_ip: "203.0.113.50/32"  # Office IP
+#
+# Example 3: Development environment
+# ----------------------------------------------------------------------------
+# cloudflare:
+#   api_token: "dev123..."
+#   zone_id: "dev456..."
+# domain: "dev.example.com"
+# caddy:
+#   caddyfile_path: "./Caddyfile"
+#   container_name: "caddy-dev"
+# defaults:
+#   cname_target: "localhost"
+#   proxied: false  # No CF proxy for dev
+#   port: 8080
+#   ssl: false
+#   lan_subnet: ""  # No restrictions for dev
+#
+# ============================================================================
+# Security Notes
+# ============================================================================
+#
+# 1. API Token Security (CRITICAL):
+#    RECOMMENDED: Use environment variables for API tokens
+#      - Add to ~/.bashrc, ~/.zshrc, or shell config:
+#        export CLOUDFLARE_API_TOKEN="your_token_here"
+#      - Or use direnv for per-directory environment
+#      - Then set: api_token: "${CLOUDFLARE_API_TOKEN}"
+#      - Verify: echo $CLOUDFLARE_API_TOKEN (should print token)
+#
+#    ALTERNATIVE: Store in config file (plain text)
+#      - Ensure config file is NOT committed to version control
+#      - Add config.yaml to .gitignore if working in a git repo
+#      - Set file permissions: chmod 600 ~/.config/lazyproxyflare/config.yaml
+#
+#    GENERAL:
+#      - Use restricted API tokens (not Global API Key)
+#      - Rotate tokens periodically
+#      - Never commit credentials to version control
+#
+# 2. File Permissions:
+#    - Set restrictive permissions: chmod 600 ~/.config/lazyproxyflare/config.yaml
+#    - Ensures only you can read your configuration
+#    - Verify: ls -la ~/.config/lazyproxyflare/config.yaml
+#
+# 3. Backup Strategy:
+#    - LazyProxyFlare creates Caddyfile backups automatically
+#    - Backups stored in: <caddyfile_path>.backup.<timestamp>
+#    - Configure retention: default 30 days (managed in backup manager)
+#
+# ============================================================================
+# Troubleshooting
+# ============================================================================
+#
+# Config not found:
+#   - Default location: ~/.config/lazyproxyflare/config.yaml
+#   - Specify custom path: lazyproxyflare --config /path/to/config.yaml
+#
+# Validation errors:
+#   - Check zone_id format: must be exactly 32 hex characters
+#   - Check domain format: must be valid FQDN (e.g., example.com)
+#   - Check CIDR format: must be IP/prefix (e.g., 10.0.0.0/24)
+#
+# Permission errors:
+#   - Ensure Caddyfile path is readable/writable
+#   - Ensure Docker socket is accessible (for container restart)
+#   - Check file permissions: config.yaml should be 600
+#
+# For more help, see: https://github.com/yourusername/lazyproxyflare/wiki

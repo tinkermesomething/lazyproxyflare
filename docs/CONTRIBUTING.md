@@ -57,6 +57,53 @@ cp config.example.yaml config/test.yaml
 
 ## Project Structure
 
+### Directory Layout
+
+```
+lazyproxyflare/
+├── cmd/lazyproxyflare/          # Application entry point
+│   └── main.go                  # Main function, initialization
+│
+├── internal/                    # Private application code
+│   ├── audit/                   # Audit logging system
+│   │   └── logger.go            # Log operations to file
+│   │
+│   ├── caddy/                   # Caddyfile operations
+│   │   ├── manager.go           # Backup, restore, cleanup
+│   │   ├── parser.go            # Parse Caddyfile syntax
+│   │   └── types.go             # Data structures
+│   │
+│   ├── cloudflare/              # Cloudflare API client
+│   │   ├── client.go            # HTTP client, API calls
+│   │   └── types.go             # DNSRecord, API response types
+│   │
+│   ├── config/                  # Configuration management
+│   │   ├── config.go            # YAML loading, validation
+│   │   └── types.go             # Config structs
+│   │
+│   ├── diff/                    # DNS ↔ Caddy comparison engine
+│   │   ├── engine.go            # Compare() logic
+│   │   └── types.go             # SyncedEntry, SyncStatus
+│   │
+│   └── ui/                      # Terminal UI (Bubbletea)
+│       ├── app.go               # Main Update() and View() logic
+│       ├── model.go             # Application state
+│       ├── forms.go             # Add/edit form rendering
+│       ├── confirmations.go     # Confirmation dialogs
+│       ├── backups.go           # Backup manager views
+│       ├── views.go             # Panel and list rendering
+│       ├── helpers.go           # Filtering & sorting
+│       ├── colors.go            # Color palette constants
+│       ├── panels.go            # Layout system
+│       └── auditlog.go          # Audit log viewer
+│
+├── config.example.yaml          # Configuration template
+├── README.md                    # Project documentation
+├── KEYBINDINGS.md               # Keyboard shortcuts reference
+├── CONTRIBUTING.md              # This file
+└── go.mod                       # Go module dependencies
+```
+
 ### Architecture Overview
 
 LazyProxyFlare follows a **layered architecture**:
@@ -156,9 +203,11 @@ if err != nil {
 
 ### Current State
 
-**LazyProxyFlare currently has zero automated tests.** This is a priority area for contribution!
+LazyProxyFlare has **14 test files** covering the `internal/caddy/` and `internal/ui/` packages. Additional test contributions are welcome, especially for `internal/cloudflare/`, `internal/config/`, and `internal/diff/`.
 
-### Testing Strategy (Planned)
+Run tests with: `go test ./...`
+
+### Testing Strategy
 
 #### 1. Unit Tests (Priority: HIGH)
 
@@ -353,6 +402,7 @@ Explain the problem this solves or feature this adds.
 ### Medium Priority
 
 4. **Feature Enhancements**
+   - Multi-domain profiles (v1.1)
    - TXT record support
    - Configurable keybindings
    - Theme customization
@@ -364,7 +414,7 @@ Explain the problem this solves or feature this adds.
 
 6. **Distribution**
    - Create Homebrew formula
-   - Create deb/flatpack package
+   - Create AUR package (Arch Linux)
    - GoReleaser configuration
    - Installation scripts
 
@@ -378,6 +428,7 @@ Explain the problem this solves or feature this adds.
 8. **New Features** 
    - Other DNS providers (Route53, etc.)
    - Other reverse proxies (Traefik, nginx)
+   - Remote Caddyfile support (SSH)
 
 ---
 
@@ -411,4 +462,4 @@ Thank you for making LazyProxyFlare better!
 ---
 
 **Last Updated:** 2025-12-28
-**Maintained by:** Angel Duran AKA tinkermesomething
+**Maintained by:** [Your Name]

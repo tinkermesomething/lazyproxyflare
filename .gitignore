@@ -1,0 +1,41 @@
+# Keep .claude directory but ignore its contents (except .claude_progress.md)
+!/.claude
+.claude/*
+!.claude_progress.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment and credentials
+.env
+
+# Binaries (only in root, not source directories)
+/lazyproxyflare
+/lazydns
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+*.test
+*.out
+*.prof
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.backup.*
+review.md
+/lazyproxyflare
+__pycache__/

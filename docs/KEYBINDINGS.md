@@ -9,6 +9,8 @@ Complete keyboard shortcut reference organized by context. All keybindings are c
 - [Global Keys](#global-keys)
 - [Main List View](#main-list-view)
 - [Forms (Add/Edit)](#forms-addedit)
+- [Snippet Detail View](#snippet-detail-view)
+- [Snippet Wizard](#snippet-wizard)
 - [Backup Manager](#backup-manager)
 - [Audit Log Viewer](#audit-log-viewer)
 - [Confirmation Dialogs](#confirmation-dialogs)
@@ -16,6 +18,7 @@ Complete keyboard shortcut reference organized by context. All keybindings are c
 - [Mouse Controls](#mouse-controls)
 - [Setup Wizard](#setup-wizard)
 - [Profile Selector](#profile-selector)
+- [Profile Editor](#profile-editor)
 
 ---
 
@@ -25,14 +28,15 @@ These keys work in most contexts unless overridden by a specific view.
 
 | Key | Action | Notes |
 |-----|--------|-------|
-| `ESC` | Cancel / Go back | Returns to main view, clears filters/search |
-| `q` | Quit application | Confirms before exit if in main view |
-| `?` | Toggle help screen | Shows all keybindings |
+| `ESC` | Cancel / Go back | Returns to previous view, clears filters/search |
+| `Ctrl+W` | Close modal | Closes modal windows (profile editor, etc.) |
+| `?` | Toggle help screen | Shows all keybindings and available actions |
+| `q` | Quit application | Exit the application from main view (shows confirmation) |
 | `Ctrl+C` | Force quit | Emergency exit (no confirmation) |
 
 ---
 
-## Main List View
+## Main List View (Dashboard)
 
 The primary interface showing entries with sync status.
 
@@ -40,23 +44,36 @@ The primary interface showing entries with sync status.
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Move down | Navigate to next entry |
-| `k` / `↑` | Move up | Navigate to previous entry |
+| `↓` / `j` | Move down | Navigate down through entries (j only in list view) |
+| `↑` / `k` | Move up | Navigate up through entries (k only in list view) |
 | `g` | Jump to top | Go to first entry |
 | `G` | Jump to bottom | Go to last entry |
 | `Home` | Jump to top | Alternative to `g` |
 | `End` | Jump to bottom | Alternative to `G` |
+| `Tab` | Switch views | Toggle between Cloudflare DNS and Caddy views |
+| `Shift+Tab` | Previous panel | Reverse cycle between panels |
+
+**Note:** In modal windows (wizards, forms, dialogs), use arrow keys for navigation. The `j` and `k` keys are reserved for text input in modals.
 
 ### Actions
 
 | Key | Action | Description |
 |-----|--------|-------------|
 | `a` | Add new entry | Opens form to create DNS + Caddy entry |
-| `e` | Edit selected entry | Modify existing entry (DNS and/or Caddy) |
-| `d` | Delete entry | Delete from DNS, Caddy, or both (with confirmation) |
+| `Enter` | Edit entry | Edit the selected DNS entry |
+| `d` | Delete entry | Delete the selected entry |
 | `s` | Sync entry | Create missing DNS or Caddy for orphaned entries |
+| `w` | Snippet wizard | Open snippet wizard to create reusable Caddy config blocks |
+| `b` | Backup manager | View, restore, preview, and delete Caddyfile backups |
+| `p` | Profile selector | Switch between profiles or create new ones |
 | `r` | Refresh | Reload data from Cloudflare and Caddyfile |
-| `Enter` | View details | (Currently shown in right panel automatically) |
+| `Enter` | View details | Open detail view for selected entry (context-dependent) |
+
+**Panel Focus:**
+- The interface has multiple panels showing entries from both Cloudflare and Caddy
+- Use `Tab` / `Shift+Tab` to cycle between panels
+- Navigation keys (`j`, `k`, `g`, `G`) operate on the currently focused panel
+- Current panel is indicated by a highlighted border
 
 ### Filtering & Sorting
 
@@ -88,13 +105,12 @@ The primary interface showing entries with sync status.
 - Selections cleared after batch operations complete
 - Can navigate while entries are selected
 
-### Tools & Utilities
+### Help
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `b` | Backup manager | View, restore, preview, delete Caddyfile backups |
-| `l` | Audit log | View history of all operations (create, update, delete, sync) |
-| `p` / `Ctrl+P` | Profile selector | Switch between profiles or create new ones |
+| `?` | Toggle help screen | Shows all keybindings and available actions |
+| `q` | Quit application | Exit the application |
 
 ---
 
@@ -106,10 +122,10 @@ Interactive forms for creating or editing entries.
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Next field | Move to next form field |
-| `k` / `↑` | Previous field | Move to previous form field |
-| `Tab` | Next field | Alternative to `j`/`↓` |
-| `Shift+Tab` | Previous field | Alternative to `k`/`↑` |
+| `↓` | Next field | Move to next form field |
+| `↑` | Previous field | Move to previous form field |
+| `Tab` | Next field | Alternative to `↓` |
+| `Shift+Tab` | Previous field | Alternative to `↑` |
 
 ### Input
 
@@ -125,20 +141,30 @@ Interactive forms for creating or editing entries.
 | Key | Action | Description |
 |-----|--------|-------------|
 | `Enter` | Next step | Preview form **or** confirm preview (context-dependent) |
+| `Ctrl+M` | Insert newline | In Custom Caddy Config field only (Enter proceeds to preview) |
 | `ESC` | Cancel | Close form without saving, return to main view |
 
 **Form Fields:**
 
-1. **Subdomain** - Text input (e.g., "plex")
+1. **Subdomain(s)** - Multi-line text input (supports multiple subdomains)
+   - Single subdomain: `plex`
+   - Multiple subdomains: Enter one per line (e.g., `mail` ↵ `webmail` ↵ `imap`)
+   - Press `Enter` to add new line in subdomain field
+   - Creates N DNS records + 1 Caddy block with all domains
 2. **DNS Type** - Toggle (CNAME / A) - Use `Space` to toggle
 3. **Target/IP** - Text input (domain for CNAME, IPv4 for A)
 4. **DNS Only** - Checkbox - Skip Caddy configuration
-5. **Port** - Number input (only if not DNS-only)
-6. **Proxied** - Checkbox - Cloudflare proxy (orange cloud)
-7. **SSL** - Checkbox - HTTPS upstream connection
-8. **LAN Only** - Checkbox - Restrict to LAN subnet
-9. **OAuth** - Checkbox - Include OAuth headers
-10. **WebSocket** - Checkbox - WebSocket support headers
+5. **Proxied** - Checkbox - Cloudflare proxy (orange cloud)
+6. **Reverse Proxy Target** - Text input (internal IP or hostname for Caddy)
+7. **Service Port** - Number input (only if not DNS-only)
+8. **SSL** - Checkbox - HTTPS upstream connection
+
+**Multi-Subdomain Support:**
+- Enter multiple subdomains (one per line) to create multi-domain entries
+- Preview shows all FQDNs that will be created
+- Single Caddyfile block with comma-separated domains: `mail.com, webmail.com, imap.com { ... }`
+- Separate DNS record created for each subdomain
+- Example: mail, webmail, imap → 3 DNS records + 1 Caddy block
 
 **Smart Navigation:**
 - DNS-only mode hides Caddy fields (Port, SSL, LAN, OAuth, WebSocket)
@@ -153,8 +179,8 @@ View and manage Caddyfile backups.
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Move down | Navigate to next backup |
-| `k` / `↑` | Move up | Navigate to previous backup |
+| `↓` | Move down | Navigate to next backup |
+| `↑` | Move up | Navigate to previous backup |
 | `p` | Preview backup | View full contents of selected backup file |
 | `R` | Restore backup | Restore selected backup (with confirmation + validation) |
 | `x` | Delete backup | Delete selected backup file (with confirmation) |
@@ -179,8 +205,8 @@ View history of all operations performed in LazyProxyFlare.
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Scroll down | View older log entries |
-| `k` / `↑` | Scroll up | View newer log entries |
+| `↓` | Scroll down | View older log entries |
+| `↑` | Scroll up | View newer log entries |
 | `ESC` | Close log | Return to main view |
 
 **Log Entry Format:**
@@ -235,8 +261,8 @@ Interactive help display with all keybindings.
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Scroll down | View more keybindings |
-| `k` / `↑` | Scroll up | Scroll back up |
+| `↓` | Scroll down | View more keybindings |
+| `↑` | Scroll up | Scroll back up |
 | `ESC` / `?` | Close help | Return to main view |
 
 **Help Sections:**
@@ -245,6 +271,147 @@ Interactive help display with all keybindings.
 3. Filtering
 4. Batch Operations
 5. Tools
+
+---
+
+## Snippet Detail View
+
+View and edit reusable Caddy configuration snippets.
+
+### View Mode (Read-Only)
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `e` | Edit snippet | Enter edit mode (editable textarea) |
+| `ESC` | Close detail | Return to main view |
+
+**Display Information:**
+- Snippet name and category badge
+- Description and auto-detection confidence (if applicable)
+- Usage statistics (X entries using this snippet)
+- List of entries importing this snippet
+- Location in Caddyfile (line numbers)
+- Full snippet content (syntax highlighted)
+
+### Edit Mode
+
+Press `e` in view mode to enter edit mode.
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `y` / `Enter` | Save changes | Validate and write to Caddyfile |
+| `d` | Delete snippet | Remove snippet (checks if in use first) |
+| `ESC` | Cancel edit | Discard changes, return to view mode |
+| `Type characters` | Edit content | Multi-line textarea with scrolling |
+| `Backspace` | Delete character | Standard text editing |
+| `Arrow keys` | Navigate cursor | Move within textarea |
+| `Tab` | Insert tab | (Not for navigation - inserts literal tab) |
+
+**Edit Mode Features:**
+- 70x15 textarea with syntax highlighting
+- Auto-backup before save
+- Caddyfile validation before commit
+- Automatic rollback on validation failure
+- Caddy auto-reload on success
+- Audit logging
+
+**Deletion Safety:**
+- Cannot delete snippet currently in use
+- Shows error: "cannot delete snippet 'X': currently used by N entries"
+- Must remove from entries first
+- No confirmation dialog (direct action)
+
+**Example Workflow:**
+```
+1. Navigate to snippet in snippets panel
+2. Press Enter → Opens detail view
+3. Press e → Enters edit mode
+4. Edit content in textarea
+5. Press y → Saves changes
+   - Creates backup
+   - Validates Caddyfile
+   - Reloads Caddy
+   - Returns to view mode
+```
+
+---
+
+## Snippet Wizard
+
+Interactive wizard for creating reusable Caddyfile configuration blocks.
+
+### Wizard Modes
+
+The wizard offers three creation modes:
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **Templated - Advanced** | Choose from pre-configured templates | Quick setup for common patterns |
+| **Custom - Paste Your Own** | Paste existing Caddy config | Convert existing config to snippet |
+| **Guided - Step by Step** | Walk through each snippet type | Learn about available options |
+
+### Navigation
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `↓` | Move down | Navigate options/fields |
+| `↑` | Move up | Navigate options/fields |
+| `Tab` | Next field | Forward navigation in multi-field screens |
+| `Shift+Tab` | Previous field | Backward navigation |
+| `Space` | Toggle selection | Select/deselect templates or options |
+| `Enter` | Next step | Proceed to next wizard screen |
+| `b` | Go back | Return to previous wizard step |
+| `ESC` | Cancel wizard | Exit wizard, return to main view |
+
+**Navigation Pattern:** Snippet wizard uses `Tab` for field navigation (like Setup wizard) and `Enter` to proceed between steps.
+
+### Custom Snippet Mode
+
+Special keybindings for "Custom - Paste Your Own" mode:
+
+| Key | Action | Context |
+|-----|--------|---------|
+| `Type characters` | Enter text | Name field or content textarea |
+| `Ctrl+V` | Paste content | Paste multi-line Caddy config |
+| `Tab` | Next field | Name → Content |
+| `Shift+Tab` | Previous field | Content → Name |
+| `Enter` | Create snippet | Generate and save (when both fields filled) |
+| `ESC` | Cancel | Return to main view |
+
+**Custom Mode Features:**
+- Name field: Single-line text input (50 char limit)
+- Content field: Multi-line textarea (70x10, unlimited chars)
+- Live preview showing snippet format: `(name) { content }`
+- Tab inserts literal tab in content (not navigation)
+- Arrow keys navigate within focused field
+
+### Wizard Steps (Guided Mode)
+
+1. **Welcome** - Introduction and mode selection
+2. **Category Selection** - Choose which snippet categories to configure
+3. **Template Selection** - (Templated mode) Choose from 14+ templates
+4. **Parameter Configuration** - (Per template) Configure dynamic parameters
+5. **IP Restriction** - Configure LAN subnet and allowed external IPs
+6. **Security Headers** - Choose preset (basic/strict/paranoid)
+7. **Performance** - Enable compression options
+8. **Summary** - Review all snippets before creation
+
+### Parameter Validation
+
+Templates with configurable parameters include real-time validation:
+
+| Template | Parameters | Validation |
+|----------|-----------|------------|
+| CORS Headers | Allowed origins, methods, headers | URL format, HTTP method names |
+| Rate Limiting | Requests per window, window duration | Positive integers, duration format |
+| Extended Timeouts | Read, write, dial timeouts | Duration format (e.g., "5m", "30s") |
+| Large Uploads | Max body size | Size format (e.g., "100MB", "1GB") |
+
+**Validation Errors:**
+- Shown inline under invalid fields
+- Red text with error message
+- Cannot proceed to next step until fixed
+- Format hints displayed in placeholder text
 
 ---
 
@@ -290,7 +457,7 @@ The status bar at the bottom of the screen changes based on context to show only
 
 ### Main View (Normal Mode)
 ```
-a:add  e:edit  d:delete  s:sync  f:filter  t:type  o:sort  b:backups  l:log  ?:help  q:quit
+↑/↓:nav  a:add  Enter:edit  d:delete  s:sync  w:snippets  b:backups  p:profiles  ?:help  q:quit
 ```
 
 ### Main View (Selection Mode)
@@ -305,7 +472,7 @@ Type to search...  ESC:cancel
 
 ### Forms
 ```
-Tab/j/k:navigate  Space:toggle  Enter:preview  ESC:cancel
+Tab/↓/↑:navigate  Space:toggle  Enter:preview  ESC:cancel
 ```
 
 ### Form Preview
@@ -320,7 +487,7 @@ p:preview  R:restore  x:delete  c:cleanup  ESC:close
 
 ### Audit Log
 ```
-j/k:scroll  ESC:close
+↓/↑:scroll  ESC:close
 ```
 
 ---
@@ -369,11 +536,15 @@ Interactive 12-step wizard for first-time configuration and creating new profile
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Next option | Navigate radio buttons (Proxy Type, Deployment) |
-| `k` / `↑` | Previous option | Navigate radio buttons |
+| `↓` | Next option | Navigate radio buttons (Proxy Type, Deployment, Encryption) |
+| `↑` | Previous option | Navigate radio buttons |
+| `Tab` | Next option | Alternative to `↓` for radio button navigation |
+| `Shift+Tab` | Previous option | Alternative to `↑` for radio button navigation |
 | `Enter` | Confirm / Next | Accept input and proceed to next step |
 | `b` | Back | Return to previous wizard step |
 | `ESC` | Cancel wizard | Exit wizard (returns to profile selector if profiles exist) |
+
+**Navigation Pattern:** Setup wizard supports both arrow keys (`↑`/`↓`) and Tab keys for navigating selection options. All methods work consistently across all wizard steps.
 
 ### Input
 
@@ -417,22 +588,22 @@ Interactive 12-step wizard for first-time configuration and creating new profile
 
 ## Profile Selector
 
-Modal interface for switching between profiles or creating new ones.
+Modal interface for switching between profiles, editing profiles, or creating new ones.
 
 ### Navigation
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `j` / `↓` | Next profile | Navigate down the profile list |
-| `k` / `↑` | Previous profile | Navigate up the profile list |
+| `↓` | Next profile | Navigate down the profile list |
+| `↑` | Previous profile | Navigate up the profile list |
 | `Enter` | Select profile | Load selected profile and switch to it |
 | `ESC` | Cancel | Close selector, return to main view |
-| `p` / `Ctrl+P` | Close selector | Same as ESC |
 
 ### Actions
 
 | Key | Action | Description |
 |-----|--------|-------------|
+| `e` | Edit profile | Edit the selected profile's settings |
 | `+` | New profile | Launch setup wizard to create new profile |
 | `n` | New profile | Same as `+` |
 
@@ -441,6 +612,7 @@ Modal interface for switching between profiles or creating new ones.
 - Last used profile remembered and pre-selected
 - Shows "Add new profile (run wizard)" option at bottom
 - Automatic data reload when switching profiles
+- Can edit profile settings without leaving selector
 
 **Example Display:**
 ```
@@ -452,21 +624,96 @@ Select Profile
 
   + Add new profile (run wizard)
 
-j/k: navigate  Enter: select  +/n: new profile  ESC: cancel
+j/k: navigate  Enter: select  e: edit  +/n: new  ESC: cancel
+```
+
+---
+
+## Profile Editor
+
+Modal interface for editing profile settings without creating a new profile.
+
+### Navigation
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `Tab` | Next field | Move to next editable field |
+| `Shift+Tab` | Previous field | Move to previous field |
+| `↓` | Next field | Alternative to Tab for vertical navigation |
+| `↑` | Previous field | Alternative to Shift+Tab for vertical navigation |
+
+### Input
+
+| Key | Action | Context |
+|-----|--------|---------|
+| `Type characters` | Enter text | Text input fields (profile name, API token, domain, paths, etc.) |
+| `Backspace` | Delete character | Text input fields |
+| `Space` | Toggle boolean | Boolean/checkbox fields (SSL, Proxied, etc.) |
+
+### Fields
+
+Profile editor allows editing:
+
+1. **Profile Name** - Name of the profile (alphanumeric, hyphen, underscore)
+2. **Domain** - Base domain for this profile
+3. **API Token** - Cloudflare API token
+4. **Zone ID** - Cloudflare zone ID
+5. **Caddyfile Path** - Path to the Caddyfile
+6. **Container Name** - Docker container name (if using Docker)
+7. **Default CNAME Target** - Default target for new CNAME entries
+8. **Default Port** - Default port for reverse proxy entries
+9. **Default SSL** - Toggle SSL for upstream connections (on/off)
+10. **Default Proxied** - Toggle Cloudflare proxy status (on/off)
+
+### Actions
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `Enter` | Save changes | Save edited profile and return to selector |
+| `ESC` | Cancel | Discard changes and return to selector |
+
+**Profile Editor Features:**
+- Edit profile settings without recreating the entire profile
+- All validation from setup wizard applies
+- Changes take effect immediately when saved
+- Currently active profile shows "(active)" label
+- Cannot delete profile from editor (use profile management)
+
+**Example Display:**
+```
+Edit Profile: homelab
+
+Profile Name ..................... homelab
+Domain ............................ example.com
+API Token ......................... ••••••••••••
+Zone ID ........................... ••••••••••••
+
+Caddyfile Path .................... /etc/caddy/Caddyfile
+Container Name .................... caddy
+
+Default CNAME Target .............. www.example.com
+Default Port ...................... 80
+Default SSL ....................... [✓] On
+Default Proxied ................... [✓] On
+
+Tab/j/k: navigate  Space: toggle  Enter: save  ESC: cancel
 ```
 
 ---
 
 ### Keyboard Navigation Philosophy
 
-LazyProxyFlare follows Vi/Vim-style navigation patterns:
-- `j/k` for vertical movement (down/up)
+LazyProxyFlare uses intuitive navigation patterns:
+- Arrow keys (`↑`/`↓`) for all navigation (always works)
+- `j/k` for vertical movement in main list view only (vim-style convenience)
 - `g/G` for jump to top/bottom
 - `ESC` to cancel or go back
-- `/` for search
+- `Ctrl+W` to close modal windows
+- `?` for help/keybindings
+- `q` to quit (with confirmation)
 - `Space` for selection/toggle
-
-If you're familiar with lazygit, you'll feel right at home!
+- `Enter` to edit selected entry
+- Single character keys for common actions (a, d, s, w, b, p)
 
 ---
 
@@ -478,9 +725,47 @@ In v1.1+, keybindings will be customizable via config:
 keybindings:
   add: "a"
   delete: "d"
-  quit: "q"
+  quit: "ctrl+q"
   # ... etc
 ```
+
+---
+
+## Wizard Navigation Patterns
+
+Both wizards (Setup and Snippet) follow consistent navigation patterns:
+
+### Common Keybindings
+
+| Wizard | Option Navigation | Step Progression | Go Back | Cancel |
+|--------|------------------|------------------|---------|--------|
+| **Setup Wizard** | `Tab` / `Shift+Tab` / `↑/↓` | `Enter` | `b` | `ESC` |
+| **Snippet Wizard** | `Tab` / `Shift+Tab` / `↑/↓` | `Enter` | `b` | `ESC` |
+
+### Navigation Consistency
+
+Both wizards support **two equivalent methods** for navigating options:
+1. **Arrow keys** (`↑` / `↓`) - Standard terminal navigation
+2. **Tab keys** (`Tab` / `Shift+Tab`) - Traditional form navigation
+
+Both methods work identically in both wizards for maximum flexibility.
+
+### Key Differences
+
+| Feature | Setup Wizard | Snippet Wizard |
+|---------|-------------|----------------|
+| **Radio buttons** | Both navigation methods | Both navigation methods |
+| **Checkboxes** | N/A | `Space` to toggle |
+| **Multi-select** | N/A | `Space` for templates |
+| **Multi-field steps** | Single field per step | Name + Content fields (custom mode) |
+
+### Navigation Tips
+
+1. **Consistent across wizards** - Both navigation methods work in both wizards
+2. **Use whichever feels natural** - Arrow keys or Tab - your choice
+3. **Use `b` to go back** - Review and edit previous steps without losing progress
+4. **`ESC` cancels safely** - Returns to main view without saving
+5. **Input validation** - Both wizards validate before allowing progression to next step
 
 ---
 
@@ -492,5 +777,5 @@ keybindings:
 
 ---
 
-**Last Updated:** 2025-12-28
-**Version:** 1.0
+**Last Updated:** 2026-01-25
+**Version:** 1.1 (with profile editing)

@@ -1,0 +1,43 @@
+# Example Profile: Production with Custom Validation
+# Location: ~/.config/lazyproxyflare/profiles/production.yaml
+#
+# This profile demonstrates a scenario where:
+# - Caddy is running in Docker for production
+# - Caddy is also installed locally via apt for validation
+# - Uses local Caddy binary to validate without docker exec overhead
+
+profile:
+  name: "production"
+  description: "Production environment with custom validation"
+  created: "2025-01-01T00:00:00Z"
+
+cloudflare:
+  api_token: "your_production_api_token_here"
+  zone_id: "your_production_zone_id_here"
+
+domain: "example.com"
+
+proxy:
+  type: "caddy"
+  deployment: "docker"
+  caddy:
+    caddyfile_path: "/etc/caddy/Caddyfile"
+    container_name: "caddy-prod"
+
+    # Custom validation: Use locally installed Caddy (via apt) instead of docker exec
+    # This is faster and doesn't require docker socket access for validation
+    validation_command: "/usr/bin/caddy validate --config {path}"
+
+    # Custom restart: Include logging
+    restart_command: "docker restart {container} && echo 'Caddy restarted at $(date)' >> /var/log/caddy-restarts.log"
+
+defaults:
+  cname_target: "prod-lb.example.com"
+  proxied: true
+  port: 443
+  ssl: true                          # Use HTTPS for upstream
+  lan_subnet: ""                     # No LAN restrictions in production
+  allowed_external_ip: ""
+
+ui:
+  theme: "default"

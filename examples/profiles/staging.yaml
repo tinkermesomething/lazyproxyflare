@@ -1,0 +1,34 @@
+# Example Profile: Staging Environment
+# Location: ~/.config/lazyproxyflare/profiles/staging.yaml
+#
+# This profile demonstrates a staging environment setup.
+
+profile:
+  name: "staging"
+  description: "Staging environment for testing"
+  created: "2025-01-01T00:00:00Z"
+
+cloudflare:
+  api_token: "your_staging_api_token_here"
+  zone_id: "your_staging_zone_id_here"
+
+domain: "staging.example.com"
+
+proxy:
+  type: "caddy"
+  deployment: "docker"
+  caddy:
+    caddyfile_path: "/home/user/staging/Caddyfile"
+    container_name: "caddy-staging"
+    # Uses defaults for validation and restart
+
+defaults:
+  cname_target: "staging-server.example.com"
+  proxied: false                     # Don't use Cloudflare proxy in staging
+  port: 8080                         # Non-standard port for staging
+  ssl: false
+  lan_subnet: "192.168.1.0/24"      # Restrict to local network
+  allowed_external_ip: "203.0.113.42" # Allow single external tester IP
+
+ui:
+  theme: "default"
