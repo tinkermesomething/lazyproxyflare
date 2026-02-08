@@ -79,7 +79,7 @@ sudo make install
 make build
 
 # Build with version tag
-make build VERSION=1.0.0
+make build VERSION=1.1.0
 ```
 
 ### CLI Flags
@@ -505,10 +505,26 @@ lazyproxyflare/
 │   │   ├── engine.go
 │   │   └── types.go
 │   └── ui/                     # Terminal UI (Bubbletea)
-│       ├── app.go              # Application logic (CRUD, sync, rollback)
-│       ├── key_handlers.go     # Keyboard input routing
-│       ├── model.go            # State management
+│       ├── app.go              # Init, Update dispatch, View dispatch, styles
+│       ├── model.go            # State management (8 sub-structs)
+│       ├── model_init.go       # 4 NewModel* constructors
+│       ├── messages.go         # Async message type definitions
+│       ├── key_handlers.go     # Keyboard dispatch table
+│       ├── key_handlers_enter.go    # Enter key handler
+│       ├── key_handlers_tab.go      # Tab/Shift+Tab handlers
+│       ├── key_handlers_toggle.go   # Space key handler
+│       ├── key_handlers_input.go    # Text input handler
+│       ├── key_handlers_simple.go   # 35+ simple key handlers
+│       ├── key_handlers_confirm.go  # Y-key confirmation dispatch
+│       ├── key_handlers_dismiss.go  # Esc/Ctrl+W dismiss dispatch
+│       ├── key_handlers_nav.go      # Arrow key navigation dispatch
+│       ├── update_handlers.go  # Async message handlers
+│       ├── update_mouse.go     # Mouse input handling
+│       ├── commands_crud.go    # Create/update/delete/sync commands
+│       ├── commands_bulk.go    # Bulk/batch delete and sync commands
+│       ├── commands_backup.go  # Backup/restore/cleanup/refresh commands
 │       ├── views.go            # Help pages, status bar, rendering
+│       ├── views_render.go     # List/details/add/edit/preview rendering
 │       ├── panels.go           # Three-panel layout, modal rendering
 │       ├── forms.go            # Add/edit forms with snippet selection
 │       ├── confirmations.go    # Confirmation dialogs
@@ -518,6 +534,7 @@ lazyproxyflare/
 │       ├── helpers.go          # Filtering & sorting
 │       ├── snippets_panel.go   # Snippets panel rendering
 │       ├── snippet_wizard.go   # Snippet wizard integration
+│       ├── snippet_operations.go # Snippet CRUD + wizard config
 │       ├── wizard.go           # Profile setup wizard (5-step)
 │       ├── wizard_views.go     # Wizard step rendering
 │       ├── wizard_update.go    # Wizard state transitions
@@ -564,9 +581,10 @@ make install            # Install to /usr/local/bin
 
 ### Code Statistics
 
-- **Total Lines:** ~19,760 lines of Go
+- **Total Lines:** ~24,300 lines of Go
+- **UI Files:** 44 focused files (largest <800 lines)
 - **Packages:** 9 well-organized packages
-- **Test Files:** 14 test files with unit tests
+- **Test Files:** 17 test files with unit tests
 - **Features:** Complete CRUD, profiles, snippets, batch ops, backup/restore, audit logging
 
 ### Design Principles
@@ -581,7 +599,7 @@ make install            # Install to /usr/local/bin
 
 ## Roadmap
 
-### v1.0 (Current)
+### v1.0
 - Complete CRUD operations for DNS and Caddy entries
 - Advanced filtering, sorting, and batch operations
 - Multi-profile system with interactive setup wizard
@@ -593,7 +611,19 @@ make install            # Install to /usr/local/bin
   - Smart form suggestions and brownfield support
   - Auto-detection and visual indicators
 
-### v1.1 (Planned)
+### v1.1 (Current)
+
+**Architecture & Code Quality**
+- Major codebase refactoring: decomposed monolithic `app.go` (3,500+ lines) into 15+ focused files
+- Extracted 8 model sub-structs for cleaner state management
+- Pure keyboard dispatch table with single-responsibility handlers
+- Separated CRUD, bulk, and backup commands into dedicated modules
+- Async message handling and mouse input extracted to standalone handlers
+- Snippet operations and view rendering isolated into focused files
+- Pre-compiled regex patterns and DRY Cloudflare client initialization
+- Zero behavior changes — all refactoring verified with full test suite
+
+### v1.2 (Planned)
 
 **Security**
 - OS keyring integration: Securely store Cloudflare API tokens
