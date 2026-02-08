@@ -2025,9 +2025,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 						// Calculate scroll offset (if needed in future)
 					}
 				} else {
-					m.cursor = len(m.getFilteredEntries()) - 1
-					if len(m.getFilteredEntries()) > m.height-5 {
-						m.scrollOffset = len(m.getFilteredEntries()) - (m.height - 5)
+					filtered := m.getFilteredEntries()
+					m.cursor = len(filtered) - 1
+					if len(filtered) > m.height-5 {
+						m.scrollOffset = len(filtered) - (m.height - 5)
 					}
 				}
 			}
@@ -2093,9 +2094,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		case "end":
 			if m.currentView == ViewList && !m.searching {
-				m.cursor = len(m.getFilteredEntries()) - 1
-				if len(m.getFilteredEntries()) > m.height-5 {
-					m.scrollOffset = len(m.getFilteredEntries()) - (m.height - 5)
+				filtered := m.getFilteredEntries()
+				m.cursor = len(filtered) - 1
+				if len(filtered) > m.height-5 {
+					m.scrollOffset = len(filtered) - (m.height - 5)
 				}
 			}
 

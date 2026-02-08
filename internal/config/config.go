@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+var (
+	zoneIDRegex = regexp.MustCompile(`^[a-f0-9]{32}$`)
+	domainRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$`)
+)
+
 // GetAPIToken retrieves the API token, expanding environment variables if necessary
 func (c *Config) GetAPIToken() (string, error) {
 	if c.Cloudflare.APIToken == "" {
@@ -59,8 +64,7 @@ func (c *Config) ValidateStructure() error {
 
 // isValidZoneID checks if the zone ID is a valid 32-character hex string
 func isValidZoneID(zoneID string) bool {
-	matched, _ := regexp.MatchString("^[a-f0-9]{32}$", zoneID)
-	return matched
+	return zoneIDRegex.MatchString(zoneID)
 }
 
 // isValidDomain checks if the domain is a valid FQDN
@@ -69,9 +73,7 @@ func isValidDomain(domain string) bool {
 	if !strings.Contains(domain, ".") {
 		return false
 	}
-	// Check for valid domain characters
-	matched, _ := regexp.MatchString("^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$", domain)
-	return matched
+	return domainRegex.MatchString(domain)
 }
 
 // IsValidCIDR checks if the string is a valid CIDR notation

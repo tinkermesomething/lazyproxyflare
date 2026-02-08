@@ -12,6 +12,15 @@ type DNSRecord struct {
 	ZoneName string `json:"zone_name"`
 }
 
+// DNSClient defines the interface for DNS record operations.
+// Implemented by Client; useful for mocking in tests.
+type DNSClient interface {
+	ListDNSRecords(zoneID string, recordType string) ([]DNSRecord, error)
+	CreateDNSRecord(zoneID string, record DNSRecord) (*DNSRecord, error)
+	UpdateDNSRecord(zoneID, recordID string, record DNSRecord) (*DNSRecord, error)
+	DeleteDNSRecord(zoneID, recordID string) error
+}
+
 // APIResponse is the standard Cloudflare API response wrapper
 type APIResponse struct {
 	Success    bool          `json:"success"`
