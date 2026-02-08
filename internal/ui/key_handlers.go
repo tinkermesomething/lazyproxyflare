@@ -587,68 +587,19 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 		case "/":
-			// Enter search mode (only from list view)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				m.searching = true
-				m.searchQuery = ""
-				return m, nil
-			}
+			return m.handleSearchStart()
 
 		case "f":
-			// Cycle through status filters (only from list view, not while searching)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				// Cycle: All -> Synced -> Orphaned DNS -> Orphaned Caddy -> All
-				m.statusFilter = (m.statusFilter + 1) % 4
-				// Reset cursor and scroll when filter changes
-				m.cursor = 0
-				m.scrollOffset = 0
-				return m, nil
-			}
+			return m.handleStatusFilterCycle()
 
 		case "t":
-			// Cycle through DNS type filters (only from list view, not while searching)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				// Cycle: All -> CNAME -> A -> All
-				m.dnsTypeFilter = (m.dnsTypeFilter + 1) % 3
-				// Reset cursor and scroll when filter changes
-				m.cursor = 0
-				m.scrollOffset = 0
-				return m, nil
-			}
+			return m.handleDNSTypeFilterCycle()
 
 		case "o":
-			// Cycle through sort modes (only from list view, not while searching)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				// Cycle: Alphabetical -> By Status -> Alphabetical
-				m.sortMode = (m.sortMode + 1) % 2
-				// Reset cursor and scroll when sort changes
-				m.cursor = 0
-				m.scrollOffset = 0
-				return m, nil
-			}
+			return m.handleSortModeCycle()
 
 		case "a":
-			// Open add entry form (only from list view, not while searching or loading)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				// Initialize form with defaults from config
-				m.addForm = AddFormData{
-					Subdomain:          "",
-					DNSType:            "CNAME",
-					DNSTarget:          m.config.Defaults.CNAMETarget,
-					DNSOnly:            false,
-					ReverseProxyTarget: "localhost",
-					ServicePort:        fmt.Sprintf("%d", m.config.Defaults.Port),
-					Proxied:            m.config.Defaults.Proxied,
-					LANOnly:            false,
-					SSL:                m.config.Defaults.SSL,
-					OAuth:              false,
-					WebSocket:          false,
-					SelectedSnippets:   make(map[string]bool),
-					FocusedField:       0,
-				}
-				m.currentView = ViewAdd
-				return m, nil
-			}
+			return m.handleAddEntry()
 
 		case "e":
 			// Edit profile in profile selector
@@ -716,37 +667,13 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 		case "D":
-			// Bulk delete menu (only from list view)
-			if m.currentView == ViewList && !m.loading {
-				m.bulkDelete.MenuCursor = 0
-				m.currentView = ViewBulkDeleteMenu
-				return m, nil
-			}
+			return m.handleOpenBulkDeleteMenu()
 
 		case "b", "ctrl+b":
-			// Backup manager (only from list view)
-			if m.currentView == ViewList && !m.loading {
-				m.backup.Cursor = 0
-				m.backup.ScrollOffset = 0
-				m.currentView = ViewBackupManager
-				return m, nil
-			}
+			return m.handleOpenBackupManager()
 
 		case "l", "L":
-			// Audit log viewer (only from list view)
-			if m.currentView == ViewList && !m.loading {
-				// Load audit logs
-				if m.audit.Logger != nil {
-					logs, err := m.audit.Logger.LoadLogs()
-					if err == nil {
-						m.audit.Logs = logs
-						m.audit.Cursor = 0
-						m.audit.Scroll = 0
-					}
-				}
-				m.currentView = ViewAuditLog
-				return m, nil
-			}
+			return m.handleOpenAuditLog()
 
 		case "p", "ctrl+p":
 			// Handle in profile selector
@@ -841,18 +768,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 		case "X":
-			// Batch delete selected entries (only from list view)
-			if m.currentView == ViewList && !m.loading && len(m.selectedEntries) > 0 {
-				m.currentView = ViewConfirmBatchDelete
-				return m, nil
-			}
+			return m.handleBatchDeleteSelected()
 
 		case "S":
-			// Batch sync selected entries (only from list view)
-			if m.currentView == ViewList && !m.loading && len(m.selectedEntries) > 0 {
-				m.currentView = ViewConfirmBatchSync
-				return m, nil
-			}
+			return m.handleBatchSyncSelected()
 
 		case "enter":
 			// Edit selected entry (from list view)
@@ -1171,20 +1090,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		return m, nil
 
 		case "s":
-			// Sync orphaned entry (create missing Caddy or DNS)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				filteredEntries := m.getFilteredEntries()
-				if m.cursor < len(filteredEntries) {
-					entry := filteredEntries[m.cursor]
-					// Only allow sync on orphaned entries
-					if entry.Status == diff.StatusOrphanedDNS || entry.Status == diff.StatusOrphanedCaddy {
-						// Store the entry to sync (handles filtered lists correctly)
-						m.sync.Entry = &entry
-						m.currentView = ViewConfirmSync
-						return m, nil
-					}
-				}
-			}
+			return m.handleSyncEntry()
 
 		case "r":
 			// If showing error modal, retry by clearing error and returning to previous view
@@ -1200,39 +1106,16 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 		case "m":
-			// Migrate Caddyfile (only from list view with config loaded)
-			if m.currentView == ViewList && m.config != nil && !m.loading {
-				if err := m.startMigrationWizard(); err != nil {
-					m.err = err
-					return m, nil
-				}
-				return m, nil
-			}
+			return m.handleOpenMigrationWizard()
 
 		case "?", "h", "ctrl+h":
-			// Show help screen (not in search mode)
-			if !m.searching && !m.loading {
-				m.currentView = ViewHelp
-				m.helpPage = 0 // Reset to first page when opening help
-				return m, nil
-			}
+			return m.handleOpenHelp()
 
 		case "1", "2", "3", "4", "5":
-			// Jump to specific help page (only in help view)
-			if m.currentView == ViewHelp {
-				pageNum := int(msg.String()[0] - '0') // Convert '1'-'5' to 0-4
-				if pageNum >= 1 && pageNum <= 5 {
-					m.helpPage = pageNum - 1
-				}
-				return m, nil
-			}
+			return m.handleHelpPageJump(msg.String())
 
 		case "q":
-			// Quit app (only from list view, not while searching or in modals)
-			if m.currentView == ViewList && !m.searching {
-				m.quitting = true
-				return m, tea.Quit
-			}
+			return m.handleQuit()
 
 		case "y":
 			// Save snippet changes when in edit mode
@@ -1356,53 +1239,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 		case "n":
-			// Handle 'n' (new profile) in profile selector
-			if m.currentView == ViewProfileSelector {
-				return m.handleProfileSelectorKeyPress("n")
-			}
-			// Cancel bulk delete (only in confirm bulk delete screen)
-			if m.currentView == ViewConfirmBulkDelete {
-				m.currentView = ViewList
-				m.bulkDelete.Entries = nil
-				m.err = nil
-				return m, nil
-			}
-			// Cancel delete (only in confirm delete screen)
-			if m.currentView == ViewConfirmDelete {
-				m.currentView = ViewList
-				m.err = nil
-				return m, nil
-			}
-			// Cancel sync (only in confirm sync screen)
-			if m.currentView == ViewConfirmSync {
-				m.currentView = ViewList
-				m.err = nil
-				return m, nil
-			}
-			// Cancel batch delete (only in confirm batch delete screen)
-			if m.currentView == ViewConfirmBatchDelete {
-				m.currentView = ViewList
-				m.err = nil
-				return m, nil
-			}
-			// Cancel batch sync (only in confirm batch sync screen)
-			if m.currentView == ViewConfirmBatchSync {
-				m.currentView = ViewList
-				m.err = nil
-				return m, nil
-			}
-			// Cancel restore (only in confirm restore screen)
-			if m.currentView == ViewConfirmRestore {
-				m.currentView = ViewBackupManager
-				m.err = nil
-				return m, nil
-			}
-			// Cancel cleanup (only in confirm cleanup screen)
-			if m.currentView == ViewConfirmCleanup {
-				m.currentView = ViewBackupManager
-				m.err = nil
-				return m, nil
-			}
+			return m.handleCancelConfirmation()
 
 		case " ":
 			// In profile edit: toggle boolean fields
@@ -1565,28 +1402,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		// Navigation keys - j/k for dashboard only (single keys)
 		case "j":
-			// Only works in list view - navigates down
-			if m.currentView == ViewList && !m.searching {
-				if m.cursor < len(m.getFilteredEntries())-1 {
-					m.cursor++
-					if m.cursor >= m.scrollOffset+m.height-5 {
-						m.scrollOffset++
-					}
-				}
-				return m, nil
-			}
+			return m.handleListDown()
 
 		case "k":
-			// Only works in list view - navigates up
-			if m.currentView == ViewList && !m.searching {
-				if m.cursor > 0 {
-					m.cursor--
-					if m.cursor < m.scrollOffset {
-						m.scrollOffset--
-					}
-				}
-				return m, nil
-			}
+			return m.handleListUp()
 
 		case "down":
 			// In wizard: navigate down
@@ -2052,54 +1871,16 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 		case "pgup":
-			// Page up in backup preview
-			if m.currentView == ViewBackupPreview && !m.loading {
-				visibleHeight := m.height - 12
-				if visibleHeight < 5 {
-					visibleHeight = 5
-				}
-				m.backup.PreviewScroll -= visibleHeight
-				if m.backup.PreviewScroll < 0 {
-					m.backup.PreviewScroll = 0
-				}
-			}
+			return m.handleBackupPageUp()
 
 		case "pgdown":
-			// Page down in backup preview
-			if m.currentView == ViewBackupPreview && !m.loading {
-				content, err := os.ReadFile(m.backup.PreviewPath)
-				if err == nil {
-					lines := strings.Split(string(content), "\n")
-					visibleHeight := m.height - 12
-					if visibleHeight < 5 {
-						visibleHeight = 5
-					}
-					m.backup.PreviewScroll += visibleHeight
-					// Don't scroll past the end
-					maxScroll := len(lines) - visibleHeight
-					if maxScroll < 0 {
-						maxScroll = 0
-					}
-					if m.backup.PreviewScroll > maxScroll {
-						m.backup.PreviewScroll = maxScroll
-					}
-				}
-			}
+			return m.handleBackupPageDown()
 
 		case "home":
-			if m.currentView == ViewList && !m.searching {
-				m.cursor = 0
-				m.scrollOffset = 0
-			}
+			return m.handleListHome()
 
 		case "end":
-			if m.currentView == ViewList && !m.searching {
-				filtered := m.getFilteredEntries()
-				m.cursor = len(filtered) - 1
-				if len(filtered) > m.height-5 {
-					m.scrollOffset = len(filtered) - (m.height - 5)
-				}
-			}
+			return m.handleListEnd()
 
 		default:
 			// No specific keybinding matched
