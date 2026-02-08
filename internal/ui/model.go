@@ -217,6 +217,12 @@ type SyncState struct {
 	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
 }
 
+// MigrationState holds state for the migration wizard
+type MigrationState struct {
+	Active bool                 // True when migration wizard is active
+	Data   *MigrationWizardData // Migration wizard data
+}
+
 // AuditState holds state for the audit log viewer
 type AuditState struct {
 	Logger *audit.Logger    // Audit logger instance
@@ -344,7 +350,7 @@ type Model struct {
 	// Snippet panel state
 	snippetCursor         int                     // Currently selected snippet
 	snippetScrollOffset   int                     // For scrolling snippet list
-	snippetCategoryFilter caddy.SnippetCategory   // Filter by category (SnippetUnknown = no filter)
+
 
 	// Snippet editing state
 	editingSnippet      bool            // Whether we're in snippet edit mode
@@ -356,8 +362,7 @@ type Model struct {
 	snippetWizardData SnippetWizardData // Data collected during snippet wizard
 
 	// Migration wizard state
-	migrationWizardActive bool                 // True when migration wizard is active
-	migrationWizardData   *MigrationWizardData // Migration wizard data
+	migration MigrationState
 
 	// Error modal state
 	previousView ViewMode // Previous view before showing error modal
