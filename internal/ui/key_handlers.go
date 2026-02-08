@@ -164,13 +164,13 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		}
 
 		// Handle text input in snippet edit mode using textarea component
-		if m.currentView == ViewSnippetDetail && m.editingSnippet {
+		if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
 			key := msg.String()
 			if key == "y" || key == "enter" || key == "d" || key == "esc" {
 				// Let these fall through to save/delete/cancel handlers
 			} else {
 				var cmd tea.Cmd
-				m.snippetEditTextarea, cmd = m.snippetEditTextarea.Update(msg)
+				m.snippetPanel.EditTextarea, cmd = m.snippetPanel.EditTextarea.Update(msg)
 				return m, cmd
 			}
 		}
@@ -283,9 +283,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 			// If in snippet detail view, handle edit mode or return to list
 			if m.currentView == ViewSnippetDetail {
-				if m.editingSnippet {
+				if m.snippetPanel.Editing {
 					// Cancel edit mode, return to view mode
-					m.editingSnippet = false
+					m.snippetPanel.Editing = false
 					m.err = nil
 					return m, nil
 				}
@@ -693,7 +693,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		case "d":
 			// Delete snippet when in edit mode
-			if m.currentView == ViewSnippetDetail && m.editingSnippet {
+			if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
 				return m.deleteSnippet()
 			}
 			// Delete backup from preview mode
@@ -759,7 +759,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				// Load available profiles
 				profiles, err := config.ListProfiles()
 				if err == nil {
-					m.availableProfiles = profiles
+					m.profile.Available = profiles
 				}
 				m.currentView = ViewProfileSelector
 				return m, nil
@@ -934,17 +934,17 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 
 			// If in snippet detail view mode, enter edit mode
-			if m.currentView == ViewSnippetDetail && !m.editingSnippet {
-				if m.snippetCursor < len(m.snippets) {
+			if m.currentView == ViewSnippetDetail && !m.snippetPanel.Editing {
+				if m.snippetPanel.Cursor < len(m.snippets) {
 					// Initialize textarea with snippet content
 					ta := textarea.New()
 					ta.SetWidth(70)
 					ta.SetHeight(15)
-					ta.SetValue(m.snippets[m.snippetCursor].Content)
+					ta.SetValue(m.snippets[m.snippetPanel.Cursor].Content)
 					ta.Focus()
-					m.snippetEditTextarea = ta
-					m.editingSnippet = true
-					m.editingSnippetIndex = m.snippetCursor
+					m.snippetPanel.EditTextarea = ta
+					m.snippetPanel.Editing = true
+					m.snippetPanel.EditingIndex = m.snippetPanel.Cursor
 					return m, nil
 				}
 			}
@@ -1236,7 +1236,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 
 		case "y":
 			// Save snippet changes when in edit mode
-			if m.currentView == ViewSnippetDetail && m.editingSnippet {
+			if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
 				return m.saveSnippetEdit()
 			}
 			// Handle 'y' (confirm) in wizard summary
@@ -1793,8 +1793,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if m.currentView == ViewList && !m.searching {
 				if m.panelFocus == PanelFocusSnippets {
 					// Navigate snippets
-					if m.snippetCursor < len(m.snippets)-1 {
-						m.snippetCursor++
+					if m.snippetPanel.Cursor < len(m.snippets)-1 {
+						m.snippetPanel.Cursor++
 						// Auto-scroll snippet panel
 						layout := NewPanelLayout(m.width, m.height)
 						availableHeight := layout.SnippetsHeight - 5
@@ -1805,8 +1805,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 						if visibleSnippets < 1 {
 							visibleSnippets = 1
 						}
-						if m.snippetCursor >= m.snippetScrollOffset+visibleSnippets {
-							m.snippetScrollOffset++
+						if m.snippetPanel.Cursor >= m.snippetPanel.ScrollOffset+visibleSnippets {
+							m.snippetPanel.ScrollOffset++
 						}
 					}
 				} else if m.cursor < len(m.getFilteredEntries())-1 {
@@ -1985,11 +1985,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if m.currentView == ViewList && !m.searching {
 				if m.panelFocus == PanelFocusSnippets {
 					// Navigate snippets
-					if m.snippetCursor > 0 {
-						m.snippetCursor--
+					if m.snippetPanel.Cursor > 0 {
+						m.snippetPanel.Cursor--
 						// Auto-scroll snippet panel
-						if m.snippetCursor < m.snippetScrollOffset {
-							m.snippetScrollOffset--
+						if m.snippetPanel.Cursor < m.snippetPanel.ScrollOffset {
+							m.snippetPanel.ScrollOffset--
 						}
 					}
 				} else if m.cursor > 0 {
@@ -2005,8 +2005,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		case "g": // Go to top
 			if m.currentView == ViewList && !m.searching {
 				if m.panelFocus == PanelFocusSnippets {
-					m.snippetCursor = 0
-					m.snippetScrollOffset = 0
+					m.snippetPanel.Cursor = 0
+					m.snippetPanel.ScrollOffset = 0
 				} else {
 					m.cursor = 0
 					m.scrollOffset = 0
@@ -2021,7 +2021,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			if m.currentView == ViewList && !m.searching {
 				if m.panelFocus == PanelFocusSnippets {
 					if len(m.snippets) > 0 {
-						m.snippetCursor = len(m.snippets) - 1
+						m.snippetPanel.Cursor = len(m.snippets) - 1
 						// Calculate scroll offset (if needed in future)
 					}
 				} else {

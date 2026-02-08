@@ -112,7 +112,7 @@ func (m Model) renderAllSnippetsPanel(height int) string {
 		visibleSnippets = 1
 	}
 
-	start := m.snippetScrollOffset
+	start := m.snippetPanel.ScrollOffset
 	end := start + visibleSnippets
 
 	// Adjust bounds
@@ -129,7 +129,7 @@ func (m Model) renderAllSnippetsPanel(height int) string {
 		snippet := m.snippets[i]
 		// Cursor indicator (→ for selected, space otherwise)
 		cursorStr := "  "
-		if i == m.snippetCursor && m.panelFocus == PanelFocusSnippets {
+		if i == m.snippetPanel.Cursor && m.panelFocus == PanelFocusSnippets {
 			cursorStr = StyleHighlight.Render("→ ")
 		}
 		b.WriteString(cursorStr)
@@ -138,7 +138,7 @@ func (m Model) renderAllSnippetsPanel(height int) string {
 		nameStyle := lipgloss.NewStyle().
 			Foreground(ColorBlue).
 			Bold(true)
-		if i == m.snippetCursor && m.panelFocus == PanelFocusSnippets {
+		if i == m.snippetPanel.Cursor && m.panelFocus == PanelFocusSnippets {
 			nameStyle = nameStyle.Foreground(lipgloss.Color("#00D9FF")) // Brighter blue when selected
 		}
 		b.WriteString(nameStyle.Render(snippet.Name))
@@ -264,11 +264,11 @@ func (m Model) calculateSnippetUsage() map[string]int {
 
 // renderSnippetDetailView renders a detailed view of the currently selected snippet
 func (m Model) renderSnippetDetailView() string {
-	if m.snippetCursor >= len(m.snippets) {
+	if m.snippetPanel.Cursor >= len(m.snippets) {
 		return StyleError.Render("No snippet selected")
 	}
 
-	snippet := m.snippets[m.snippetCursor]
+	snippet := m.snippets[m.snippetPanel.Cursor]
 	usage := m.calculateSnippetUsage()
 	usageCount := usage[snippet.Name]
 
@@ -348,9 +348,9 @@ func (m Model) renderSnippetDetailView() string {
 	b.WriteString(StyleInfo.Render("Content:"))
 	b.WriteString("\n")
 
-	if m.editingSnippet {
+	if m.snippetPanel.Editing {
 		// Edit mode: Show editable textarea
-		b.WriteString(m.snippetEditTextarea.View())
+		b.WriteString(m.snippetPanel.EditTextarea.View())
 		b.WriteString("\n\n")
 
 		// Navigation hint for edit mode

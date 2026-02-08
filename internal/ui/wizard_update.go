@@ -152,7 +152,7 @@ func (m Model) handleWizardKeyPress(key string) (Model, tea.Cmd) {
 	case "esc":
 		// Go back to previous step, or cancel if at start
 		if m.wizardStep == WizardStepWelcome {
-			if len(m.availableProfiles) > 0 {
+			if len(m.profile.Available) > 0 {
 				m.currentView = ViewProfileSelector
 			} else {
 				m.quitting = true
@@ -195,7 +195,7 @@ func (m Model) handleWizardKeyPress(key string) (Model, tea.Cmd) {
 	case "n":
 		// 'n' to cancel on summary
 		if m.wizardStep == WizardStepSummary {
-			if len(m.availableProfiles) > 0 {
+			if len(m.profile.Available) > 0 {
 				m.currentView = ViewProfileSelector
 			} else {
 				m.quitting = true
@@ -652,7 +652,7 @@ func (m Model) handleWizardSummaryConfirm() (Model, tea.Cmd) {
 	config.SetLastUsedProfile(m.wizardData.ProfileName)
 
 	// Load the newly created profile
-	m.currentProfileName = m.wizardData.ProfileName
+	m.profile.CurrentName = m.wizardData.ProfileName
 	m.config = config.ProfileToLegacyConfig(profileConfig)
 
 	// Switch to list view

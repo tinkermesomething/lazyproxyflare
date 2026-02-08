@@ -217,6 +217,23 @@ type SyncState struct {
 	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
 }
 
+// SnippetPanelState holds state for the snippet panel and editing
+type SnippetPanelState struct {
+	Cursor       int            // Currently selected snippet
+	ScrollOffset int            // For scrolling snippet list
+	Editing      bool           // Whether we're in snippet edit mode
+	EditTextarea textarea.Model // Textarea for editing snippet content
+	EditingIndex int            // Index of snippet being edited
+}
+
+// ProfileState holds state for profile selection and editing
+type ProfileState struct {
+	CurrentName string          // Name of currently loaded profile
+	Available   []string        // List of available profile names
+	EditData    ProfileEditData // Profile edit form data
+	EditCursor  int             // Current field in edit form
+}
+
 // MigrationState holds state for the migration wizard
 type MigrationState struct {
 	Active bool                 // True when migration wizard is active
@@ -333,12 +350,7 @@ type Model struct {
 	panelFocus PanelFocus // Which panel is focused (left or right)
 
 	// Profile state
-	currentProfileName string   // Name of currently loaded profile
-	availableProfiles  []string // List of available profile names
-
-	// Profile edit state
-	profileEditData   ProfileEditData // Profile edit form data
-	profileEditCursor int             // Current field in edit form
+	profile ProfileState
 
 	// Wizard state
 	wizardStep            WizardStep             // Current wizard step
@@ -348,14 +360,7 @@ type Model struct {
 	wizardDockerContainers []caddy.DockerContainer // Detected Docker containers for wizard
 
 	// Snippet panel state
-	snippetCursor         int                     // Currently selected snippet
-	snippetScrollOffset   int                     // For scrolling snippet list
-
-
-	// Snippet editing state
-	editingSnippet      bool            // Whether we're in snippet edit mode
-	snippetEditTextarea textarea.Model  // Textarea for editing snippet content
-	editingSnippetIndex int             // Index of snippet being edited
+	snippetPanel SnippetPanelState
 
 	// Snippet wizard state
 	snippetWizardStep SnippetWizardStep // Current snippet wizard step

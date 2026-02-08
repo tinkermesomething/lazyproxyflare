@@ -1558,7 +1558,7 @@ func NewModelWithWizard() Model {
 		wizardData:          WizardData{},
 		wizardCursor:        0,
 		wizardTextInput:     ti,
-		availableProfiles:   []string{},
+		profile:             ProfileState{Available: []string{}},
 		selectedEntries:     make(map[string]bool),
 		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
@@ -1596,7 +1596,7 @@ func NewModelWithProfile(entries []diff.SyncedEntry, snippets []caddy.Snippet, c
 		entries:             entries,
 		snippets:            snippets,
 		config:              cfg,
-		currentProfileName:  profileName,
+		profile:             ProfileState{CurrentName: profileName},
 		cursor:              0,
 		currentView:         ViewList,
 		selectedEntries:     make(map[string]bool),
@@ -1641,10 +1641,9 @@ func NewModelWithProfileSelector(profiles []string, lastUsedProfile string) Mode
 		entries:             []diff.SyncedEntry{},
 		snippets:            []caddy.Snippet{},
 		config:              nil,
-		currentProfileName:  lastUsedProfile,
+		profile:             ProfileState{CurrentName: lastUsedProfile, Available: profiles},
 		cursor:              cursor,
 		currentView:         ViewProfileSelector,
-		availableProfiles:   profiles,
 		selectedEntries:     make(map[string]bool),
 		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
@@ -3121,13 +3120,13 @@ func (m Model) createSnippetsFromWizard() (Model, tea.Cmd) {
 
 // saveSnippetEdit saves the edited snippet content back to Caddyfile
 func (m Model) saveSnippetEdit() (Model, tea.Cmd) {
-	if m.editingSnippetIndex < 0 || m.editingSnippetIndex >= len(m.snippets) {
+	if m.snippetPanel.EditingIndex < 0 || m.snippetPanel.EditingIndex >= len(m.snippets) {
 		m.err = fmt.Errorf("invalid snippet index")
 		return m, nil
 	}
 
-	snippet := m.snippets[m.editingSnippetIndex]
-	newContent := m.snippetEditTextarea.Value()
+	snippet := m.snippets[m.snippetPanel.EditingIndex]
+	newContent := m.snippetPanel.EditTextarea.Value()
 
 	// Read current Caddyfile
 	content, err := os.ReadFile(m.config.Caddy.CaddyfilePath)
@@ -3224,7 +3223,7 @@ func (m Model) saveSnippetEdit() (Model, tea.Cmd) {
 	}
 
 	// Exit edit mode, stay in detail view
-	m.editingSnippet = false
+	m.snippetPanel.Editing = false
 	m.err = nil
 
 	// Log the operation
@@ -3248,12 +3247,12 @@ func (m Model) saveSnippetEdit() (Model, tea.Cmd) {
 
 // deleteSnippet removes the selected snippet from the Caddyfile
 func (m Model) deleteSnippet() (Model, tea.Cmd) {
-	if m.editingSnippetIndex < 0 || m.editingSnippetIndex >= len(m.snippets) {
+	if m.snippetPanel.EditingIndex < 0 || m.snippetPanel.EditingIndex >= len(m.snippets) {
 		m.err = fmt.Errorf("invalid snippet index")
 		return m, nil
 	}
 
-	snippet := m.snippets[m.editingSnippetIndex]
+	snippet := m.snippets[m.snippetPanel.EditingIndex]
 
 	// Check if snippet is currently in use
 	usage := m.calculateSnippetUsage()
@@ -3354,7 +3353,7 @@ func (m Model) deleteSnippet() (Model, tea.Cmd) {
 
 	// Return to list view after deletion
 	m.currentView = ViewList
-	m.editingSnippet = false
+	m.snippetPanel.Editing = false
 	m.err = nil
 
 	// Log the operation
