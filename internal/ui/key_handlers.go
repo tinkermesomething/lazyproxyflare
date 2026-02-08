@@ -1,13 +1,8 @@
 package ui
 
 import (
-	"os"
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 
-	"lazyproxyflare/internal/caddy"
-	"lazyproxyflare/internal/config"
 	snippet_wizard "lazyproxyflare/internal/ui/snippet_wizard"
 )
 
@@ -216,69 +211,13 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			return m.handleAddEntry()
 
 		case "e":
-			// Edit profile in profile selector
-			if m.currentView == ViewProfileSelector {
-				return m.handleProfileSelectorKeyPress("e")
-			}
+			return m.handleEditProfile()
 
 		case "w", "ctrl+s":
-			// Open snippet wizard (only from list view, not while searching or loading)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				// Run auto-detection on Caddyfile
-				detectedPatterns, err := snippet_wizard.DetectPatternsFromFile(m.config.Caddy.CaddyfilePath)
-				if err != nil {
-					// If detection fails, continue with empty patterns
-					detectedPatterns = []snippet_wizard.DetectedPattern{}
-				}
-
-				// Initialize snippet wizard
-				m.snippetWizardStep = SnippetWizardWelcome
-				m.snippetWizardData = SnippetWizardData{
-					// Set defaults from config
-					LANSubnet:         m.config.Defaults.LANSubnet,
-					AllowedExternalIP: m.config.Defaults.AllowedExternalIP,
-					SecurityPreset:    "basic", // default to basic
-
-					// Auto-detection data
-					DetectedPatterns: detectedPatterns,
-					SelectedPatterns: make(map[string]bool),
-
-					// Template mode data
-					SelectedTemplates: make(map[string]bool),
-					SnippetConfigs:    make(map[string]snippet_wizard.SnippetConfig),
-
-					// Custom mode data
-					CustomSnippetName:    "",
-					CustomSnippetContent: "",
-				}
-				m.wizardCursor = 0
-				m.currentView = ViewSnippetWizard
-				return m, nil
-			}
+			return m.handleOpenSnippetWizard()
 
 		case "d":
-			// Delete snippet when in edit mode
-			if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
-				return m.deleteSnippet()
-			}
-			// Delete backup from preview mode
-			if m.currentView == ViewBackupPreview && !m.loading {
-				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backup.Cursor < len(backups) {
-					m.loading = true
-					m.currentView = ViewBackupManager // Return to manager after deletion
-					return m, deleteBackupCmd(backups[m.backup.Cursor].Path)
-				}
-				return m, nil
-			}
-			// Delete selected entry (from list view)
-			if m.currentView == ViewList && !m.searching && !m.loading && len(m.getFilteredEntries()) > 0 {
-				m.delete.EntryIndex = m.cursor
-				m.delete.ScopeCursor = 0         // Reset cursor
-				m.delete.Scope = DeleteAll       // Default to delete all
-				m.currentView = ViewDeleteScope // Go to scope selection first
-				return m, nil
-			}
+			return m.handleDeleteAction()
 
 		case "D":
 			return m.handleOpenBulkDeleteMenu()
@@ -290,96 +229,22 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			return m.handleOpenAuditLog()
 
 		case "p", "ctrl+p":
-			// Handle in profile selector
-			if m.currentView == ViewProfileSelector {
-				return m.handleProfileSelectorKeyPress("p")
-			}
-			// Open profile selector from main view
-			if m.currentView == ViewList {
-				m.cursor = 0
-				// Load available profiles
-				profiles, err := config.ListProfiles()
-				if err == nil {
-					m.profile.Available = profiles
-				}
-				m.currentView = ViewProfileSelector
-				return m, nil
-			}
-			// Preview backup (from backup manager)
-			if m.currentView == ViewBackupManager && !m.loading {
-				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backup.Cursor < len(backups) {
-					m.backup.PreviewPath = backups[m.backup.Cursor].Path
-					m.backup.PreviewScroll = 0 // Reset scroll position
-					m.currentView = ViewBackupPreview
-				}
-				return m, nil
-			}
+			return m.handleProfileOrPreview()
 
 		case "R":
-			// Restore backup (from backup manager or preview)
-			if (m.currentView == ViewBackupManager || m.currentView == ViewBackupPreview) && !m.loading {
-				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backup.Cursor < len(backups) {
-					m.backup.PreviewPath = backups[m.backup.Cursor].Path
-					m.backup.RestoreScopeCursor = 0    // Reset cursor
-					m.backup.RestoreScope = RestoreAll // Default to restore all
-					m.currentView = ViewRestoreScope
-				}
-				return m, nil
-			}
+			return m.handleRestoreBackup()
 
 		case "right":
-			// Navigate to next help page
-			if m.currentView == ViewHelp && m.helpPage < 4 {
-				m.helpPage++
-				return m, nil
-			}
-			// Navigate to next backup in preview
-			if m.currentView == ViewBackupPreview && !m.loading {
-				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backup.Cursor < len(backups)-1 {
-					m.backup.Cursor++
-					m.backup.PreviewPath = backups[m.backup.Cursor].Path
-					m.backup.PreviewScroll = 0 // Reset scroll position
-				}
-				return m, nil
-			}
+			return m.handleNavigateRight()
 
 		case "left":
-			// Navigate to previous help page
-			if m.currentView == ViewHelp && m.helpPage > 0 {
-				m.helpPage--
-				return m, nil
-			}
-			// Navigate to previous backup in preview
-			if m.currentView == ViewBackupPreview && !m.loading {
-				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backup.Cursor > 0 {
-					m.backup.Cursor--
-					m.backup.PreviewPath = backups[m.backup.Cursor].Path
-					m.backup.PreviewScroll = 0 // Reset scroll position
-				}
-				return m, nil
-			}
+			return m.handleNavigateLeft()
 
 		case "x":
-			// Delete backup (from backup manager only)
-			if m.currentView == ViewBackupManager && !m.loading {
-				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backup.Cursor < len(backups) {
-					m.loading = true
-					return m, deleteBackupCmd(backups[m.backup.Cursor].Path)
-				}
-				return m, nil
-			}
+			return m.handleDeleteBackup()
 
 		case "c":
-			// Cleanup old backups (from backup manager only)
-			if m.currentView == ViewBackupManager && !m.loading {
-				m.currentView = ViewConfirmCleanup
-				return m, nil
-			}
+			return m.handleCleanupBackups()
 
 		case "X":
 			return m.handleBatchDeleteSelected()
@@ -394,17 +259,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			return m.handleSyncEntry()
 
 		case "r":
-			// If showing error modal, retry by clearing error and returning to previous view
-			if m.currentView == ViewError {
-				m.currentView = m.previousView
-				m.err = nil
-				return m, nil
-			}
-			// Refresh data (only from list view, not while searching or loading)
-			if m.currentView == ViewList && !m.searching && !m.loading {
-				m.loading = true
-				return m, refreshDataCmd(m.config)
-			}
+			return m.handleRefreshData()
 
 		case "m":
 			return m.handleOpenMigrationWizard()
@@ -422,10 +277,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			return m.handleConfirmAction()
 
 		case "+":
-			// Handle '+' (new profile) in profile selector
-			if m.currentView == ViewProfileSelector {
-				return m.handleProfileSelectorKeyPress("+")
-			}
+			return m.handleAddProfile()
 
 		case "n":
 			return m.handleCancelConfirmation()
@@ -449,54 +301,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		case "up":
 			return m.handleNavigateUp()
 
-		case "g": // Go to top
-			if m.currentView == ViewList && !m.searching {
-				if m.panelFocus == PanelFocusSnippets {
-					m.snippetPanel.Cursor = 0
-					m.snippetPanel.ScrollOffset = 0
-				} else {
-					m.cursor = 0
-					m.scrollOffset = 0
-				}
-			}
-			// In backup preview: scroll to top
-			if m.currentView == ViewBackupPreview && !m.loading {
-				m.backup.PreviewScroll = 0
-			}
+		case "g":
+			return m.handleGoToTop()
 
-		case "G": // Go to bottom
-			if m.currentView == ViewList && !m.searching {
-				if m.panelFocus == PanelFocusSnippets {
-					if len(m.snippets) > 0 {
-						m.snippetPanel.Cursor = len(m.snippets) - 1
-						// Calculate scroll offset (if needed in future)
-					}
-				} else {
-					filtered := m.getFilteredEntries()
-					m.cursor = len(filtered) - 1
-					if len(filtered) > m.height-5 {
-						m.scrollOffset = len(filtered) - (m.height - 5)
-					}
-				}
-			}
-			// In backup preview: scroll to bottom
-			if m.currentView == ViewBackupPreview && !m.loading {
-				content, err := os.ReadFile(m.backup.PreviewPath)
-				if err == nil {
-					lines := strings.Split(string(content), "\n")
-					visibleHeight := m.height - 12
-					if visibleHeight < 5 {
-						visibleHeight = 5
-					}
-					// Scroll to show the last page
-					maxScroll := len(lines) - visibleHeight
-					if maxScroll > 0 {
-						m.backup.PreviewScroll = maxScroll
-					} else {
-						m.backup.PreviewScroll = 0
-					}
-				}
-			}
+		case "G":
+			return m.handleGoToBottom()
 
 		case "pgup":
 			return m.handleBackupPageUp()
