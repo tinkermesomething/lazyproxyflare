@@ -217,6 +217,14 @@ type SyncState struct {
 	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
 }
 
+// AuditState holds state for the audit log viewer
+type AuditState struct {
+	Logger *audit.Logger    // Audit logger instance
+	Logs   []audit.LogEntry // Loaded audit log entries
+	Cursor int              // Currently selected log entry
+	Scroll int              // Scroll offset for audit log view
+}
+
 // BackupState holds state for the backup manager
 type BackupState struct {
 	Cursor        int          // Currently selected backup
@@ -313,10 +321,7 @@ type Model struct {
 	backup BackupState
 
 	// Audit log state
-	auditLogger      *audit.Logger      // Audit logger instance
-	auditLogs        []audit.LogEntry   // Loaded audit log entries
-	auditLogCursor   int                // Currently selected log entry
-	auditLogScroll   int                // Scroll offset for audit log view
+	audit AuditState
 
 	// Panel state
 	panelFocus PanelFocus // Which panel is focused (left or right)

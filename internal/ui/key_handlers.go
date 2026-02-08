@@ -736,12 +736,12 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Audit log viewer (only from list view)
 			if m.currentView == ViewList && !m.loading {
 				// Load audit logs
-				if m.auditLogger != nil {
-					logs, err := m.auditLogger.LoadLogs()
+				if m.audit.Logger != nil {
+					logs, err := m.audit.Logger.LoadLogs()
 					if err == nil {
-						m.auditLogs = logs
-						m.auditLogCursor = 0
-						m.auditLogScroll = 0
+						m.audit.Logs = logs
+						m.audit.Cursor = 0
+						m.audit.Scroll = 0
 					}
 				}
 				m.currentView = ViewAuditLog
@@ -1720,8 +1720,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				}
 				visibleEntries := availableHeight / 3
 				// Only scroll if there's more content below
-				if m.auditLogScroll+visibleEntries < len(m.auditLogs) {
-					m.auditLogScroll++
+				if m.audit.Scroll+visibleEntries < len(m.audit.Logs) {
+					m.audit.Scroll++
 				}
 				return m, nil
 			}
@@ -1918,8 +1918,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In audit log: scroll up
-			if m.currentView == ViewAuditLog && !m.loading && m.auditLogScroll > 0 {
-				m.auditLogScroll--
+			if m.currentView == ViewAuditLog && !m.loading && m.audit.Scroll > 0 {
+				m.audit.Scroll--
 				return m, nil
 			}
 			// In bulk delete menu: navigate up

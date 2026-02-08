@@ -57,7 +57,7 @@ func (m Model) renderAuditLogContent(modalHeight int) string {
 	b.WriteString("\n\n")
 
 	// Show message if no logs
-	if len(m.auditLogs) == 0 {
+	if len(m.audit.Logs) == 0 {
 		b.WriteString(StyleDim.Render("No audit log entries yet."))
 		b.WriteString("\n\n")
 		b.WriteString(StyleDim.Render("Operations will be logged here as you create, update, delete, or sync entries."))
@@ -78,24 +78,24 @@ func (m Model) renderAuditLogContent(modalHeight int) string {
 	visibleEntries := availableHeight / 3
 
 	// Ensure scroll offset is valid
-	if m.auditLogScroll > len(m.auditLogs)-1 {
-		m.auditLogScroll = len(m.auditLogs) - 1
+	if m.audit.Scroll > len(m.audit.Logs)-1 {
+		m.audit.Scroll = len(m.audit.Logs) - 1
 	}
-	if m.auditLogScroll < 0 {
-		m.auditLogScroll = 0
+	if m.audit.Scroll < 0 {
+		m.audit.Scroll = 0
 	}
 
 	// Display entries in reverse chronological order (newest first)
-	start := m.auditLogScroll
+	start := m.audit.Scroll
 	end := start + visibleEntries
-	if end > len(m.auditLogs) {
-		end = len(m.auditLogs)
+	if end > len(m.audit.Logs) {
+		end = len(m.audit.Logs)
 	}
 
 	// Reverse the logs for display (newest first)
-	reversedLogs := make([]audit.LogEntry, len(m.auditLogs))
-	for i, log := range m.auditLogs {
-		reversedLogs[len(m.auditLogs)-1-i] = log
+	reversedLogs := make([]audit.LogEntry, len(m.audit.Logs))
+	for i, log := range m.audit.Logs {
+		reversedLogs[len(m.audit.Logs)-1-i] = log
 	}
 
 	// Render visible entries
@@ -106,8 +106,8 @@ func (m Model) renderAuditLogContent(modalHeight int) string {
 	}
 
 	// Show scroll indicator
-	if len(m.auditLogs) > visibleEntries {
-		totalEntries := len(m.auditLogs)
+	if len(m.audit.Logs) > visibleEntries {
+		totalEntries := len(m.audit.Logs)
 		b.WriteString("\n")
 		b.WriteString(StyleDim.Render(fmt.Sprintf("Showing %d-%d of %d entries", start+1, end, totalEntries)))
 	}

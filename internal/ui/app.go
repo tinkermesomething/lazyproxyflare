@@ -1523,7 +1523,7 @@ func NewModel(entries []diff.SyncedEntry, snippets []caddy.Snippet, cfg *config.
 		selectedEntries:     make(map[string]bool),
 		backup:              BackupState{RetentionDays: 30}, // Default: keep backups for 30 days
 		panelFocus:          PanelFocusLeft,
-		auditLogger:         auditLogger,
+		audit:               AuditState{Logger: auditLogger},
 	}
 }
 
@@ -1562,7 +1562,7 @@ func NewModelWithWizard() Model {
 		selectedEntries:     make(map[string]bool),
 		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
-		auditLogger:         auditLogger,
+		audit:               AuditState{Logger: auditLogger},
 	}
 }
 
@@ -1602,7 +1602,7 @@ func NewModelWithProfile(entries []diff.SyncedEntry, snippets []caddy.Snippet, c
 		selectedEntries:     make(map[string]bool),
 		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
-		auditLogger:         auditLogger,
+		audit:               AuditState{Logger: auditLogger},
 		wizardTextInput:     ti,
 	}
 }
@@ -1648,7 +1648,7 @@ func NewModelWithProfileSelector(profiles []string, lastUsedProfile string) Mode
 		selectedEntries:     make(map[string]bool),
 		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
-		auditLogger:         auditLogger,
+		audit:               AuditState{Logger: auditLogger},
 		wizardTextInput:     ti,
 	}
 }
@@ -1862,7 +1862,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Audit log the operation
-		if m.auditLogger != nil {
+		if m.audit.Logger != nil {
 			fqdn := m.addForm.Subdomain + "." + m.config.Domain
 			details := map[string]interface{}{
 				"dns_type": m.addForm.DNSType,
@@ -1887,7 +1887,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				entityType = audit.EntityDNS
 			}
 
-			m.auditLogger.Log(audit.LogEntry{
+			m.audit.Logger.Log(audit.LogEntry{
 				Operation:  audit.OperationCreate,
 				EntityType: entityType,
 				Domain:     fqdn,
@@ -1913,7 +1913,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Audit log the operation
-		if m.auditLogger != nil && m.editingEntry != nil {
+		if m.audit.Logger != nil && m.editingEntry != nil {
 			fqdn := m.addForm.Subdomain + "." + m.config.Domain
 			details := map[string]interface{}{
 				"dns_type": m.addForm.DNSType,
@@ -1943,7 +1943,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				entityType = audit.EntityBoth // DNS-only to Full (added Caddy)
 			}
 
-			m.auditLogger.Log(audit.LogEntry{
+			m.audit.Logger.Log(audit.LogEntry{
 				Operation:  audit.OperationUpdate,
 				EntityType: entityType,
 				Domain:     fqdn,
@@ -1969,7 +1969,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Audit log the operation
-		if m.auditLogger != nil && msg.domain != "" {
+		if m.audit.Logger != nil && msg.domain != "" {
 			result := audit.ResultSuccess
 			errorMsg := ""
 			if !msg.success {
@@ -1987,7 +1987,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				entityType = audit.EntityBoth
 			}
 
-			m.auditLogger.Log(audit.LogEntry{
+			m.audit.Logger.Log(audit.LogEntry{
 				Operation:  audit.OperationDelete,
 				EntityType: entityType,
 				Domain:     msg.domain,
@@ -2011,7 +2011,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Audit log the operation
-		if m.auditLogger != nil && msg.domain != "" {
+		if m.audit.Logger != nil && msg.domain != "" {
 			result := audit.ResultSuccess
 			errorMsg := ""
 			if !msg.success {
@@ -2031,7 +2031,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				"sync_direction": msg.syncType,
 			}
 
-			m.auditLogger.Log(audit.LogEntry{
+			m.audit.Logger.Log(audit.LogEntry{
 				Operation:  audit.OperationSync,
 				EntityType: entityType,
 				Domain:     msg.domain,
@@ -2056,7 +2056,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Audit log the operation
-		if m.auditLogger != nil && len(msg.deletedDomains) > 0 {
+		if m.audit.Logger != nil && len(msg.deletedDomains) > 0 {
 			result := audit.ResultSuccess
 			errorMsg := ""
 			if !msg.success {
@@ -2085,7 +2085,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				domain = fmt.Sprintf("%s and %d others", domain, len(msg.deletedDomains)-1)
 			}
 
-			m.auditLogger.Log(audit.LogEntry{
+			m.audit.Logger.Log(audit.LogEntry{
 				Operation:  operation,
 				EntityType: entityType,
 				Domain:     domain,
@@ -2117,7 +2117,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loading = false
 
 		// Audit log the restore operation
-		if m.auditLogger != nil {
+		if m.audit.Logger != nil {
 			result := audit.ResultSuccess
 			errorMsg := ""
 			if !msg.success {
@@ -2145,7 +2145,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				"scope":       msg.scope.String(),
 			}
 
-			m.auditLogger.Log(audit.LogEntry{
+			m.audit.Logger.Log(audit.LogEntry{
 				Operation:  audit.OperationRestore,
 				EntityType: entityType,
 				Domain:     fmt.Sprintf("Backup: %s", backupFilename),
@@ -3100,7 +3100,7 @@ func (m Model) createSnippetsFromWizard() (Model, tea.Cmd) {
 	}
 
 	// Log the operation (only log newly created snippets)
-	if m.auditLogger != nil && len(newSnippetNames) > 0 {
+	if m.audit.Logger != nil && len(newSnippetNames) > 0 {
 		logEntry := audit.LogEntry{
 			Timestamp:  time.Now(),
 			Operation:  audit.OperationCreate,
@@ -3113,7 +3113,7 @@ func (m Model) createSnippetsFromWizard() (Model, tea.Cmd) {
 			},
 			Result: audit.ResultSuccess,
 		}
-		_ = m.auditLogger.Log(logEntry)
+		_ = m.audit.Logger.Log(logEntry)
 	}
 
 	return m, nil
@@ -3228,7 +3228,7 @@ func (m Model) saveSnippetEdit() (Model, tea.Cmd) {
 	m.err = nil
 
 	// Log the operation
-	if m.auditLogger != nil {
+	if m.audit.Logger != nil {
 		logEntry := audit.LogEntry{
 			Timestamp:  time.Now(),
 			Operation:  audit.OperationUpdate,
@@ -3240,7 +3240,7 @@ func (m Model) saveSnippetEdit() (Model, tea.Cmd) {
 			},
 			Result: audit.ResultSuccess,
 		}
-		_ = m.auditLogger.Log(logEntry)
+		_ = m.audit.Logger.Log(logEntry)
 	}
 
 	return m, nil
@@ -3358,7 +3358,7 @@ func (m Model) deleteSnippet() (Model, tea.Cmd) {
 	m.err = nil
 
 	// Log the operation
-	if m.auditLogger != nil {
+	if m.audit.Logger != nil {
 		logEntry := audit.LogEntry{
 			Timestamp:  time.Now(),
 			Operation:  audit.OperationDelete,
@@ -3370,7 +3370,7 @@ func (m Model) deleteSnippet() (Model, tea.Cmd) {
 			},
 			Result: audit.ResultSuccess,
 		}
-		_ = m.auditLogger.Log(logEntry)
+		_ = m.audit.Logger.Log(logEntry)
 	}
 
 	return m, nil
