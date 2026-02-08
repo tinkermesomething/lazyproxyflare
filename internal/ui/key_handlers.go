@@ -699,10 +699,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Delete backup from preview mode
 			if m.currentView == ViewBackupPreview && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups) {
+				if err == nil && m.backup.Cursor < len(backups) {
 					m.loading = true
 					m.currentView = ViewBackupManager // Return to manager after deletion
-					return m, deleteBackupCmd(backups[m.backupCursor].Path)
+					return m, deleteBackupCmd(backups[m.backup.Cursor].Path)
 				}
 				return m, nil
 			}
@@ -726,8 +726,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 		case "b", "ctrl+b":
 			// Backup manager (only from list view)
 			if m.currentView == ViewList && !m.loading {
-				m.backupCursor = 0
-				m.backupScrollOffset = 0
+				m.backup.Cursor = 0
+				m.backup.ScrollOffset = 0
 				m.currentView = ViewBackupManager
 				return m, nil
 			}
@@ -767,9 +767,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Preview backup (from backup manager)
 			if m.currentView == ViewBackupManager && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups) {
-					m.backupPreviewPath = backups[m.backupCursor].Path
-					m.backupPreviewScroll = 0 // Reset scroll position
+				if err == nil && m.backup.Cursor < len(backups) {
+					m.backup.PreviewPath = backups[m.backup.Cursor].Path
+					m.backup.PreviewScroll = 0 // Reset scroll position
 					m.currentView = ViewBackupPreview
 				}
 				return m, nil
@@ -779,10 +779,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Restore backup (from backup manager or preview)
 			if (m.currentView == ViewBackupManager || m.currentView == ViewBackupPreview) && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups) {
-					m.backupPreviewPath = backups[m.backupCursor].Path
-					m.restoreScopeCursor = 0    // Reset cursor
-					m.restoreScope = RestoreAll // Default to restore all
+				if err == nil && m.backup.Cursor < len(backups) {
+					m.backup.PreviewPath = backups[m.backup.Cursor].Path
+					m.backup.RestoreScopeCursor = 0    // Reset cursor
+					m.backup.RestoreScope = RestoreAll // Default to restore all
 					m.currentView = ViewRestoreScope
 				}
 				return m, nil
@@ -797,10 +797,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Navigate to next backup in preview
 			if m.currentView == ViewBackupPreview && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups)-1 {
-					m.backupCursor++
-					m.backupPreviewPath = backups[m.backupCursor].Path
-					m.backupPreviewScroll = 0 // Reset scroll position
+				if err == nil && m.backup.Cursor < len(backups)-1 {
+					m.backup.Cursor++
+					m.backup.PreviewPath = backups[m.backup.Cursor].Path
+					m.backup.PreviewScroll = 0 // Reset scroll position
 				}
 				return m, nil
 			}
@@ -814,10 +814,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Navigate to previous backup in preview
 			if m.currentView == ViewBackupPreview && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor > 0 {
-					m.backupCursor--
-					m.backupPreviewPath = backups[m.backupCursor].Path
-					m.backupPreviewScroll = 0 // Reset scroll position
+				if err == nil && m.backup.Cursor > 0 {
+					m.backup.Cursor--
+					m.backup.PreviewPath = backups[m.backup.Cursor].Path
+					m.backup.PreviewScroll = 0 // Reset scroll position
 				}
 				return m, nil
 			}
@@ -826,9 +826,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Delete backup (from backup manager only)
 			if m.currentView == ViewBackupManager && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups) {
+				if err == nil && m.backup.Cursor < len(backups) {
 					m.loading = true
-					return m, deleteBackupCmd(backups[m.backupCursor].Path)
+					return m, deleteBackupCmd(backups[m.backup.Cursor].Path)
 				}
 				return m, nil
 			}
@@ -1151,19 +1151,19 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				m.err = fmt.Errorf("failed to get API token: %w", err)
 				return m, nil
 			}
-			return m, restoreBackupCmd(m.config, m.backupPreviewPath, m.restoreScope, apiToken)
+			return m, restoreBackupCmd(m.config, m.backup.PreviewPath, m.backup.RestoreScope, apiToken)
 		}
 		// Confirm cleanup old backups (only in confirm cleanup screen)
 		if m.currentView == ViewConfirmCleanup && !m.loading {
 			m.loading = true
-			return m, cleanupBackupsCmd(m.config.Caddy.CaddyfilePath, m.backupRetentionDays)
+			return m, cleanupBackupsCmd(m.config.Caddy.CaddyfilePath, m.backup.RetentionDays)
 		}
 		// Preview backup with Enter key (from backup manager)
 		if m.currentView == ViewBackupManager && !m.loading {
 			backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-			if err == nil && m.backupCursor < len(backups) {
-				m.backupPreviewPath = backups[m.backupCursor].Path
-				m.backupPreviewScroll = 0 // Reset scroll position
+			if err == nil && m.backup.Cursor < len(backups) {
+				m.backup.PreviewPath = backups[m.backup.Cursor].Path
+				m.backup.PreviewScroll = 0 // Reset scroll position
 				m.currentView = ViewBackupPreview
 			}
 			return m, nil
@@ -1326,9 +1326,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// Preview backup with Enter key (from backup manager)
 			if m.currentView == ViewBackupManager && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups) {
-					m.backupPreviewPath = backups[m.backupCursor].Path
-					m.backupPreviewScroll = 0 // Reset scroll position
+				if err == nil && m.backup.Cursor < len(backups) {
+					m.backup.PreviewPath = backups[m.backup.Cursor].Path
+					m.backup.PreviewScroll = 0 // Reset scroll position
 					m.currentView = ViewBackupPreview
 				}
 				return m, nil
@@ -1341,12 +1341,12 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 					m.err = fmt.Errorf("failed to get API token: %w", err)
 					return m, nil
 				}
-				return m, restoreBackupCmd(m.config, m.backupPreviewPath, m.restoreScope, apiToken)
+				return m, restoreBackupCmd(m.config, m.backup.PreviewPath, m.backup.RestoreScope, apiToken)
 			}
 			// Confirm cleanup old backups (only in confirm cleanup screen)
 			if m.currentView == ViewConfirmCleanup && !m.loading {
 				m.loading = true
-				return m, cleanupBackupsCmd(m.config.Caddy.CaddyfilePath, m.backupRetentionDays)
+				return m, cleanupBackupsCmd(m.config.Caddy.CaddyfilePath, m.backup.RetentionDays)
 			}
 
 		case "+":
@@ -1662,15 +1662,15 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			// In backup manager: navigate down
 			if m.currentView == ViewBackupManager && !m.loading {
 				backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if err == nil && m.backupCursor < len(backups)-1 {
-					m.backupCursor++
+				if err == nil && m.backup.Cursor < len(backups)-1 {
+					m.backup.Cursor++
 					// Adjust scroll if needed
 					visibleHeight := m.height - 8
 					if visibleHeight < 1 {
 						visibleHeight = 10
 					}
-					if m.backupCursor >= m.backupScrollOffset+visibleHeight {
-						m.backupScrollOffset++
+					if m.backup.Cursor >= m.backup.ScrollOffset+visibleHeight {
+						m.backup.ScrollOffset++
 					}
 				}
 				return m, nil
@@ -1683,16 +1683,16 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In restore scope selection: navigate down
-			if m.currentView == ViewRestoreScope && !m.loading && m.restoreScopeCursor < 2 {
-				m.restoreScopeCursor++
+			if m.currentView == ViewRestoreScope && !m.loading && m.backup.RestoreScopeCursor < 2 {
+				m.backup.RestoreScopeCursor++
 				// Update selected scope based on cursor
-				m.restoreScope = RestoreScope(m.restoreScopeCursor)
+				m.backup.RestoreScope = RestoreScope(m.backup.RestoreScopeCursor)
 				return m, nil
 			}
 			// In backup preview: scroll down
 			if m.currentView == ViewBackupPreview && !m.loading {
 				// Read backup to get line count
-				content, err := os.ReadFile(m.backupPreviewPath)
+				content, err := os.ReadFile(m.backup.PreviewPath)
 				if err == nil {
 					lines := strings.Split(string(content), "\n")
 					visibleHeight := m.height - 12
@@ -1700,8 +1700,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 						visibleHeight = 5
 					}
 					// Only scroll if there's more content below
-					if m.backupPreviewScroll+visibleHeight < len(lines) {
-						m.backupPreviewScroll++
+					if m.backup.PreviewScroll+visibleHeight < len(lines) {
+						m.backup.PreviewScroll++
 					}
 				}
 				return m, nil
@@ -1890,11 +1890,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m.handleProfileEditKeyPress("up")
 			}
 			// In backup manager: navigate up
-			if m.currentView == ViewBackupManager && !m.loading && m.backupCursor > 0 {
-				m.backupCursor--
+			if m.currentView == ViewBackupManager && !m.loading && m.backup.Cursor > 0 {
+				m.backup.Cursor--
 				// Adjust scroll if needed
-				if m.backupCursor < m.backupScrollOffset {
-					m.backupScrollOffset--
+				if m.backup.Cursor < m.backup.ScrollOffset {
+					m.backup.ScrollOffset--
 				}
 				return m, nil
 			}
@@ -1906,15 +1906,15 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				return m, nil
 			}
 			// In restore scope selection: navigate up
-			if m.currentView == ViewRestoreScope && !m.loading && m.restoreScopeCursor > 0 {
-				m.restoreScopeCursor--
+			if m.currentView == ViewRestoreScope && !m.loading && m.backup.RestoreScopeCursor > 0 {
+				m.backup.RestoreScopeCursor--
 				// Update selected scope based on cursor
-				m.restoreScope = RestoreScope(m.restoreScopeCursor)
+				m.backup.RestoreScope = RestoreScope(m.backup.RestoreScopeCursor)
 				return m, nil
 			}
 			// In backup preview: scroll up
-			if m.currentView == ViewBackupPreview && !m.loading && m.backupPreviewScroll > 0 {
-				m.backupPreviewScroll--
+			if m.currentView == ViewBackupPreview && !m.loading && m.backup.PreviewScroll > 0 {
+				m.backup.PreviewScroll--
 				return m, nil
 			}
 			// In audit log: scroll up
@@ -2014,7 +2014,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 			// In backup preview: scroll to top
 			if m.currentView == ViewBackupPreview && !m.loading {
-				m.backupPreviewScroll = 0
+				m.backup.PreviewScroll = 0
 			}
 
 		case "G": // Go to bottom
@@ -2034,7 +2034,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 			}
 			// In backup preview: scroll to bottom
 			if m.currentView == ViewBackupPreview && !m.loading {
-				content, err := os.ReadFile(m.backupPreviewPath)
+				content, err := os.ReadFile(m.backup.PreviewPath)
 				if err == nil {
 					lines := strings.Split(string(content), "\n")
 					visibleHeight := m.height - 12
@@ -2044,9 +2044,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 					// Scroll to show the last page
 					maxScroll := len(lines) - visibleHeight
 					if maxScroll > 0 {
-						m.backupPreviewScroll = maxScroll
+						m.backup.PreviewScroll = maxScroll
 					} else {
-						m.backupPreviewScroll = 0
+						m.backup.PreviewScroll = 0
 					}
 				}
 			}
@@ -2058,30 +2058,30 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 				if visibleHeight < 5 {
 					visibleHeight = 5
 				}
-				m.backupPreviewScroll -= visibleHeight
-				if m.backupPreviewScroll < 0 {
-					m.backupPreviewScroll = 0
+				m.backup.PreviewScroll -= visibleHeight
+				if m.backup.PreviewScroll < 0 {
+					m.backup.PreviewScroll = 0
 				}
 			}
 
 		case "pgdown":
 			// Page down in backup preview
 			if m.currentView == ViewBackupPreview && !m.loading {
-				content, err := os.ReadFile(m.backupPreviewPath)
+				content, err := os.ReadFile(m.backup.PreviewPath)
 				if err == nil {
 					lines := strings.Split(string(content), "\n")
 					visibleHeight := m.height - 12
 					if visibleHeight < 5 {
 						visibleHeight = 5
 					}
-					m.backupPreviewScroll += visibleHeight
+					m.backup.PreviewScroll += visibleHeight
 					// Don't scroll past the end
 					maxScroll := len(lines) - visibleHeight
 					if maxScroll < 0 {
 						maxScroll = 0
 					}
-					if m.backupPreviewScroll > maxScroll {
-						m.backupPreviewScroll = maxScroll
+					if m.backup.PreviewScroll > maxScroll {
+						m.backup.PreviewScroll = maxScroll
 					}
 				}
 			}

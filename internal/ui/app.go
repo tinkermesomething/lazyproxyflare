@@ -1521,7 +1521,7 @@ func NewModel(entries []diff.SyncedEntry, snippets []caddy.Snippet, cfg *config.
 		cursor:              0,
 		currentView:         ViewList,
 		selectedEntries:     make(map[string]bool),
-		backupRetentionDays: 30, // Default: keep backups for 30 days
+		backup:              BackupState{RetentionDays: 30}, // Default: keep backups for 30 days
 		panelFocus:          PanelFocusLeft,
 		auditLogger:         auditLogger,
 	}
@@ -1560,7 +1560,7 @@ func NewModelWithWizard() Model {
 		wizardTextInput:     ti,
 		availableProfiles:   []string{},
 		selectedEntries:     make(map[string]bool),
-		backupRetentionDays: 30,
+		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
 		auditLogger:         auditLogger,
 	}
@@ -1600,7 +1600,7 @@ func NewModelWithProfile(entries []diff.SyncedEntry, snippets []caddy.Snippet, c
 		cursor:              0,
 		currentView:         ViewList,
 		selectedEntries:     make(map[string]bool),
-		backupRetentionDays: 30,
+		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
 		auditLogger:         auditLogger,
 		wizardTextInput:     ti,
@@ -1646,7 +1646,7 @@ func NewModelWithProfileSelector(profiles []string, lastUsedProfile string) Mode
 		currentView:         ViewProfileSelector,
 		availableProfiles:   profiles,
 		selectedEntries:     make(map[string]bool),
-		backupRetentionDays: 30,
+		backup:              BackupState{RetentionDays: 30},
 		panelFocus:          PanelFocusLeft,
 		auditLogger:         auditLogger,
 		wizardTextInput:     ti,
@@ -1792,24 +1792,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.Type {
 			case tea.MouseWheelUp:
 				// Scroll up
-				if m.backupCursor > 0 {
-					m.backupCursor--
-					if m.backupCursor < m.backupScrollOffset {
-						m.backupScrollOffset = m.backupCursor
+				if m.backup.Cursor > 0 {
+					m.backup.Cursor--
+					if m.backup.Cursor < m.backup.ScrollOffset {
+						m.backup.ScrollOffset = m.backup.Cursor
 					}
 				}
 
 			case tea.MouseWheelDown:
 				// Scroll down
 				backups, _ := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-				if m.backupCursor < len(backups)-1 {
-					m.backupCursor++
+				if m.backup.Cursor < len(backups)-1 {
+					m.backup.Cursor++
 					visibleHeight := m.height - 10
 					if visibleHeight < 1 {
 						visibleHeight = 10
 					}
-					if m.backupCursor >= m.backupScrollOffset+visibleHeight {
-						m.backupScrollOffset++
+					if m.backup.Cursor >= m.backup.ScrollOffset+visibleHeight {
+						m.backup.ScrollOffset++
 					}
 				}
 
@@ -1828,10 +1828,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				relativeY := msg.Y - modalStartY - 5
 
 				if relativeY >= 0 {
-					clickedIndex := m.backupScrollOffset + relativeY
+					clickedIndex := m.backup.ScrollOffset + relativeY
 					backups, _ := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 					if clickedIndex >= 0 && clickedIndex < len(backups) {
-						m.backupCursor = clickedIndex
+						m.backup.Cursor = clickedIndex
 					}
 				}
 			}
@@ -2171,8 +2171,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.success {
 			// Success - stay in backup manager, reset cursor if needed
 			backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
-			if err == nil && m.backupCursor >= len(backups) && m.backupCursor > 0 {
-				m.backupCursor--
+			if err == nil && m.backup.Cursor >= len(backups) && m.backup.Cursor > 0 {
+				m.backup.Cursor--
 			}
 			m.err = nil
 			return m, nil
@@ -2187,8 +2187,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.success {
 			// Success - return to backup manager, reset cursor
 			m.currentView = ViewBackupManager
-			m.backupCursor = 0
-			m.backupScrollOffset = 0
+			m.backup.Cursor = 0
+			m.backup.ScrollOffset = 0
 			m.err = nil
 			return m, nil
 		} else {

@@ -217,6 +217,17 @@ type SyncState struct {
 	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
 }
 
+// BackupState holds state for the backup manager
+type BackupState struct {
+	Cursor        int          // Currently selected backup
+	ScrollOffset  int          // For scrolling backup list
+	PreviewPath   string       // Path of backup being previewed/restored
+	PreviewScroll int          // Scroll offset for backup preview content
+	RetentionDays int          // Days to keep backups (for cleanup)
+	RestoreScope      RestoreScope // What to restore (All/DNS/Caddy)
+	RestoreScopeCursor int          // Cursor for restore scope selection (0-2)
+}
+
 // BulkDeleteState holds state for bulk deletion operations
 type BulkDeleteState struct {
 	Type       string             // "dns" or "caddy"
@@ -299,13 +310,7 @@ type Model struct {
 	bulkDelete BulkDeleteState
 
 	// Backup manager state
-	backupCursor        int          // Currently selected backup
-	backupScrollOffset  int          // For scrolling backup list
-	backupPreviewPath   string       // Path of backup being previewed/restored
-	backupPreviewScroll int          // Scroll offset for backup preview content
-	backupRetentionDays int          // Days to keep backups (for cleanup)
-	restoreScope        RestoreScope // What to restore (All/DNS/Caddy)
-	restoreScopeCursor  int          // Cursor for restore scope selection (0-2)
+	backup BackupState
 
 	// Audit log state
 	auditLogger      *audit.Logger      // Audit logger instance
