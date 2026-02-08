@@ -309,6 +309,73 @@ func (m Model) handleListDown() (Model, tea.Cmd) {
 	return m, nil
 }
 
+// handleBackspaceKey handles the Backspace key across all views.
+func (m Model) handleBackspaceKey() (Model, tea.Cmd) {
+	// Handle backspace in profile edit
+	if m.currentView == ViewProfileEdit {
+		return m.handleProfileEditKeyPress("backspace")
+	}
+	// Handle backspace in add/edit form
+	if m.currentView == ViewAdd || m.currentView == ViewEdit {
+		// Check if we're in the custom config field
+		customConfigFieldIndex := 8 + len(m.snippets)
+		if m.addForm.FocusedField == customConfigFieldIndex {
+			// Custom Caddy Config field
+			if len(m.addForm.CustomCaddyConfig) > 0 {
+				m.addForm.CustomCaddyConfig = m.addForm.CustomCaddyConfig[:len(m.addForm.CustomCaddyConfig)-1]
+			}
+			return m, nil
+		}
+
+		// Handle other fields
+		switch m.addForm.FocusedField {
+		case 0: // Subdomain
+			if len(m.addForm.Subdomain) > 0 {
+				m.addForm.Subdomain = m.addForm.Subdomain[:len(m.addForm.Subdomain)-1]
+			}
+		case 2: // DNS Target
+			if len(m.addForm.DNSTarget) > 0 {
+				m.addForm.DNSTarget = m.addForm.DNSTarget[:len(m.addForm.DNSTarget)-1]
+			}
+		case 4: // Reverse Proxy Target
+			if len(m.addForm.ReverseProxyTarget) > 0 {
+				m.addForm.ReverseProxyTarget = m.addForm.ReverseProxyTarget[:len(m.addForm.ReverseProxyTarget)-1]
+			}
+		case 5: // Service Port
+			if len(m.addForm.ServicePort) > 0 {
+				m.addForm.ServicePort = m.addForm.ServicePort[:len(m.addForm.ServicePort)-1]
+			}
+		}
+		return m, nil
+	}
+
+	// Handle backspace in search mode
+	if m.searching && len(m.searchQuery) > 0 {
+		m.searchQuery = m.searchQuery[:len(m.searchQuery)-1]
+		m.cursor = 0
+		m.scrollOffset = 0
+		return m, nil
+	}
+
+	// Handle backspace in snippet wizard IP restriction step
+	if m.currentView == ViewSnippetWizard && m.snippetWizardStep == SnippetWizardIPRestriction && m.snippetWizardData.CreateIPRestriction {
+		if m.wizardCursor == 0 {
+			// LAN Subnet field
+			if len(m.snippetWizardData.LANSubnet) > 0 {
+				m.snippetWizardData.LANSubnet = m.snippetWizardData.LANSubnet[:len(m.snippetWizardData.LANSubnet)-1]
+			}
+			return m, nil
+		} else if m.wizardCursor == 1 {
+			// External IP field
+			if len(m.snippetWizardData.AllowedExternalIP) > 0 {
+				m.snippetWizardData.AllowedExternalIP = m.snippetWizardData.AllowedExternalIP[:len(m.snippetWizardData.AllowedExternalIP)-1]
+			}
+			return m, nil
+		}
+	}
+	return m, nil
+}
+
 // handleListUp navigates up in list view (k key, entries only).
 func (m Model) handleListUp() (Model, tea.Cmd) {
 	if m.currentView == ViewList && !m.searching {
