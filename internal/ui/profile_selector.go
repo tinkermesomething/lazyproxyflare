@@ -37,11 +37,11 @@ func (m Model) renderProfileSelectorView() string {
 	b.WriteString("\n\n")
 
 	// Profile list
-	if len(m.availableProfiles) == 0 {
+	if len(m.profile.Available) == 0 {
 		b.WriteString(StyleDim.Render("No profiles found."))
 		b.WriteString("\n\n")
 	} else {
-		for i, profileName := range m.availableProfiles {
+		for i, profileName := range m.profile.Available {
 			cursor := "  "
 			if i == m.cursor {
 				cursor = "> "
@@ -50,7 +50,7 @@ func (m Model) renderProfileSelectorView() string {
 			line := fmt.Sprintf("%s%d. %s", cursor, i+1, profileName)
 
 			// Highlight current profile
-			if profileName == m.currentProfileName {
+			if profileName == m.profile.CurrentName {
 				line = StyleSuccess.Render(line + " (active)")
 			} else if i == m.cursor {
 				line = StyleInfo.Render(line)
@@ -64,11 +64,11 @@ func (m Model) renderProfileSelectorView() string {
 
 	// Add new profile option
 	cursor := "  "
-	if m.cursor == len(m.availableProfiles) {
+	if m.cursor == len(m.profile.Available) {
 		cursor = "> "
 	}
 	addNewLine := fmt.Sprintf("%s+ Add new profile (run wizard)", cursor)
-	if m.cursor == len(m.availableProfiles) {
+	if m.cursor == len(m.profile.Available) {
 		addNewLine = StyleInfo.Render(addNewLine)
 	}
 	b.WriteString(addNewLine)
@@ -112,7 +112,7 @@ func (m Model) renderProfileEditView() string {
 	var b strings.Builder
 
 	// Title
-	b.WriteString(StyleInfo.Render("Edit Profile: " + m.profileEditData.OriginalName))
+	b.WriteString(StyleInfo.Render("Edit Profile: " + m.profile.EditData.OriginalName))
 	b.WriteString("\n\n")
 
 	// Error display
@@ -128,18 +128,18 @@ func (m Model) renderProfileEditView() string {
 		isBool bool
 		boolVal bool
 	}{
-		{"Profile Name", m.profileEditData.Name, false, false},
-		{"API Token", maskToken(m.profileEditData.APIToken), false, false},
-		{"Zone ID", m.profileEditData.ZoneID, false, false},
-		{"Domain", m.profileEditData.Domain, false, false},
-		{"Caddyfile Path", m.profileEditData.CaddyfilePath, false, false},
-		{"Container Path", m.profileEditData.ContainerPath, false, false},
-		{"Container Name", m.profileEditData.ContainerName, false, false},
-		{"CNAME Target", m.profileEditData.CNAMETarget, false, false},
-		{"Default Port", m.profileEditData.Port, false, false},
+		{"Profile Name", m.profile.EditData.Name, false, false},
+		{"API Token", maskToken(m.profile.EditData.APIToken), false, false},
+		{"Zone ID", m.profile.EditData.ZoneID, false, false},
+		{"Domain", m.profile.EditData.Domain, false, false},
+		{"Caddyfile Path", m.profile.EditData.CaddyfilePath, false, false},
+		{"Container Path", m.profile.EditData.ContainerPath, false, false},
+		{"Container Name", m.profile.EditData.ContainerName, false, false},
+		{"CNAME Target", m.profile.EditData.CNAMETarget, false, false},
+		{"Default Port", m.profile.EditData.Port, false, false},
 		{"", "", false, false}, // Separator
-		{"Default SSL", "", true, m.profileEditData.SSL},
-		{"Default Proxied", "", true, m.profileEditData.Proxied},
+		{"Default SSL", "", true, m.profile.EditData.SSL},
+		{"Default Proxied", "", true, m.profile.EditData.Proxied},
 	}
 
 	for i, field := range fields {
@@ -150,7 +150,7 @@ func (m Model) renderProfileEditView() string {
 		}
 
 		cursor := "  "
-		if i == m.profileEditCursor {
+		if i == m.profile.EditCursor {
 			cursor = "> "
 		}
 
@@ -165,7 +165,7 @@ func (m Model) renderProfileEditView() string {
 			line = fmt.Sprintf("%s%-16s %s", cursor, field.label+":", field.value)
 		}
 
-		if i == m.profileEditCursor {
+		if i == m.profile.EditCursor {
 			line = StyleInfo.Render(line)
 		}
 

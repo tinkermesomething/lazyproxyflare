@@ -29,7 +29,7 @@ func (m Model) handleProfileSelectorKeyPress(key string) (Model, tea.Cmd) {
 
 	case "down", "j":
 		// Navigate down
-		maxCursor := len(m.availableProfiles) // +1 for "add new" option
+		maxCursor := len(m.profile.Available) // +1 for "add new" option
 		if m.cursor < maxCursor {
 			m.cursor++
 		}
@@ -37,9 +37,9 @@ func (m Model) handleProfileSelectorKeyPress(key string) (Model, tea.Cmd) {
 
 	case "enter":
 		// Select profile or launch wizard
-		if m.cursor < len(m.availableProfiles) {
+		if m.cursor < len(m.profile.Available) {
 			// Load selected profile
-			profileName := m.availableProfiles[m.cursor]
+			profileName := m.profile.Available[m.cursor]
 			return m.loadProfile(profileName)
 		} else {
 			// Launch wizard to create new profile
@@ -52,8 +52,8 @@ func (m Model) handleProfileSelectorKeyPress(key string) (Model, tea.Cmd) {
 
 	case "e":
 		// Edit selected profile (not "add new" option)
-		if m.cursor < len(m.availableProfiles) {
-			profileName := m.availableProfiles[m.cursor]
+		if m.cursor < len(m.profile.Available) {
+			profileName := m.profile.Available[m.cursor]
 			return m.startProfileEdit(profileName)
 		}
 		return m, nil
@@ -82,7 +82,7 @@ func (m Model) loadProfile(profileName string) (Model, tea.Cmd) {
 	}
 
 	// Set as current profile
-	m.currentProfileName = profileName
+	m.profile.CurrentName = profileName
 
 	// Save as last used
 	config.SetLastUsedProfile(profileName)
@@ -143,7 +143,7 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 	}
 
 	// Populate edit form with current values
-	m.profileEditData = ProfileEditData{
+	m.profile.EditData = ProfileEditData{
 		OriginalName:  profileName,
 		Name:          profileConfig.Profile.Name,
 		APIToken:      profileConfig.Cloudflare.APIToken,
@@ -157,7 +157,7 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 		SSL:           profileConfig.Defaults.SSL,
 		Proxied:       profileConfig.Defaults.Proxied,
 	}
-	m.profileEditCursor = 0
+	m.profile.EditCursor = 0
 	m.currentView = ViewProfileEdit
 	m.err = nil
 
@@ -177,21 +177,21 @@ func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
 
 	case "tab", "down", "j":
 		// Move to next field
-		m.profileEditCursor = (m.profileEditCursor + 1) % numFields
+		m.profile.EditCursor = (m.profile.EditCursor + 1) % numFields
 		return m, nil
 
 	case "shift+tab", "up", "k":
 		// Move to previous field
-		m.profileEditCursor = (m.profileEditCursor - 1 + numFields) % numFields
+		m.profile.EditCursor = (m.profile.EditCursor - 1 + numFields) % numFields
 		return m, nil
 
 	case " ":
 		// Toggle boolean fields
-		switch m.profileEditCursor {
+		switch m.profile.EditCursor {
 		case 10: // SSL
-			m.profileEditData.SSL = !m.profileEditData.SSL
+			m.profile.EditData.SSL = !m.profile.EditData.SSL
 		case 11: // Proxied
-			m.profileEditData.Proxied = !m.profileEditData.Proxied
+			m.profile.EditData.Proxied = !m.profile.EditData.Proxied
 		}
 		return m, nil
 
@@ -215,25 +215,25 @@ func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
 
 // profileEditAppendChar appends a character to the current text field
 func (m *Model) profileEditAppendChar(char string) {
-	switch m.profileEditCursor {
+	switch m.profile.EditCursor {
 	case 0:
-		m.profileEditData.Name += char
+		m.profile.EditData.Name += char
 	case 1:
-		m.profileEditData.APIToken += char
+		m.profile.EditData.APIToken += char
 	case 2:
-		m.profileEditData.ZoneID += char
+		m.profile.EditData.ZoneID += char
 	case 3:
-		m.profileEditData.Domain += char
+		m.profile.EditData.Domain += char
 	case 4:
-		m.profileEditData.CaddyfilePath += char
+		m.profile.EditData.CaddyfilePath += char
 	case 5:
-		m.profileEditData.ContainerPath += char
+		m.profile.EditData.ContainerPath += char
 	case 6:
-		m.profileEditData.ContainerName += char
+		m.profile.EditData.ContainerName += char
 	case 7:
-		m.profileEditData.CNAMETarget += char
+		m.profile.EditData.CNAMETarget += char
 	case 8:
-		m.profileEditData.Port += char
+		m.profile.EditData.Port += char
 	}
 }
 
@@ -246,31 +246,31 @@ func (m *Model) profileEditDeleteChar() {
 		return s
 	}
 
-	switch m.profileEditCursor {
+	switch m.profile.EditCursor {
 	case 0:
-		m.profileEditData.Name = deleteLastChar(m.profileEditData.Name)
+		m.profile.EditData.Name = deleteLastChar(m.profile.EditData.Name)
 	case 1:
-		m.profileEditData.APIToken = deleteLastChar(m.profileEditData.APIToken)
+		m.profile.EditData.APIToken = deleteLastChar(m.profile.EditData.APIToken)
 	case 2:
-		m.profileEditData.ZoneID = deleteLastChar(m.profileEditData.ZoneID)
+		m.profile.EditData.ZoneID = deleteLastChar(m.profile.EditData.ZoneID)
 	case 3:
-		m.profileEditData.Domain = deleteLastChar(m.profileEditData.Domain)
+		m.profile.EditData.Domain = deleteLastChar(m.profile.EditData.Domain)
 	case 4:
-		m.profileEditData.CaddyfilePath = deleteLastChar(m.profileEditData.CaddyfilePath)
+		m.profile.EditData.CaddyfilePath = deleteLastChar(m.profile.EditData.CaddyfilePath)
 	case 5:
-		m.profileEditData.ContainerPath = deleteLastChar(m.profileEditData.ContainerPath)
+		m.profile.EditData.ContainerPath = deleteLastChar(m.profile.EditData.ContainerPath)
 	case 6:
-		m.profileEditData.ContainerName = deleteLastChar(m.profileEditData.ContainerName)
+		m.profile.EditData.ContainerName = deleteLastChar(m.profile.EditData.ContainerName)
 	case 7:
-		m.profileEditData.CNAMETarget = deleteLastChar(m.profileEditData.CNAMETarget)
+		m.profile.EditData.CNAMETarget = deleteLastChar(m.profile.EditData.CNAMETarget)
 	case 8:
-		m.profileEditData.Port = deleteLastChar(m.profileEditData.Port)
+		m.profile.EditData.Port = deleteLastChar(m.profile.EditData.Port)
 	}
 }
 
 // saveProfileEdit saves the edited profile
 func (m Model) saveProfileEdit() (Model, tea.Cmd) {
-	data := m.profileEditData
+	data := m.profile.EditData
 
 	// Validate required fields
 	if data.Name == "" {
@@ -336,8 +336,8 @@ func (m Model) saveProfileEdit() (Model, tea.Cmd) {
 	}
 
 	// If editing current profile, reload it
-	if data.OriginalName == m.currentProfileName {
-		m.currentProfileName = data.Name
+	if data.OriginalName == m.profile.CurrentName {
+		m.profile.CurrentName = data.Name
 		m.config = config.ProfileToLegacyConfig(existingProfile)
 		config.SetLastUsedProfile(data.Name)
 	}
@@ -345,7 +345,7 @@ func (m Model) saveProfileEdit() (Model, tea.Cmd) {
 	// Refresh available profiles list
 	profiles, err := config.ListProfiles()
 	if err == nil {
-		m.availableProfiles = profiles
+		m.profile.Available = profiles
 	}
 
 	// Return to profile selector

@@ -205,6 +205,67 @@ func (s SortMode) String() string {
 	}
 }
 
+// DeleteState holds state for single-entry deletion
+type DeleteState struct {
+	EntryIndex  int         // Index of entry being deleted
+	Scope       DeleteScope // What to delete (All/DNS/Caddy)
+	ScopeCursor int         // Cursor for delete scope selection (0-2)
+}
+
+// SyncState holds state for single-entry sync
+type SyncState struct {
+	Entry *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
+}
+
+// SnippetPanelState holds state for the snippet panel and editing
+type SnippetPanelState struct {
+	Cursor       int            // Currently selected snippet
+	ScrollOffset int            // For scrolling snippet list
+	Editing      bool           // Whether we're in snippet edit mode
+	EditTextarea textarea.Model // Textarea for editing snippet content
+	EditingIndex int            // Index of snippet being edited
+}
+
+// ProfileState holds state for profile selection and editing
+type ProfileState struct {
+	CurrentName string          // Name of currently loaded profile
+	Available   []string        // List of available profile names
+	EditData    ProfileEditData // Profile edit form data
+	EditCursor  int             // Current field in edit form
+}
+
+// MigrationState holds state for the migration wizard
+type MigrationState struct {
+	Active bool                 // True when migration wizard is active
+	Data   *MigrationWizardData // Migration wizard data
+}
+
+// AuditState holds state for the audit log viewer
+type AuditState struct {
+	Logger *audit.Logger    // Audit logger instance
+	Logs   []audit.LogEntry // Loaded audit log entries
+	Cursor int              // Currently selected log entry
+	Scroll int              // Scroll offset for audit log view
+}
+
+// BackupState holds state for the backup manager
+type BackupState struct {
+	Cursor        int          // Currently selected backup
+	ScrollOffset  int          // For scrolling backup list
+	PreviewPath   string       // Path of backup being previewed/restored
+	PreviewScroll int          // Scroll offset for backup preview content
+	RetentionDays int          // Days to keep backups (for cleanup)
+	RestoreScope      RestoreScope // What to restore (All/DNS/Caddy)
+	RestoreScopeCursor int          // Cursor for restore scope selection (0-2)
+}
+
+// BulkDeleteState holds state for bulk deletion operations
+type BulkDeleteState struct {
+	Type       string             // "dns" or "caddy"
+	MenuCursor int                // Menu navigation cursor
+	Entries    []diff.SyncedEntry // Entries to be bulk deleted
+}
+
 // AddFormData represents the state of the add entry form
 // ProfileEditData holds the form data for editing a profile
 type ProfileEditData struct {
@@ -273,41 +334,23 @@ type Model struct {
 	// Form data
 	addForm          AddFormData       // Add/Edit entry form state
 	editingEntry     *diff.SyncedEntry // Entry being edited (nil if adding new)
-	deleteEntryIndex int               // Index of entry being deleted
-	deleteScope      DeleteScope       // What to delete (All/DNS/Caddy)
-	deleteScopeCursor int              // Cursor for delete scope selection (0-2)
-	syncEntry        *diff.SyncedEntry // Entry being synced (stored when 's' pressed)
+	delete DeleteState // Single-entry deletion state
+	sync   SyncState   // Single-entry sync state
 
 	// Bulk delete state
-	bulkDeleteType       string             // "dns" or "caddy"
-	bulkDeleteMenuCursor int                // Menu navigation cursor
-	bulkDeleteEntries    []diff.SyncedEntry // Entries to be bulk deleted
+	bulkDelete BulkDeleteState
 
 	// Backup manager state
-	backupCursor        int          // Currently selected backup
-	backupScrollOffset  int          // For scrolling backup list
-	backupPreviewPath   string       // Path of backup being previewed/restored
-	backupPreviewScroll int          // Scroll offset for backup preview content
-	backupRetentionDays int          // Days to keep backups (for cleanup)
-	restoreScope        RestoreScope // What to restore (All/DNS/Caddy)
-	restoreScopeCursor  int          // Cursor for restore scope selection (0-2)
+	backup BackupState
 
 	// Audit log state
-	auditLogger      *audit.Logger      // Audit logger instance
-	auditLogs        []audit.LogEntry   // Loaded audit log entries
-	auditLogCursor   int                // Currently selected log entry
-	auditLogScroll   int                // Scroll offset for audit log view
+	audit AuditState
 
 	// Panel state
 	panelFocus PanelFocus // Which panel is focused (left or right)
 
 	// Profile state
-	currentProfileName string   // Name of currently loaded profile
-	availableProfiles  []string // List of available profile names
-
-	// Profile edit state
-	profileEditData   ProfileEditData // Profile edit form data
-	profileEditCursor int             // Current field in edit form
+	profile ProfileState
 
 	// Wizard state
 	wizardStep            WizardStep             // Current wizard step
@@ -317,22 +360,14 @@ type Model struct {
 	wizardDockerContainers []caddy.DockerContainer // Detected Docker containers for wizard
 
 	// Snippet panel state
-	snippetCursor         int                     // Currently selected snippet
-	snippetScrollOffset   int                     // For scrolling snippet list
-	snippetCategoryFilter caddy.SnippetCategory   // Filter by category (SnippetUnknown = no filter)
-
-	// Snippet editing state
-	editingSnippet      bool            // Whether we're in snippet edit mode
-	snippetEditTextarea textarea.Model  // Textarea for editing snippet content
-	editingSnippetIndex int             // Index of snippet being edited
+	snippetPanel SnippetPanelState
 
 	// Snippet wizard state
 	snippetWizardStep SnippetWizardStep // Current snippet wizard step
 	snippetWizardData SnippetWizardData // Data collected during snippet wizard
 
 	// Migration wizard state
-	migrationWizardActive bool                 // True when migration wizard is active
-	migrationWizardData   *MigrationWizardData // Migration wizard data
+	migration MigrationState
 
 	// Error modal state
 	previousView ViewMode // Previous view before showing error modal

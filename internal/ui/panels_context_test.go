@@ -459,7 +459,7 @@ func createTestModel() Model {
 		snippets:        []caddy.Snippet{},
 		config:          &config.Config{Domain: "example.com"},
 		cursor:          0,
-		snippetCursor:   0,
+		snippetPanel:    SnippetPanelState{Cursor: 0},
 		activeTab:       TabCloudflare,
 		statusFilter:    FilterAll,
 		dnsTypeFilter:   DNSTypeAll,

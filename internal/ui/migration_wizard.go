@@ -32,11 +32,11 @@ type MigrationWizardData struct {
 
 // renderMigrationWizard renders the appropriate migration wizard screen
 func (m Model) renderMigrationWizard() string {
-	if m.migrationWizardData == nil {
+	if m.migration.Data == nil {
 		return "Error: Migration wizard data not initialized"
 	}
 
-	switch m.migrationWizardData.Step {
+	switch m.migration.Data.Step {
 	case MigrationStepOptions:
 		return m.renderMigrationOptions()
 	case MigrationStepConfirm:
@@ -63,15 +63,15 @@ func (m Model) renderMigrationOptions() string {
 	b.WriteString("\n\n")
 
 	// Content summary
-	if m.migrationWizardData.ParsedContent != nil {
-		entriesCount, snippetsCount := m.migrationWizardData.ParsedContent.CountContent()
+	if m.migration.Data.ParsedContent != nil {
+		entriesCount, snippetsCount := m.migration.Data.ParsedContent.CountContent()
 
 		infoStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#00FF87"))
 		b.WriteString(infoStyle.Render("Found:"))
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("  • %d domain entries\n", entriesCount))
 		b.WriteString(fmt.Sprintf("  • %d snippets\n", snippetsCount))
-		if m.migrationWizardData.ParsedContent.HasGlobalOptions() {
+		if m.migration.Data.ParsedContent.HasGlobalOptions() {
 			b.WriteString("  • Global options block\n")
 		}
 		b.WriteString("\n")
@@ -110,7 +110,7 @@ func (m Model) renderMigrationOptions() string {
 	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#6C7086"))
 
 	for i, opt := range options {
-		if i == m.migrationWizardData.OptionCursor {
+		if i == m.migration.Data.OptionCursor {
 			b.WriteString(selectedStyle.Render("→ [•] " + opt.label))
 			b.WriteString("\n")
 			b.WriteString("    " + opt.description)
@@ -124,7 +124,7 @@ func (m Model) renderMigrationOptions() string {
 	}
 
 	// Archive notice (only show if not "keep existing")
-	if m.migrationWizardData.OptionCursor != 0 {
+	if m.migration.Data.OptionCursor != 0 {
 		b.WriteString("\n")
 		warningStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#F9E2AF"))
 		b.WriteString(warningStyle.Render("ℹ Original file will be archived to:"))
@@ -154,7 +154,7 @@ func (m Model) renderMigrationConfirm() string {
 		Bold(true)
 
 	// Check if "keep existing" option is selected (OptionCursor == 0)
-	if m.migrationWizardData.OptionCursor == 0 {
+	if m.migration.Data.OptionCursor == 0 {
 		// Keep existing - show different confirmation message
 		b.WriteString(titleStyle.Render("Confirm: Keep Existing Caddyfile"))
 		b.WriteString("\n\n")
@@ -164,12 +164,12 @@ func (m Model) renderMigrationConfirm() string {
 		b.WriteString("\n\n")
 
 		dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#6C7086"))
-		entriesCount, snippetsCount := m.migrationWizardData.ParsedContent.CountContent()
+		entriesCount, snippetsCount := m.migration.Data.ParsedContent.CountContent()
 		b.WriteString(dimStyle.Render("Your existing Caddyfile contains:"))
 		b.WriteString("\n")
 		b.WriteString(fmt.Sprintf("  • %d domain entries\n", entriesCount))
 		b.WriteString(fmt.Sprintf("  • %d snippets\n", snippetsCount))
-		if m.migrationWizardData.ParsedContent.HasGlobalOptions() {
+		if m.migration.Data.ParsedContent.HasGlobalOptions() {
 			b.WriteString("  • Global options block\n")
 		}
 		b.WriteString("\n")
@@ -182,10 +182,10 @@ func (m Model) renderMigrationConfirm() string {
 		b.WriteString("\n\n")
 
 		// Show summary
-		if m.migrationWizardData.ParsedContent != nil {
+		if m.migration.Data.ParsedContent != nil {
 			summary := caddy.GetMigrationSummary(
-				m.migrationWizardData.ParsedContent,
-				m.migrationWizardData.Options,
+				m.migration.Data.ParsedContent,
+				m.migration.Data.Options,
 			)
 			b.WriteString(summary)
 			b.WriteString("\n")
@@ -240,7 +240,7 @@ func (m Model) renderMigrationProgress() string {
 func (m Model) renderMigrationComplete() string {
 	var b strings.Builder
 
-	if m.migrationWizardData.Error != nil {
+	if m.migration.Data.Error != nil {
 		// Error state
 		errorStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#F38BA8")).
@@ -249,10 +249,10 @@ func (m Model) renderMigrationComplete() string {
 		b.WriteString(errorStyle.Render("✗ Migration Failed"))
 		b.WriteString("\n\n")
 
-		b.WriteString(fmt.Sprintf("Error: %v\n", m.migrationWizardData.Error))
+		b.WriteString(fmt.Sprintf("Error: %v\n", m.migration.Data.Error))
 		b.WriteString("\n")
 
-		if m.migrationWizardData.BackupPath != "" {
+		if m.migration.Data.BackupPath != "" {
 			dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#6C7086"))
 			b.WriteString(dimStyle.Render("Original Caddyfile has been restored from backup"))
 			b.WriteString("\n")
@@ -267,7 +267,7 @@ func (m Model) renderMigrationComplete() string {
 			Bold(true)
 
 		// Check if "keep existing" option was selected (OptionCursor == 0)
-		if m.migrationWizardData.OptionCursor == 0 {
+		if m.migration.Data.OptionCursor == 0 {
 			// Keep existing - no migration performed
 			b.WriteString(successStyle.Render("✓ Caddyfile Unchanged"))
 			b.WriteString("\n\n")
@@ -277,7 +277,7 @@ func (m Model) renderMigrationComplete() string {
 			b.WriteString("\n\n")
 
 			dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#6C7086"))
-			entriesCount, snippetsCount := m.migrationWizardData.ParsedContent.CountContent()
+			entriesCount, snippetsCount := m.migration.Data.ParsedContent.CountContent()
 			b.WriteString(dimStyle.Render("Your Caddyfile contains:"))
 			b.WriteString("\n")
 			b.WriteString(fmt.Sprintf("  • %d domain entries\n", entriesCount))
@@ -294,20 +294,20 @@ func (m Model) renderMigrationComplete() string {
 			b.WriteString(infoStyle.Render("Your Caddyfile has been migrated successfully!"))
 			b.WriteString("\n\n")
 
-			if m.migrationWizardData.BackupPath != "" {
+			if m.migration.Data.BackupPath != "" {
 				dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#6C7086"))
 				b.WriteString("Original backed up to:\n")
-				b.WriteString(dimStyle.Render("  " + m.migrationWizardData.BackupPath))
+				b.WriteString(dimStyle.Render("  " + m.migration.Data.BackupPath))
 				b.WriteString("\n\n")
 			}
 
-			entriesCount, snippetsCount := m.migrationWizardData.ParsedContent.CountContent()
+			entriesCount, snippetsCount := m.migration.Data.ParsedContent.CountContent()
 			b.WriteString("Imported:\n")
 
-			if m.migrationWizardData.Options.ImportEntries {
+			if m.migration.Data.Options.ImportEntries {
 				b.WriteString(fmt.Sprintf("  • %d domain entries\n", entriesCount))
 			}
-			if m.migrationWizardData.Options.ImportSnippets {
+			if m.migration.Data.Options.ImportSnippets {
 				b.WriteString(fmt.Sprintf("  • %d snippets\n", snippetsCount))
 			}
 
@@ -329,7 +329,7 @@ func (m *Model) initMigrationWizard(caddyfilePath string) error {
 	}
 
 	// Initialize wizard data
-	m.migrationWizardData = &MigrationWizardData{
+	m.migration.Data = &MigrationWizardData{
 		Step:          MigrationStepOptions,
 		ParsedContent: parsedContent,
 		Options: caddy.MigrationOptions{
@@ -347,41 +347,41 @@ func (m *Model) initMigrationWizard(caddyfilePath string) error {
 
 // updateMigrationOptions updates migration options based on selected option
 func (m *Model) updateMigrationOptions() {
-	if m.migrationWizardData == nil {
+	if m.migration.Data == nil {
 		return
 	}
 
-	switch m.migrationWizardData.OptionCursor {
+	switch m.migration.Data.OptionCursor {
 	case 0: // Keep existing - no migration
-		m.migrationWizardData.Options = caddy.MigrationOptions{
+		m.migration.Data.Options = caddy.MigrationOptions{
 			ImportEntries:  false,
 			ImportSnippets: false,
 			ArchiveOld:     false,
 			FreshTemplate:  false,
 		}
 	case 1: // Import all
-		m.migrationWizardData.Options = caddy.MigrationOptions{
+		m.migration.Data.Options = caddy.MigrationOptions{
 			ImportEntries:  true,
 			ImportSnippets: true,
 			ArchiveOld:     true,
 			FreshTemplate:  false,
 		}
 	case 2: // Import entries only
-		m.migrationWizardData.Options = caddy.MigrationOptions{
+		m.migration.Data.Options = caddy.MigrationOptions{
 			ImportEntries:  true,
 			ImportSnippets: false,
 			ArchiveOld:     true,
 			FreshTemplate:  false,
 		}
 	case 3: // Import snippets only
-		m.migrationWizardData.Options = caddy.MigrationOptions{
+		m.migration.Data.Options = caddy.MigrationOptions{
 			ImportEntries:  false,
 			ImportSnippets: true,
 			ArchiveOld:     true,
 			FreshTemplate:  false,
 		}
 	case 4: // Fresh start
-		m.migrationWizardData.Options = caddy.MigrationOptions{
+		m.migration.Data.Options = caddy.MigrationOptions{
 			ImportEntries:  false,
 			ImportSnippets: false,
 			ArchiveOld:     true,

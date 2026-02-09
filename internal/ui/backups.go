@@ -113,7 +113,7 @@ func (m Model) renderBackupManagerView() string {
 		visibleHeight = 10
 	}
 
-	start := m.backupScrollOffset
+	start := m.backup.ScrollOffset
 	end := start + visibleHeight
 	if end > len(backups) {
 		end = len(backups)
@@ -134,7 +134,7 @@ func (m Model) renderBackupManagerView() string {
 		line := fmt.Sprintf("%-19s  %8s", timestamp, sizeStr)
 
 		// Apply cursor style
-		if i == m.backupCursor {
+		if i == m.backup.Cursor {
 			line = StyleHighlight.Render("→ " + line)
 		} else {
 			line = normalStyle.Render("  " + line)
@@ -174,7 +174,7 @@ func (m Model) renderBackupPreviewView() string {
 	var b strings.Builder
 
 	// Show backup info
-	info, err := os.Stat(m.backupPreviewPath)
+	info, err := os.Stat(m.backup.PreviewPath)
 	if err != nil {
 		b.WriteString(StyleError.Render(fmt.Sprintf("Error getting backup info: %v", err)))
 		b.WriteString("\n\n")
@@ -189,7 +189,7 @@ func (m Model) renderBackupPreviewView() string {
 	b.WriteString("\n\n")
 
 	// Generate diff between current and backup
-	diffLines, err := GenerateDiff(m.config.Caddy.CaddyfilePath, m.backupPreviewPath)
+	diffLines, err := GenerateDiff(m.config.Caddy.CaddyfilePath, m.backup.PreviewPath)
 	if err != nil {
 		b.WriteString(StyleError.Render(fmt.Sprintf("Error generating diff: %v", err)))
 		b.WriteString("\n\n")
@@ -211,7 +211,7 @@ func (m Model) renderBackupPreviewView() string {
 	}
 
 	// Apply scroll offset
-	start := m.backupPreviewScroll
+	start := m.backup.PreviewScroll
 	end := start + visibleHeight
 	if end > len(diffLines) {
 		end = len(diffLines)
@@ -283,7 +283,7 @@ func (m Model) renderRestoreScopeView() string {
 	var b strings.Builder
 
 	// Show backup info
-	info, err := os.Stat(m.backupPreviewPath)
+	info, err := os.Stat(m.backup.PreviewPath)
 	if err != nil {
 		b.WriteString(StyleError.Render(fmt.Sprintf("Error getting backup info: %v", err)))
 		b.WriteString("\n\n")
@@ -304,7 +304,7 @@ func (m Model) renderRestoreScopeView() string {
 	for i, scope := range scopes {
 		// Build option line
 		var line string
-		if i == m.restoreScopeCursor {
+		if i == m.backup.RestoreScopeCursor {
 			// Highlight selected option
 			line = StyleHighlight.Render(fmt.Sprintf("→ %s", scope.String()))
 		} else {
@@ -316,7 +316,7 @@ func (m Model) renderRestoreScopeView() string {
 
 		// Show description
 		desc := scope.Description()
-		if i == m.restoreScopeCursor {
+		if i == m.backup.RestoreScopeCursor {
 			b.WriteString(StyleDim.Render(fmt.Sprintf("  %s", desc)))
 		} else {
 			b.WriteString(StyleDim.Render(fmt.Sprintf("  %s", desc)))
@@ -336,7 +336,7 @@ func (m Model) renderConfirmRestoreView() string {
 
 	// Warning message based on restore scope
 	var warningMsg string
-	switch m.restoreScope {
+	switch m.backup.RestoreScope {
 	case RestoreAll:
 		warningMsg = "⚠ WARNING: This will restore both Caddyfile and DNS records from backup"
 	case RestoreDNSOnly:
@@ -348,7 +348,7 @@ func (m Model) renderConfirmRestoreView() string {
 	b.WriteString("\n\n")
 
 	// Show backup info
-	info, err := os.Stat(m.backupPreviewPath)
+	info, err := os.Stat(m.backup.PreviewPath)
 	if err != nil {
 		b.WriteString(StyleError.Render(fmt.Sprintf("Error getting backup info: %v", err)))
 		return b.String()
@@ -358,12 +358,12 @@ func (m Model) renderConfirmRestoreView() string {
 	sizeKB := float64(info.Size()) / 1024.0
 
 	b.WriteString(fmt.Sprintf("Backup: %s (%.1f KB)\n", timestamp, sizeKB))
-	b.WriteString(fmt.Sprintf("Restore scope: %s\n", StyleInfo.Render(m.restoreScope.String())))
+	b.WriteString(fmt.Sprintf("Restore scope: %s\n", StyleInfo.Render(m.backup.RestoreScope.String())))
 	b.WriteString("\n")
 
 	// Show what will happen based on restore scope
 	b.WriteString("This will:\n")
-	switch m.restoreScope {
+	switch m.backup.RestoreScope {
 	case RestoreAll:
 		b.WriteString("  1. Create a new backup of your current Caddyfile\n")
 		b.WriteString("  2. Replace your current Caddyfile with the backup\n")
@@ -406,7 +406,7 @@ func (m Model) renderConfirmCleanupView() string {
 	var b strings.Builder
 
 	// Get list of old backups
-	maxAge := time.Duration(m.backupRetentionDays) * 24 * time.Hour
+	maxAge := time.Duration(m.backup.RetentionDays) * 24 * time.Hour
 	oldBackups, err := caddy.GetOldBackups(m.config.Caddy.CaddyfilePath, maxAge)
 
 	if err != nil {
@@ -417,7 +417,7 @@ func (m Model) renderConfirmCleanupView() string {
 	}
 
 	if len(oldBackups) == 0 {
-		b.WriteString(fmt.Sprintf("No backups older than %d days found.\n\n", m.backupRetentionDays))
+		b.WriteString(fmt.Sprintf("No backups older than %d days found.\n\n", m.backup.RetentionDays))
 		b.WriteString(StyleDim.Render("All backups are within the retention period."))
 		b.WriteString("\n\n")
 		b.WriteString(StyleDim.Render("Press esc to go back"))
@@ -425,7 +425,7 @@ func (m Model) renderConfirmCleanupView() string {
 	}
 
 	// Warning
-	b.WriteString(StyleWarning.Render(fmt.Sprintf("⚠ Found %d backups older than %d days", len(oldBackups), m.backupRetentionDays)))
+	b.WriteString(StyleWarning.Render(fmt.Sprintf("⚠ Found %d backups older than %d days", len(oldBackups), m.backup.RetentionDays)))
 	b.WriteString("\n\n")
 
 	// List backups to be deleted

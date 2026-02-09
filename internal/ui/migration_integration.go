@@ -47,18 +47,18 @@ func (m *Model) startMigrationWizard() error {
 	}
 
 	m.currentView = ViewMigrationWizard
-	m.migrationWizardActive = true
+	m.migration.Active = true
 
 	return nil
 }
 
 // handleMigrationWizardKeyPress handles keyboard input for migration wizard
 func (m Model) handleMigrationWizardKeyPress(key string) (Model, tea.Cmd) {
-	if m.migrationWizardData == nil {
+	if m.migration.Data == nil {
 		return m, nil
 	}
 
-	switch m.migrationWizardData.Step {
+	switch m.migration.Data.Step {
 	case MigrationStepOptions:
 		return m.handleMigrationOptionsKeyPress(key)
 	case MigrationStepConfirm:
@@ -77,27 +77,27 @@ func (m Model) handleMigrationWizardKeyPress(key string) (Model, tea.Cmd) {
 func (m Model) handleMigrationOptionsKeyPress(key string) (Model, tea.Cmd) {
 	switch key {
 	case "up", "k":
-		if m.migrationWizardData.OptionCursor > 0 {
-			m.migrationWizardData.OptionCursor--
+		if m.migration.Data.OptionCursor > 0 {
+			m.migration.Data.OptionCursor--
 		}
 		return m, nil
 
 	case "down", "j":
-		if m.migrationWizardData.OptionCursor < 4 { // 5 options (0-4)
-			m.migrationWizardData.OptionCursor++
+		if m.migration.Data.OptionCursor < 4 { // 5 options (0-4)
+			m.migration.Data.OptionCursor++
 		}
 		return m, nil
 
 	case "enter":
 		// Update options based on selection and move to confirm
 		m.updateMigrationOptions()
-		m.migrationWizardData.Step = MigrationStepConfirm
+		m.migration.Data.Step = MigrationStepConfirm
 		return m, nil
 
 	case "esc":
 		// Cancel migration wizard
-		m.migrationWizardActive = false
-		m.migrationWizardData = nil
+		m.migration.Active = false
+		m.migration.Data = nil
 		m.currentView = ViewList
 		return m, nil
 	}
@@ -110,32 +110,32 @@ func (m Model) handleMigrationConfirmKeyPress(key string) (Model, tea.Cmd) {
 	switch key {
 	case "enter":
 		// Check if "keep existing" option is selected (OptionCursor == 0)
-		if m.migrationWizardData.OptionCursor == 0 {
+		if m.migration.Data.OptionCursor == 0 {
 			// Skip migration - just go to complete step
-			m.migrationWizardData.Step = MigrationStepComplete
-			m.migrationWizardData.InProgress = false
-			m.migrationWizardData.BackupPath = "" // No backup created
-			m.migrationWizardData.Error = nil     // No error
+			m.migration.Data.Step = MigrationStepComplete
+			m.migration.Data.InProgress = false
+			m.migration.Data.BackupPath = "" // No backup created
+			m.migration.Data.Error = nil     // No error
 			return m, nil
 		}
 
 		// Start migration for other options
-		m.migrationWizardData.Step = MigrationStepProgress
-		m.migrationWizardData.InProgress = true
+		m.migration.Data.Step = MigrationStepProgress
+		m.migration.Data.InProgress = true
 		return m, performMigrationCmd(
-			m.migrationWizardData.CaddyfilePath,
-			m.migrationWizardData.Options,
+			m.migration.Data.CaddyfilePath,
+			m.migration.Data.Options,
 		)
 
 	case "b":
 		// Go back to options
-		m.migrationWizardData.Step = MigrationStepOptions
+		m.migration.Data.Step = MigrationStepOptions
 		return m, nil
 
 	case "esc":
 		// Cancel migration wizard
-		m.migrationWizardActive = false
-		m.migrationWizardData = nil
+		m.migration.Active = false
+		m.migration.Data = nil
 		m.currentView = ViewList
 		return m, nil
 	}
@@ -146,8 +146,8 @@ func (m Model) handleMigrationConfirmKeyPress(key string) (Model, tea.Cmd) {
 // handleMigrationCompleteKeyPress handles keys in completion screen
 func (m Model) handleMigrationCompleteKeyPress(key string) (Model, tea.Cmd) {
 	// Any key returns to main view
-	m.migrationWizardActive = false
-	m.migrationWizardData = nil
+	m.migration.Active = false
+	m.migration.Data = nil
 	m.currentView = ViewList
 
 	// Reload data to reflect migrated Caddyfile
@@ -168,14 +168,14 @@ func performMigrationCmd(caddyfilePath string, options caddy.MigrationOptions) t
 
 // handleMigrationComplete processes the migration completion message
 func (m Model) handleMigrationComplete(msg migrationCompleteMsg) (Model, tea.Cmd) {
-	if m.migrationWizardData == nil {
+	if m.migration.Data == nil {
 		return m, nil
 	}
 
-	m.migrationWizardData.InProgress = false
-	m.migrationWizardData.Step = MigrationStepComplete
-	m.migrationWizardData.BackupPath = msg.backupPath
-	m.migrationWizardData.Error = msg.err
+	m.migration.Data.InProgress = false
+	m.migration.Data.Step = MigrationStepComplete
+	m.migration.Data.BackupPath = msg.backupPath
+	m.migration.Data.Error = msg.err
 
 	return m, nil
 }

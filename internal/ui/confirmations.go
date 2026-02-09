@@ -15,10 +15,10 @@ func (m Model) renderConfirmDeleteView() string {
 
 	// Get the entry to delete
 	filteredEntries := m.getFilteredEntries()
-	if m.deleteEntryIndex >= len(filteredEntries) {
+	if m.delete.EntryIndex >= len(filteredEntries) {
 		return "Error: Invalid entry index"
 	}
-	entry := filteredEntries[m.deleteEntryIndex]
+	entry := filteredEntries[m.delete.EntryIndex]
 
 	// Show what will be deleted
 	b.WriteString("You are about to delete:\n\n")
@@ -100,10 +100,10 @@ func (m Model) renderConfirmSyncView() string {
 	var b strings.Builder
 
 	// Get the entry to sync (stored when 's' was pressed)
-	if m.syncEntry == nil {
+	if m.sync.Entry == nil {
 		return "Error: No entry selected for sync"
 	}
-	entry := *m.syncEntry
+	entry := *m.sync.Entry
 
 	// Show what will be synced
 	b.WriteString("You are about to sync:\n\n")
@@ -189,7 +189,7 @@ func (m Model) renderBulkDeleteMenu() string {
 
 	// Option 1: Delete all orphaned DNS
 	option1Style := normalStyle
-	if m.bulkDeleteMenuCursor == 0 {
+	if m.bulkDelete.MenuCursor == 0 {
 		option1Style = StyleSelected
 	}
 	b.WriteString(option1Style.Render(fmt.Sprintf("  Delete all orphaned DNS records (%d entries)", orphanedDNSCount)))
@@ -197,7 +197,7 @@ func (m Model) renderBulkDeleteMenu() string {
 
 	// Option 2: Delete all orphaned Caddy
 	option2Style := normalStyle
-	if m.bulkDeleteMenuCursor == 1 {
+	if m.bulkDelete.MenuCursor == 1 {
 		option2Style = StyleSelected
 	}
 	b.WriteString(option2Style.Render(fmt.Sprintf("  Delete all orphaned Caddy entries (%d entries)", orphanedCaddyCount)))
@@ -220,7 +220,7 @@ func (m Model) renderConfirmBulkDeleteView() string {
 	var b strings.Builder
 
 	// Warning
-	b.WriteString(StyleError.Render(fmt.Sprintf("⚠ WARNING: You are about to delete %d entries!", len(m.bulkDeleteEntries))))
+	b.WriteString(StyleError.Render(fmt.Sprintf("⚠ WARNING: You are about to delete %d entries!", len(m.bulkDelete.Entries))))
 	b.WriteString("\n\n")
 
 	// List entries to be deleted
@@ -236,12 +236,12 @@ func (m Model) renderConfirmBulkDeleteView() string {
 
 	listContent := strings.Builder{}
 	maxDisplay := 10
-	for i, entry := range m.bulkDeleteEntries {
+	for i, entry := range m.bulkDelete.Entries {
 		if i >= maxDisplay {
-			listContent.WriteString(StyleDim.Render(fmt.Sprintf("\n... and %d more entries", len(m.bulkDeleteEntries)-maxDisplay)))
+			listContent.WriteString(StyleDim.Render(fmt.Sprintf("\n... and %d more entries", len(m.bulkDelete.Entries)-maxDisplay)))
 			break
 		}
-		if m.bulkDeleteType == "dns" {
+		if m.bulkDelete.Type == "dns" {
 			listContent.WriteString(fmt.Sprintf("%s (DNS: %s → %s)\n", entry.Domain, entry.DNS.Type, entry.DNS.Content))
 		} else {
 			listContent.WriteString(fmt.Sprintf("%s (Caddy: %s:%d)\n", entry.Domain, entry.Caddy.Target, entry.Caddy.Port))
@@ -405,10 +405,10 @@ func (m Model) renderDeleteScopeView() string {
 
 	// Get the entry to delete
 	filteredEntries := m.getFilteredEntries()
-	if m.deleteEntryIndex >= len(filteredEntries) {
+	if m.delete.EntryIndex >= len(filteredEntries) {
 		return StyleError.Render("Error: Invalid entry index")
 	}
-	entry := filteredEntries[m.deleteEntryIndex]
+	entry := filteredEntries[m.delete.EntryIndex]
 
 	// Show entry info
 	b.WriteString(StyleInfo.Render(fmt.Sprintf("Delete: %s", entry.Domain)))
@@ -445,7 +445,7 @@ func (m Model) renderDeleteScopeView() string {
 		// Build option line
 		var line string
 		// Map to cursor position
-		cursorPos := m.deleteScopeCursor
+		cursorPos := m.delete.ScopeCursor
 		if cursorPos >= len(availableScopes) {
 			cursorPos = len(availableScopes) - 1
 		}
