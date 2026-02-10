@@ -104,8 +104,20 @@ func (m Model) renderBackupManagerView() string {
 		return b.String()
 	}
 
-	// Summary
-	b.WriteString(fmt.Sprintf("Total backups: %d\n\n", len(backups)))
+	// Summary with limits
+	summary := fmt.Sprintf("Total backups: %d", len(backups))
+	if m.config.Backup.MaxBackups > 0 || m.config.Backup.MaxSizeMB > 0 {
+		limits := "  Limits:"
+		if m.config.Backup.MaxBackups > 0 {
+			limits += fmt.Sprintf(" max %d", m.config.Backup.MaxBackups)
+		}
+		if m.config.Backup.MaxSizeMB > 0 {
+			limits += fmt.Sprintf(" / max %d MB", m.config.Backup.MaxSizeMB)
+		}
+		summary += StyleDim.Render(limits)
+	}
+	b.WriteString(summary)
+	b.WriteString("\n\n")
 
 	// Calculate visible range
 	visibleHeight := m.height - 10

@@ -195,6 +195,8 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 		SSL:           profileConfig.Defaults.SSL,
 		Proxied:       profileConfig.Defaults.Proxied,
 		Editor:        profileConfig.UI.Editor,
+		MaxBackups:    fmt.Sprintf("%d", profileConfig.Backup.MaxBackups),
+		MaxSizeMB:     fmt.Sprintf("%d", profileConfig.Backup.MaxSizeMB),
 	}
 	m.profile.EditCursor = 0
 	m.currentView = ViewProfileEdit
@@ -205,7 +207,7 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 
 // handleProfileEditKeyPress handles key presses in profile edit view
 func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
-	const numFields = 13 // Total editable fields
+	const numFields = 15 // Total editable fields
 
 	switch key {
 	case "esc", "ctrl+w":
@@ -227,9 +229,9 @@ func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
 	case " ":
 		// Toggle boolean fields
 		switch m.profile.EditCursor {
-		case 11: // SSL
+		case 13: // SSL
 			m.profile.EditData.SSL = !m.profile.EditData.SSL
-		case 12: // Proxied
+		case 14: // Proxied
 			m.profile.EditData.Proxied = !m.profile.EditData.Proxied
 		}
 		return m, nil
@@ -275,6 +277,10 @@ func (m *Model) profileEditAppendChar(char string) {
 		m.profile.EditData.Port += char
 	case 9:
 		m.profile.EditData.Editor += char
+	case 10:
+		m.profile.EditData.MaxBackups += char
+	case 11:
+		m.profile.EditData.MaxSizeMB += char
 	}
 }
 
@@ -308,6 +314,10 @@ func (m *Model) profileEditDeleteChar() {
 		m.profile.EditData.Port = deleteLastChar(m.profile.EditData.Port)
 	case 9:
 		m.profile.EditData.Editor = deleteLastChar(m.profile.EditData.Editor)
+	case 10:
+		m.profile.EditData.MaxBackups = deleteLastChar(m.profile.EditData.MaxBackups)
+	case 11:
+		m.profile.EditData.MaxSizeMB = deleteLastChar(m.profile.EditData.MaxSizeMB)
 	}
 }
 
@@ -364,6 +374,22 @@ func (m Model) saveProfileEdit() (Model, tea.Cmd) {
 	existingProfile.Defaults.SSL = data.SSL
 	existingProfile.Defaults.Proxied = data.Proxied
 	existingProfile.UI.Editor = data.Editor
+
+	// Parse backup limits
+	maxBackups := 0
+	if data.MaxBackups != "" && data.MaxBackups != "0" {
+		if v, err := strconv.Atoi(data.MaxBackups); err == nil {
+			maxBackups = v
+		}
+	}
+	maxSizeMB := 0
+	if data.MaxSizeMB != "" && data.MaxSizeMB != "0" {
+		if v, err := strconv.Atoi(data.MaxSizeMB); err == nil {
+			maxSizeMB = v
+		}
+	}
+	existingProfile.Backup.MaxBackups = maxBackups
+	existingProfile.Backup.MaxSizeMB = maxSizeMB
 
 	// Handle rename
 	if data.Name != data.OriginalName {

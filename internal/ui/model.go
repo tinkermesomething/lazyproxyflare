@@ -299,6 +299,10 @@ type ProfileEditData struct {
 
 	// UI preferences
 	Editor string // Preferred editor command
+
+	// Backup limits
+	MaxBackups string // Max number of backups (0 = unlimited)
+	MaxSizeMB  string // Max total backup size in MB (0 = unlimited)
 }
 
 type AddFormData struct {
