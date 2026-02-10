@@ -75,7 +75,7 @@ func (m Model) renderProfileSelectorView() string {
 
 	// Instructions
 	b.WriteString("\n\n")
-	b.WriteString(StyleDim.Render("j/k: navigate  Enter: select  e: edit  +/n: new  ESC: cancel"))
+	b.WriteString(StyleDim.Render("j/k: navigate  Enter: select  e: edit  d: delete  +/n: new  ESC: cancel"))
 
 	return lipgloss.Place(
 		width,
@@ -184,6 +184,26 @@ func (m Model) renderProfileEditView() string {
 		lipgloss.Center,
 		modalStyle.Render(b.String()),
 	)
+}
+
+// renderConfirmDeleteProfileContent renders the profile deletion confirmation modal content
+func (m Model) renderConfirmDeleteProfileContent() string {
+	var b strings.Builder
+
+	b.WriteString(StyleError.Render("Delete profile: " + m.profile.DeleteProfileName))
+	b.WriteString("\n\n")
+
+	if len(m.profile.Available) <= 1 {
+		b.WriteString(StyleWarning.Render("⚠ This is the only profile. Deleting it will launch the setup wizard."))
+		b.WriteString("\n\n")
+	}
+
+	b.WriteString("This will permanently delete the profile configuration file.\n")
+	b.WriteString("DNS records and Caddyfile entries will NOT be affected.\n\n")
+
+	b.WriteString(StyleDim.Render("y: confirm delete  n/ESC: cancel"))
+
+	return b.String()
 }
 
 // maskToken shows only first/last 4 chars of API token

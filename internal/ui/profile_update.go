@@ -58,6 +58,21 @@ func (m Model) handleProfileSelectorKeyPress(key string) (Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case "d":
+		// Delete selected profile (not "add new" option)
+		if m.cursor < len(m.profile.Available) {
+			profileName := m.profile.Available[m.cursor]
+			// Cannot delete the currently active profile
+			if profileName == m.profile.CurrentName {
+				m.err = fmt.Errorf("cannot delete the active profile")
+				return m, nil
+			}
+			m.profile.DeleteProfileName = profileName
+			m.currentView = ViewConfirmDeleteProfile
+			m.err = nil
+		}
+		return m, nil
+
 	case "p", "ctrl+p":
 		// Close profile selector (same as ESC)
 		if m.config == nil {

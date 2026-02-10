@@ -197,6 +197,12 @@ func (m Model) handleQuit() (Model, tea.Cmd) {
 
 // handleCancelConfirmation cancels confirmation dialogs with 'n'.
 func (m Model) handleCancelConfirmation() (Model, tea.Cmd) {
+	if m.currentView == ViewConfirmDeleteProfile {
+		m.profile.DeleteProfileName = ""
+		m.currentView = ViewProfileSelector
+		m.err = nil
+		return m, nil
+	}
 	if m.currentView == ViewProfileSelector {
 		return m.handleProfileSelectorKeyPress("n")
 	}
@@ -432,6 +438,10 @@ func (m Model) handleOpenSnippetWizard() (Model, tea.Cmd) {
 
 // handleDeleteAction handles the 'd' key for deleting snippets, backups, or entries.
 func (m Model) handleDeleteAction() (Model, tea.Cmd) {
+	// Delete profile from profile selector
+	if m.currentView == ViewProfileSelector {
+		return m.handleProfileSelectorKeyPress("d")
+	}
 	// Delete snippet when in edit mode
 	if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
 		return m.deleteSnippet()

@@ -14,6 +14,13 @@ func (m Model) handleDismiss() (Model, tea.Cmd) {
 		m.err = nil
 		return m, nil
 	}
+	// If in confirm delete profile, return to profile selector
+	if m.currentView == ViewConfirmDeleteProfile {
+		m.profile.DeleteProfileName = ""
+		m.currentView = ViewProfileSelector
+		m.err = nil
+		return m, nil
+	}
 	// If in bulk delete menu, return to list
 	if m.currentView == ViewBulkDeleteMenu {
 		m.currentView = ViewList

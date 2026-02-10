@@ -39,6 +39,7 @@ const (
 	ViewWizard
 	ViewSnippetWizard
 	ViewMigrationWizard
+	ViewConfirmDeleteProfile
 	ViewError
 )
 
@@ -228,10 +229,11 @@ type SnippetPanelState struct {
 
 // ProfileState holds state for profile selection and editing
 type ProfileState struct {
-	CurrentName string          // Name of currently loaded profile
-	Available   []string        // List of available profile names
-	EditData    ProfileEditData // Profile edit form data
-	EditCursor  int             // Current field in edit form
+	CurrentName       string          // Name of currently loaded profile
+	Available         []string        // List of available profile names
+	EditData          ProfileEditData // Profile edit form data
+	EditCursor        int             // Current field in edit form
+	DeleteProfileName string          // Name of profile pending deletion
 }
 
 // MigrationState holds state for the migration wizard

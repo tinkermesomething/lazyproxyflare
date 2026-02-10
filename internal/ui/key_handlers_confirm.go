@@ -6,10 +6,36 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"lazyproxyflare/internal/caddy"
+	"lazyproxyflare/internal/config"
 )
 
 // handleConfirmAction dispatches 'y' key confirmation per-view.
 func (m Model) handleConfirmAction() (Model, tea.Cmd) {
+	// Confirm profile deletion
+	if m.currentView == ViewConfirmDeleteProfile {
+		if err := config.DeleteProfile(m.profile.DeleteProfileName); err != nil {
+			m.err = fmt.Errorf("failed to delete profile: %v", err)
+			m.currentView = ViewProfileSelector
+			return m, nil
+		}
+		// Refresh profile list
+		profiles, err := config.ListProfiles()
+		if err == nil {
+			m.profile.Available = profiles
+		}
+		m.profile.DeleteProfileName = ""
+		m.err = nil
+		// If no profiles left, launch wizard
+		if len(m.profile.Available) == 0 {
+			return m.startWizard(), nil
+		}
+		// Reset cursor if needed
+		if m.cursor >= len(m.profile.Available) {
+			m.cursor = len(m.profile.Available) - 1
+		}
+		m.currentView = ViewProfileSelector
+		return m, nil
+	}
 	// Save snippet changes when in edit mode
 	if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
 		return m.saveSnippetEdit()
