@@ -31,15 +31,19 @@ LazyProxyFlare is a terminal UI (TUI) application inspired by [lazygit](https://
 - **Profile Switching**: Quick profile switching with `p` keybinding
 - **Profile Selector**: Modal interface for choosing between multiple profiles
 - **Profile Editing**: Edit existing profiles directly (press `e` in profile selector)
+- **Profile Deletion**: Delete profiles with confirmation modal (press `d` in selector)
+- **Export/Import**: Export profiles as `.tar.gz` bundles, import from archive
 - **Docker Deployment**: Designed for Caddy running in Docker containers
 - **Custom Commands**: Configure custom validation and restart commands per profile
+- **Editor Integration**: Open Caddyfile in configured editor (press `E` on Caddy tab)
 
 ### Advanced Features
 - **Multi-Level Filtering**: Filter by sync status, DNS type, or search query
 - **Flexible Sorting**: Alphabetical or by sync status
 - **Batch Operations**: Multi-select and bulk delete/sync
 - **Backup Manager**: View, restore, delete, and auto-cleanup old backups
-- **Audit Logging**: Complete operation history with timestamps
+- **Audit Logging**: Complete operation history with filtering and search
+- **Backup Rotation**: Configurable max count and size limits for backups
 - **Multi-Panel Layout**: Lazygit-style interface with context-sensitive keybindings
 - **Full Mouse Support**: Click, scroll, and navigate with mouse or keyboard
 - **Snippet System**: Reusable configuration blocks for DRY Caddyfile management
@@ -222,8 +226,19 @@ Press `Tab` to switch between the **DNS** and **Caddy** tabs — the panel title
 
 #### Profile Selector
 - `e` - Edit selected profile
+- `d` - Delete selected profile
+- `x` - Export selected profile
+- `i` - Import profile from archive
 - `n` or `+` - Create new profile
 - `Enter` - Switch to selected profile
+
+#### Caddy Tab
+- `E` - Open Caddyfile in external editor (configured via profile or `$EDITOR`)
+
+#### Audit Log
+- `/` - Search by domain name
+- `f` - Cycle operation filter (All → Create → Update → Delete → Sync → Restore)
+- `r` - Cycle result filter (All → Success → Failure)
 
 #### General
 - `ESC` - Go back / close modal (also `Ctrl+W`)
@@ -290,6 +305,11 @@ defaults:
 
 ui:
   theme: "default"
+  editor: "vim"                   # Optional: preferred editor for Caddyfile editing
+
+backup:
+  max_backups: 10                 # Optional: maximum number of backups to keep (0 = unlimited)
+  max_size_mb: 50                 # Optional: maximum total backup size in MB (0 = unlimited)
 ```
 
 ### Profile Management
@@ -500,6 +520,7 @@ lazyproxyflare/
 │   │   ├── config.go
 │   │   ├── profile.go          # Multi-profile system
 │   │   ├── profile_types.go
+│   │   ├── export.go           # Profile export/import (.tar.gz)
 │   │   └── types.go
 │   ├── diff/                   # DNS ↔ Caddy comparison
 │   │   ├── engine.go
@@ -581,10 +602,10 @@ make install            # Install to /usr/local/bin
 
 ### Code Statistics
 
-- **Total Lines:** ~24,300 lines of Go
-- **UI Files:** 44 focused files (largest <800 lines)
+- **Total Lines:** ~25,400 lines of Go
+- **UI Files:** 55 focused files (largest <800 lines)
 - **Packages:** 9 well-organized packages
-- **Test Files:** 17 test files with unit tests
+- **Test Files:** 18 test files with unit tests
 - **Features:** Complete CRUD, profiles, snippets, batch ops, backup/restore, audit logging
 
 ### Design Principles
@@ -611,7 +632,7 @@ make install            # Install to /usr/local/bin
   - Smart form suggestions and brownfield support
   - Auto-detection and visual indicators
 
-### v1.1 (Current)
+### v1.1
 
 **Architecture & Code Quality**
 - Major codebase refactoring: decomposed monolithic `app.go` (3,500+ lines) into 15+ focused files
@@ -623,7 +644,19 @@ make install            # Install to /usr/local/bin
 - Pre-compiled regex patterns and DRY Cloudflare client initialization
 - Zero behavior changes — all refactoring verified with full test suite
 
-### v1.2 (Planned)
+### v1.2 (Current)
+
+**User Experience**
+- Profile deletion UI with confirmation modal
+- External Caddyfile editor integration (`E` key, per-profile `editor` setting + `$EDITOR` fallback)
+- Editor preference stored in profile YAML (`ui.editor`)
+
+**Data & Configuration Management**
+- Export/import profiles as `.tar.gz` bundles (profile YAML + audit log)
+- Audit log filtering by operation type, result status, and domain search
+- Backup rotation with configurable max count (`max_backups`) and size (`max_size_mb`) limits
+
+### v1.3 (Planned)
 
 **Security**
 - OS keyring integration: Securely store Cloudflare API tokens
@@ -631,12 +664,6 @@ make install            # Install to /usr/local/bin
 **User Experience**
 - Configurable keybindings: User-defined shortcuts for efficient navigation
 - Theme customization: Personalize the application's appearance with custom color schemes
-- Profile deletion UI: Manage configuration profiles directly within the application
-
-**Data & Configuration Management**
-- Export/import: Easily back up and restore entire configurations
-- Audit log filtering and search: Improve visibility and analysis of application actions
-- Backup rotation limits: Automate the cleanup and management of old backups
 
 **Core Functionality Enhancements**
 - TXT record support: Expand DNS management to include TXT records
@@ -691,6 +718,7 @@ Contributions are welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 - Built with [Charm.sh](https://charm.sh/) ecosystem
 - Powered by [Cloudflare API](https://developers.cloudflare.com/api/)
 - Caddy server: [caddyserver.com](https://caddyserver.com/)
+- Developed with [Claude Code](https://claude.ai/claude-code) by Anthropic — architecture, refactoring, and feature implementation
 
 ---
 
