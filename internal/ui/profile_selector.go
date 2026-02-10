@@ -115,6 +115,10 @@ func (m Model) renderProfileEditView() string {
 	b.WriteString(StyleInfo.Render("Edit Profile: " + m.profile.EditData.OriginalName))
 	b.WriteString("\n\n")
 
+	// Danger zone warning
+	b.WriteString(StyleWarning.Render("DANGER ZONE — Changes are saved directly. Export your profile first (x in selector)."))
+	b.WriteString("\n\n")
+
 	// Error display
 	if m.err != nil {
 		b.WriteString(StyleError.Render("Error: " + m.err.Error()))
@@ -164,6 +168,9 @@ func (m Model) renderProfileEditView() string {
 				checkbox = "[✓]"
 			}
 			line = fmt.Sprintf("%s%-16s %s", cursor, field.label+":", checkbox)
+		} else if i == m.profile.EditCursor && m.profile.EditingField {
+			// Show cursor indicator when editing this field
+			line = fmt.Sprintf("%s%-16s %s_", cursor, field.label+":", field.value)
 		} else {
 			line = fmt.Sprintf("%s%-16s %s", cursor, field.label+":", field.value)
 		}
@@ -178,7 +185,11 @@ func (m Model) renderProfileEditView() string {
 
 	// Instructions
 	b.WriteString("\n")
-	b.WriteString(StyleDim.Render("Tab/j/k: navigate  Space: toggle  Enter: save  ESC: cancel"))
+	if m.profile.EditingField {
+		b.WriteString(StyleDim.Render("Type to edit  Backspace: delete  Enter/ESC: done editing field"))
+	} else {
+		b.WriteString(StyleDim.Render("↑/↓/Tab: navigate  Enter: edit field  Space: toggle  Ctrl+S: save  ESC: cancel"))
+	}
 
 	return lipgloss.Place(
 		width,
@@ -247,6 +258,23 @@ func (m Model) renderConfirmDeleteProfileContent() string {
 	b.WriteString("DNS records and Caddyfile entries will NOT be affected.\n\n")
 
 	b.WriteString(StyleDim.Render("y: confirm delete  n/ESC: cancel"))
+
+	return b.String()
+}
+
+// renderSetEditorContent renders the editor prompt modal content
+func (m Model) renderSetEditorContent() string {
+	var b strings.Builder
+
+	b.WriteString(StyleInfo.Render("Set Default Editor"))
+	b.WriteString("\n\n")
+
+	b.WriteString("No editor configured. Enter editor command (e.g. vim, nano, code):\n\n")
+
+	b.WriteString(fmt.Sprintf("> %s_\n", m.profile.EditorInput))
+
+	b.WriteString("\n")
+	b.WriteString(StyleDim.Render("Enter: save & open editor  ESC: cancel"))
 
 	return b.String()
 }

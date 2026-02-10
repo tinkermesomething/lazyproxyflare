@@ -42,6 +42,7 @@ const (
 	ViewConfirmDeleteProfile
 	ViewExportResult
 	ViewConfirmImport
+	ViewSetEditor
 	ViewError
 )
 
@@ -235,9 +236,11 @@ type ProfileState struct {
 	Available         []string        // List of available profile names
 	EditData          ProfileEditData // Profile edit form data
 	EditCursor        int             // Current field in edit form
+	EditingField      bool            // Whether actively editing a field value
 	DeleteProfileName string          // Name of profile pending deletion
 	ExportPath        string          // Path of last export result
 	ImportPath        string          // Path for import (user input)
+	EditorInput       string          // Temp input for editor prompt
 }
 
 // MigrationState holds state for the migration wizard

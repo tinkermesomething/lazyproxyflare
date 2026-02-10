@@ -56,7 +56,14 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "e":
 		return m.handleEditProfile()
 
-	case "w", "ctrl+s":
+	case "w":
+		return m.handleOpenSnippetWizard()
+
+	case "ctrl+s":
+		// Save profile edit if in that view
+		if m.currentView == ViewProfileEdit {
+			return m.handleProfileEditKeyPress("ctrl+s")
+		}
 		return m.handleOpenSnippetWizard()
 
 	case "d":

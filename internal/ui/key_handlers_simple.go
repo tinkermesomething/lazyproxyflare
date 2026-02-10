@@ -332,8 +332,8 @@ func (m Model) handleListDown() (Model, tea.Cmd) {
 
 // handleBackspaceKey handles the Backspace key across all views.
 func (m Model) handleBackspaceKey() (Model, tea.Cmd) {
-	// Handle backspace in profile edit
-	if m.currentView == ViewProfileEdit {
+	// Handle backspace in profile edit (only when editing a field)
+	if m.currentView == ViewProfileEdit && m.profile.EditingField {
 		return m.handleProfileEditKeyPress("backspace")
 	}
 	// Handle backspace in add/edit form
@@ -454,13 +454,16 @@ func (m Model) handleOpenEditor() (Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Resolve editor: profile setting → $EDITOR env → error
+	// Resolve editor: profile setting → $EDITOR env → prompt user
 	editor := m.config.UI.Editor
 	if editor == "" {
 		editor = os.Getenv("EDITOR")
 	}
 	if editor == "" {
-		m.err = fmt.Errorf("no editor configured (set in profile or $EDITOR)")
+		// No editor configured — prompt user to set one
+		m.profile.EditorInput = ""
+		m.currentView = ViewSetEditor
+		m.err = nil
 		return m, nil
 	}
 

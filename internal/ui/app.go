@@ -216,6 +216,9 @@ func (m Model) View() string {
 	case ViewConfirmImport:
 		return RenderModalOverlay(base, "Import Profile", m.renderConfirmImportContent(), m.width, m.height)
 
+	case ViewSetEditor:
+		return RenderModalOverlay(base, "Set Editor", m.renderSetEditorContent(), m.width, m.height)
+
 	case ViewMigrationWizard:
 		title := "Caddyfile Migration"
 		content := m.renderMigrationWizard()

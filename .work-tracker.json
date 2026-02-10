@@ -1,0 +1,87 @@
+{
+  "project": "lazyproxyflare",
+  "current_version": {
+    "version": "1.2.0",
+    "status": "completed",
+    "date": "2026-02-10",
+    "summary": "UX + Data features: profile deletion, external editor, export/import, audit log filtering, backup rotation"
+  },
+  "completed_tasks": [
+    {
+      "id": "commit-1",
+      "title": "Profile deletion UI with confirmation modal",
+      "commit": "11291a8",
+      "files": ["internal/ui/model.go", "internal/ui/profile_update.go", "internal/ui/profile_selector.go", "internal/ui/key_handlers_simple.go", "internal/ui/key_handlers_confirm.go", "internal/ui/key_handlers_dismiss.go", "internal/ui/app.go"],
+      "changes": {"added": 88, "removed": 5}
+    },
+    {
+      "id": "commit-2",
+      "title": "Editor preference in profile config",
+      "commit": "22aa110",
+      "files": ["internal/config/types.go", "internal/ui/model.go", "internal/ui/profile_update.go", "internal/ui/profile_selector.go"],
+      "changes": {"added": 15, "removed": 4}
+    },
+    {
+      "id": "commit-3",
+      "title": "External Caddyfile editor with E key",
+      "commit": "0edeb72",
+      "files": ["internal/ui/messages.go", "internal/ui/key_handlers.go", "internal/ui/key_handlers_simple.go", "internal/ui/update_handlers.go", "internal/ui/views.go"],
+      "changes": {"added": 51, "removed": 1}
+    },
+    {
+      "id": "commit-4",
+      "title": "Export/import profile infrastructure",
+      "commit": "c1314c2",
+      "files": ["internal/config/export.go", "internal/config/export_test.go", "internal/ui/model.go", "internal/ui/messages.go"],
+      "changes": {"added": 349}
+    },
+    {
+      "id": "commit-5",
+      "title": "Export/import UI",
+      "commit": "69f944f",
+      "files": ["internal/ui/profile_update.go", "internal/ui/profile_selector.go", "internal/ui/key_handlers.go", "internal/ui/key_handlers_simple.go", "internal/ui/key_handlers_confirm.go", "internal/ui/key_handlers_dismiss.go", "internal/ui/key_handlers_input.go", "internal/ui/update_handlers.go", "internal/ui/app.go"],
+      "changes": {"added": 172, "removed": 2}
+    },
+    {
+      "id": "commit-6",
+      "title": "Audit log filtering and search",
+      "commit": "698914d",
+      "files": ["internal/ui/model.go", "internal/ui/auditlog.go", "internal/ui/key_handlers_simple.go", "internal/ui/key_handlers_input.go", "internal/ui/key_handlers_dismiss.go"],
+      "changes": {"added": 179, "removed": 47}
+    },
+    {
+      "id": "commit-7",
+      "title": "Backup rotation config + cleanup functions",
+      "commit": "d389bdf",
+      "files": ["internal/config/profile_types.go", "internal/config/types.go", "internal/config/profile.go", "internal/caddy/manager.go", "internal/caddy/manager_test.go", "internal/ui/commands_backup.go", "internal/ui/key_handlers_confirm.go", "internal/ui/key_handlers_enter.go"],
+      "changes": {"added": 195, "removed": 9}
+    },
+    {
+      "id": "commit-8",
+      "title": "Backup limits in profile edit + manager display",
+      "commit": "f5a1b19",
+      "files": ["internal/ui/model.go", "internal/ui/profile_update.go", "internal/ui/profile_selector.go", "internal/ui/backups.go"],
+      "changes": {"added": 49, "removed": 5}
+    },
+    {
+      "id": "commit-9",
+      "title": "Update README for v1.2.0",
+      "commit": "70a2d28",
+      "files": ["README.md"],
+      "changes": {"added": 40, "removed": 12}
+    },
+    {
+      "id": "commit-10",
+      "title": "Fix profile edit UX + editor prompt + danger zone warning",
+      "files": ["internal/ui/model.go", "internal/ui/profile_update.go", "internal/ui/profile_selector.go", "internal/ui/key_handlers.go", "internal/ui/key_handlers_simple.go", "internal/ui/key_handlers_input.go", "internal/ui/key_handlers_enter.go", "internal/ui/key_handlers_confirm.go", "internal/ui/key_handlers_dismiss.go", "internal/ui/app.go"],
+      "changes": {"summary": "Profile edit: Enter-to-edit field mode, danger zone warning, editor prompt modal"}
+    }
+  ],
+  "deferred_to_next_version": [
+    "OS keyring integration for API tokens",
+    "Configurable keybindings",
+    "Theme customization",
+    "TXT record support",
+    "Snippet library / community templates"
+  ]
+}

@@ -199,6 +199,7 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 		MaxSizeMB:     fmt.Sprintf("%d", profileConfig.Backup.MaxSizeMB),
 	}
 	m.profile.EditCursor = 0
+	m.profile.EditingField = false
 	m.currentView = ViewProfileEdit
 	m.err = nil
 
@@ -209,21 +210,44 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
 	const numFields = 15 // Total editable fields
 
+	// When actively editing a field, handle differently
+	if m.profile.EditingField {
+		switch key {
+		case "esc", "enter":
+			// Exit field editing mode (value is already updated via profileEditAppendChar)
+			m.profile.EditingField = false
+			return m, nil
+		case "backspace":
+			m.profileEditDeleteChar()
+			return m, nil
+		}
+		// Single chars are handled by handleTextInput in key_handlers_input.go
+		return m, nil
+	}
+
+	// Navigation mode (not editing a field)
 	switch key {
 	case "esc", "ctrl+w":
 		// Cancel editing, return to profile selector
 		m.currentView = ViewProfileSelector
+		m.profile.EditingField = false
 		m.err = nil
 		return m, nil
 
-	case "tab", "down", "j":
-		// Move to next field
+	case "tab", "down":
+		// Move to next field (skip separator at index 12)
 		m.profile.EditCursor = (m.profile.EditCursor + 1) % numFields
+		if m.profile.EditCursor == 12 { // Skip separator
+			m.profile.EditCursor = (m.profile.EditCursor + 1) % numFields
+		}
 		return m, nil
 
-	case "shift+tab", "up", "k":
-		// Move to previous field
+	case "shift+tab", "up":
+		// Move to previous field (skip separator at index 12)
 		m.profile.EditCursor = (m.profile.EditCursor - 1 + numFields) % numFields
+		if m.profile.EditCursor == 12 { // Skip separator
+			m.profile.EditCursor = (m.profile.EditCursor - 1 + numFields) % numFields
+		}
 		return m, nil
 
 	case " ":
@@ -236,19 +260,27 @@ func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case "enter", "ctrl+s":
+	case "enter":
+		// On text fields: enter editing mode. On booleans: toggle.
+		if m.profile.EditCursor == 12 {
+			// Separator — do nothing
+			return m, nil
+		}
+		if m.profile.EditCursor == 13 {
+			m.profile.EditData.SSL = !m.profile.EditData.SSL
+			return m, nil
+		}
+		if m.profile.EditCursor == 14 {
+			m.profile.EditData.Proxied = !m.profile.EditData.Proxied
+			return m, nil
+		}
+		// Text field — enter editing mode
+		m.profile.EditingField = true
+		return m, nil
+
+	case "ctrl+s":
 		// Save profile
 		return m.saveProfileEdit()
-
-	case "backspace":
-		// Delete last character from current text field
-		m.profileEditDeleteChar()
-		return m, nil
-	}
-
-	// Handle text input for text fields
-	if len(key) == 1 && key[0] >= 32 && key[0] <= 126 {
-		m.profileEditAppendChar(key)
 	}
 
 	return m, nil

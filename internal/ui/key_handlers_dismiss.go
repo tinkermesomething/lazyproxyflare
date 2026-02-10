@@ -27,6 +27,13 @@ func (m Model) handleDismiss() (Model, tea.Cmd) {
 		m.err = nil
 		return m, nil
 	}
+	// If in editor prompt, return to list
+	if m.currentView == ViewSetEditor {
+		m.profile.EditorInput = ""
+		m.currentView = ViewList
+		m.err = nil
+		return m, nil
+	}
 	// If in confirm delete profile, return to profile selector
 	if m.currentView == ViewConfirmDeleteProfile {
 		m.profile.DeleteProfileName = ""

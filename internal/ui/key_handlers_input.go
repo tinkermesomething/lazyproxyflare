@@ -100,13 +100,28 @@ func (m Model) handleTextInput(msg tea.KeyMsg) (Model, tea.Cmd, bool) {
 		}
 	}
 
-	// Handle text input in profile edit mode
-	if m.currentView == ViewProfileEdit && len(msg.String()) == 1 {
+	// Handle text input in profile edit mode (only when actively editing a field)
+	if m.currentView == ViewProfileEdit && m.profile.EditingField && len(msg.String()) == 1 {
 		char := msg.String()
 		// Allow printable ASCII characters for text fields
 		if char[0] >= 32 && char[0] <= 126 {
-			m, cmd := m.handleProfileEditKeyPress(char)
-			return m, cmd, true
+			m.profileEditAppendChar(char)
+			return m, nil, true
+		}
+	}
+
+	// Handle text input in editor prompt
+	if m.currentView == ViewSetEditor {
+		key := msg.String()
+		if key == "backspace" {
+			if len(m.profile.EditorInput) > 0 {
+				m.profile.EditorInput = m.profile.EditorInput[:len(m.profile.EditorInput)-1]
+			}
+			return m, nil, true
+		}
+		if len(key) == 1 && key[0] >= 32 && key[0] <= 126 {
+			m.profile.EditorInput += key
+			return m, nil, true
 		}
 	}
 

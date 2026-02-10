@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -11,6 +12,36 @@ import (
 
 // handleConfirmAction dispatches 'y' key confirmation per-view.
 func (m Model) handleConfirmAction() (Model, tea.Cmd) {
+	// Confirm editor setting — save to profile and open editor
+	if m.currentView == ViewSetEditor {
+		editor := m.profile.EditorInput
+		if editor == "" {
+			m.err = fmt.Errorf("please enter an editor command")
+			return m, nil
+		}
+		// Save editor to current profile
+		if m.profile.CurrentName != "" {
+			profileConfig, err := config.LoadProfile(m.profile.CurrentName)
+			if err == nil {
+				profileConfig.UI.Editor = editor
+				_ = config.SaveProfile(m.profile.CurrentName, profileConfig)
+				// Update in-memory config
+				m.config.UI.Editor = editor
+			}
+		}
+		// Open editor with Caddyfile
+		m.profile.EditorInput = ""
+		m.currentView = ViewList
+		caddyfilePath := m.config.Caddy.CaddyfilePath
+		if caddyfilePath == "" {
+			m.err = fmt.Errorf("no Caddyfile path configured")
+			return m, nil
+		}
+		c := exec.Command(editor, caddyfilePath)
+		return m, tea.ExecProcess(c, func(err error) tea.Msg {
+			return editorFinishedMsg{err: err}
+		})
+	}
 	// Confirm import profile
 	if m.currentView == ViewConfirmImport {
 		if m.profile.ImportPath == "" {

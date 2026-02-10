@@ -114,9 +114,13 @@ func (m Model) handleEnterKey() (Model, tea.Cmd) {
 		m.err = nil
 		return m, nil
 	}
-	// Save profile edit
+	// Profile edit: Enter opens field for editing or exits editing mode
 	if m.currentView == ViewProfileEdit {
 		return m.handleProfileEditKeyPress("enter")
+	}
+	// Editor prompt: save and open
+	if m.currentView == ViewSetEditor {
+		return m.handleConfirmAction()
 	}
 	// Handle Enter in wizard
 	if m.currentView == ViewWizard {

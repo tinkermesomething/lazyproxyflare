@@ -2,6 +2,9 @@
 
 > A fast, good looking terminal UI for managing Cloudflare DNS records and reverse proxy configurations in perfect sync.
 
+> [!WARNING]
+> This tool **directly modifies** your Cloudflare DNS records and Caddyfile. Mistakes can take your services offline. **Always export your profile and back up your Caddyfile before making changes.** Use the built-in backup manager (`b`) and profile export (`x`) features. The author is not responsible for any data loss, DNS misconfiguration, or downtime caused by using this tool.
+
 ---
 
 ## What is LazyProxyFlare?
