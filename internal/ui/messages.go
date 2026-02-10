@@ -38,6 +38,10 @@ type updateEntryMsg struct {
 	errorStep  string // Which step failed
 }
 
+type editorFinishedMsg struct {
+	err error
+}
+
 type syncEntryMsg struct {
 	success     bool
 	err         error

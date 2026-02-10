@@ -478,13 +478,19 @@ func (m Model) getStatusBarContent() string {
 		tabHint = StyleDim.Render("[Caddy]")
 	}
 
-	return fmt.Sprintf("%s %s %s %s %s %s %s %s %s %s %s %s %s",
+	editorHint := ""
+	if m.activeTab == TabCaddy {
+		editorHint = formatKeybinding("E", "editor") + " "
+	}
+
+	return fmt.Sprintf("%s %s %s %s %s %s %s%s %s %s %s %s %s %s",
 		tabHint,
 		StyleKeybinding.Render("↑↓")+" nav",
 		StyleKeybinding.Render("tab")+" view",
 		formatKeybinding("a", "add"),
 		formatKeybinding("⏎", "edit"),
 		formatKeybinding("d", "del"),
+		editorHint,
 		formatKeybinding("w", "snippets"),
 		formatKeybinding("p", "profile"),
 		formatKeybinding("/", "search"),

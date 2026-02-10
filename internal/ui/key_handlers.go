@@ -62,6 +62,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "d":
 		return m.handleDeleteAction()
 
+	case "E":
+		return m.handleOpenEditor()
+
 	case "D":
 		return m.handleOpenBulkDeleteMenu()
 

@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -434,6 +435,34 @@ func (m Model) handleOpenSnippetWizard() (Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, nil
+}
+
+// handleOpenEditor opens the Caddyfile in an external editor.
+func (m Model) handleOpenEditor() (Model, tea.Cmd) {
+	if m.currentView != ViewList || m.activeTab != TabCaddy || m.config == nil || m.loading {
+		return m, nil
+	}
+
+	// Resolve editor: profile setting → $EDITOR env → error
+	editor := m.config.UI.Editor
+	if editor == "" {
+		editor = os.Getenv("EDITOR")
+	}
+	if editor == "" {
+		m.err = fmt.Errorf("no editor configured (set in profile or $EDITOR)")
+		return m, nil
+	}
+
+	caddyfilePath := m.config.Caddy.CaddyfilePath
+	if caddyfilePath == "" {
+		m.err = fmt.Errorf("no Caddyfile path configured")
+		return m, nil
+	}
+
+	c := exec.Command(editor, caddyfilePath)
+	return m, tea.ExecProcess(c, func(err error) tea.Msg {
+		return editorFinishedMsg{err: err}
+	})
 }
 
 // handleDeleteAction handles the 'd' key for deleting snippets, backups, or entries.

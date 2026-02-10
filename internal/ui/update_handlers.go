@@ -33,6 +33,14 @@ func (m Model) handleAsyncMsg(msg tea.Msg) (Model, tea.Cmd, bool) {
 		}
 		return m, nil, true
 
+	case editorFinishedMsg:
+		if msg.err != nil {
+			m.err = fmt.Errorf("editor exited with error: %v", msg.err)
+		}
+		// Refresh data after editor closes
+		m.loading = true
+		return m, refreshDataCmd(m.config), true
+
 	case migrationCompleteMsg:
 		m2, cmd := m.handleMigrationComplete(msg)
 		return m2, cmd, true
