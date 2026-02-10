@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"lazyproxyflare/internal/config"
@@ -56,6 +57,28 @@ func (m Model) handleProfileSelectorKeyPress(key string) (Model, tea.Cmd) {
 			profileName := m.profile.Available[m.cursor]
 			return m.startProfileEdit(profileName)
 		}
+		return m, nil
+
+	case "x":
+		// Export selected profile
+		if m.cursor < len(m.profile.Available) {
+			profileName := m.profile.Available[m.cursor]
+			exportDir, err := config.GetDefaultExportDir()
+			if err != nil {
+				m.err = err
+				return m, nil
+			}
+			timestamp := time.Now().Format("20060102_150405")
+			exportPath := fmt.Sprintf("%s/%s_%s.tar.gz", exportDir, profileName, timestamp)
+			return m, exportProfileCmd(profileName, exportPath)
+		}
+		return m, nil
+
+	case "i":
+		// Import profile — switch to import view with path input
+		m.profile.ImportPath = ""
+		m.currentView = ViewConfirmImport
+		m.err = nil
 		return m, nil
 
 	case "d":
@@ -374,4 +397,26 @@ func (m Model) saveProfileEdit() (Model, tea.Cmd) {
 	m.err = nil
 
 	return m, nil
+}
+
+// exportProfileCmd creates an async command to export a profile
+func exportProfileCmd(profileName, outputPath string) tea.Cmd {
+	return func() tea.Msg {
+		err := config.ExportProfile(profileName, outputPath)
+		if err != nil {
+			return exportProfileMsg{success: false, err: err}
+		}
+		return exportProfileMsg{success: true, path: outputPath}
+	}
+}
+
+// importProfileCmd creates an async command to import a profile
+func importProfileCmd(archivePath string) tea.Cmd {
+	return func() tea.Msg {
+		name, err := config.ImportProfile(archivePath, false)
+		if err != nil {
+			return importProfileMsg{success: false, err: err}
+		}
+		return importProfileMsg{success: true, profileName: name}
+	}
 }

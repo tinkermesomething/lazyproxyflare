@@ -210,6 +210,12 @@ func (m Model) View() string {
 	case ViewConfirmDeleteProfile:
 		return RenderModalOverlay(base, "Delete Profile", m.renderConfirmDeleteProfileContent(), m.width, m.height)
 
+	case ViewExportResult:
+		return RenderModalOverlay(base, "Export Profile", m.renderExportResultContent(), m.width, m.height)
+
+	case ViewConfirmImport:
+		return RenderModalOverlay(base, "Import Profile", m.renderConfirmImportContent(), m.width, m.height)
+
 	case ViewMigrationWizard:
 		title := "Caddyfile Migration"
 		content := m.renderMigrationWizard()

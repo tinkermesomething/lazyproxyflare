@@ -110,6 +110,21 @@ func (m Model) handleTextInput(msg tea.KeyMsg) (Model, tea.Cmd, bool) {
 		}
 	}
 
+	// Handle text input in import path entry
+	if m.currentView == ViewConfirmImport {
+		key := msg.String()
+		if key == "backspace" {
+			if len(m.profile.ImportPath) > 0 {
+				m.profile.ImportPath = m.profile.ImportPath[:len(m.profile.ImportPath)-1]
+			}
+			return m, nil, true
+		}
+		if len(key) == 1 && key[0] >= 32 && key[0] <= 126 {
+			m.profile.ImportPath += key
+			return m, nil, true
+		}
+	}
+
 	// Handle text input in search mode
 	if m.searching && len(msg.String()) == 1 {
 		m.searchQuery += msg.String()

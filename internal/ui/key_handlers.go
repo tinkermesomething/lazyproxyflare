@@ -86,6 +86,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "left":
 		return m.handleNavigateLeft()
 
+	case "i":
+		return m.handleImportProfile()
+
 	case "x":
 		return m.handleDeleteBackup()
 

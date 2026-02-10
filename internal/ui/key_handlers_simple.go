@@ -581,8 +581,20 @@ func (m Model) handleNavigateLeft() (Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleDeleteBackup handles 'x' for deleting a backup from the manager.
+// handleImportProfile handles 'i' for importing a profile.
+func (m Model) handleImportProfile() (Model, tea.Cmd) {
+	if m.currentView == ViewProfileSelector {
+		return m.handleProfileSelectorKeyPress("i")
+	}
+	return m, nil
+}
+
+// handleDeleteBackup handles 'x' for deleting a backup or exporting a profile.
 func (m Model) handleDeleteBackup() (Model, tea.Cmd) {
+	// Export profile from profile selector
+	if m.currentView == ViewProfileSelector {
+		return m.handleProfileSelectorKeyPress("x")
+	}
 	if m.currentView == ViewBackupManager && !m.loading {
 		backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 		if err == nil && m.backup.Cursor < len(backups) {

@@ -9,6 +9,7 @@ import (
 
 	"lazyproxyflare/internal/audit"
 	"lazyproxyflare/internal/caddy"
+	"lazyproxyflare/internal/config"
 )
 
 // handleAsyncMsg handles async operation result messages.
@@ -30,6 +31,31 @@ func (m Model) handleAsyncMsg(msg tea.Msg) (Model, tea.Cmd, bool) {
 			m.scrollOffset = 0
 			m.searchQuery = ""
 			m.err = nil
+		}
+		return m, nil, true
+
+	case exportProfileMsg:
+		if msg.success {
+			m.profile.ExportPath = msg.path
+			m.err = nil
+		} else {
+			m.err = msg.err
+		}
+		m.currentView = ViewExportResult
+		return m, nil, true
+
+	case importProfileMsg:
+		if msg.success {
+			// Refresh profile list
+			profiles, err := config.ListProfiles()
+			if err == nil {
+				m.profile.Available = profiles
+			}
+			m.profile.ImportPath = ""
+			m.err = nil
+			m.currentView = ViewProfileSelector
+		} else {
+			m.err = msg.err
 		}
 		return m, nil, true
 

@@ -75,7 +75,7 @@ func (m Model) renderProfileSelectorView() string {
 
 	// Instructions
 	b.WriteString("\n\n")
-	b.WriteString(StyleDim.Render("j/k: navigate  Enter: select  e: edit  d: delete  +/n: new  ESC: cancel"))
+	b.WriteString(StyleDim.Render("j/k: navigate  Enter: select  e: edit  d: delete  x: export  i: import  +/n: new  ESC: cancel"))
 
 	return lipgloss.Place(
 		width,
@@ -185,6 +185,48 @@ func (m Model) renderProfileEditView() string {
 		lipgloss.Center,
 		modalStyle.Render(b.String()),
 	)
+}
+
+// renderExportResultContent renders the export result modal content
+func (m Model) renderExportResultContent() string {
+	var b strings.Builder
+
+	if m.err != nil {
+		b.WriteString(StyleError.Render("Export failed: " + m.err.Error()))
+	} else {
+		b.WriteString(StyleSuccess.Render("Profile exported successfully!"))
+		b.WriteString("\n\n")
+		b.WriteString("Saved to:\n")
+		b.WriteString(StyleDim.Render(m.profile.ExportPath))
+	}
+
+	b.WriteString("\n\n")
+	b.WriteString(StyleDim.Render("ESC: close"))
+
+	return b.String()
+}
+
+// renderConfirmImportContent renders the import path input modal content
+func (m Model) renderConfirmImportContent() string {
+	var b strings.Builder
+
+	b.WriteString(StyleInfo.Render("Import Profile"))
+	b.WriteString("\n\n")
+
+	if m.err != nil {
+		b.WriteString(StyleError.Render("Error: " + m.err.Error()))
+		b.WriteString("\n\n")
+	}
+
+	b.WriteString("Enter path to .tar.gz archive:\n\n")
+
+	cursor := ">"
+	b.WriteString(fmt.Sprintf("%s %s_\n", cursor, m.profile.ImportPath))
+
+	b.WriteString("\n")
+	b.WriteString(StyleDim.Render("Enter: import  ESC: cancel"))
+
+	return b.String()
 }
 
 // renderConfirmDeleteProfileContent renders the profile deletion confirmation modal content

@@ -11,6 +11,14 @@ import (
 
 // handleConfirmAction dispatches 'y' key confirmation per-view.
 func (m Model) handleConfirmAction() (Model, tea.Cmd) {
+	// Confirm import profile
+	if m.currentView == ViewConfirmImport {
+		if m.profile.ImportPath == "" {
+			m.err = fmt.Errorf("please enter a file path")
+			return m, nil
+		}
+		return m, importProfileCmd(m.profile.ImportPath)
+	}
 	// Confirm profile deletion
 	if m.currentView == ViewConfirmDeleteProfile {
 		if err := config.DeleteProfile(m.profile.DeleteProfileName); err != nil {

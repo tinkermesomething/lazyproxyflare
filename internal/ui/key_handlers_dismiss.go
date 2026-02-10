@@ -14,6 +14,19 @@ func (m Model) handleDismiss() (Model, tea.Cmd) {
 		m.err = nil
 		return m, nil
 	}
+	// If in export result, return to profile selector
+	if m.currentView == ViewExportResult {
+		m.currentView = ViewProfileSelector
+		m.err = nil
+		return m, nil
+	}
+	// If in import confirmation, return to profile selector
+	if m.currentView == ViewConfirmImport {
+		m.profile.ImportPath = ""
+		m.currentView = ViewProfileSelector
+		m.err = nil
+		return m, nil
+	}
 	// If in confirm delete profile, return to profile selector
 	if m.currentView == ViewConfirmDeleteProfile {
 		m.profile.DeleteProfileName = ""
