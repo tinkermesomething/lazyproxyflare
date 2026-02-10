@@ -110,6 +110,31 @@ func (m Model) handleTextInput(msg tea.KeyMsg) (Model, tea.Cmd, bool) {
 		}
 	}
 
+	// Handle text input in audit log search
+	if m.currentView == ViewAuditLog && m.audit.SearchActive {
+		key := msg.String()
+		if key == "enter" || key == "esc" {
+			m.audit.SearchActive = false
+			if key == "esc" {
+				m.audit.SearchQuery = ""
+			}
+			m.audit.Scroll = 0
+			return m, nil, true
+		}
+		if key == "backspace" {
+			if len(m.audit.SearchQuery) > 0 {
+				m.audit.SearchQuery = m.audit.SearchQuery[:len(m.audit.SearchQuery)-1]
+			}
+			m.audit.Scroll = 0
+			return m, nil, true
+		}
+		if len(key) == 1 && key[0] >= 32 && key[0] <= 126 {
+			m.audit.SearchQuery += key
+			m.audit.Scroll = 0
+			return m, nil, true
+		}
+	}
+
 	// Handle text input in import path entry
 	if m.currentView == ViewConfirmImport {
 		key := msg.String()

@@ -14,8 +14,14 @@ import (
 	snippet_wizard "lazyproxyflare/internal/ui/snippet_wizard"
 )
 
-// handleSearchStart enters search mode from list view.
+// handleSearchStart enters search mode from list view or audit log.
 func (m Model) handleSearchStart() (Model, tea.Cmd) {
+	if m.currentView == ViewAuditLog {
+		m.audit.SearchActive = true
+		m.audit.SearchQuery = ""
+		m.audit.Scroll = 0
+		return m, nil
+	}
 	if m.currentView == ViewList && !m.searching && !m.loading {
 		m.searching = true
 		m.searchQuery = ""
@@ -24,8 +30,13 @@ func (m Model) handleSearchStart() (Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleStatusFilterCycle cycles through status filters.
+// handleStatusFilterCycle cycles through status filters or audit op filter.
 func (m Model) handleStatusFilterCycle() (Model, tea.Cmd) {
+	if m.currentView == ViewAuditLog && !m.audit.SearchActive {
+		m.cycleOpFilter()
+		m.audit.Scroll = 0
+		return m, nil
+	}
 	if m.currentView == ViewList && !m.searching && !m.loading {
 		m.statusFilter = (m.statusFilter + 1) % 4
 		m.cursor = 0
@@ -615,8 +626,14 @@ func (m Model) handleCleanupBackups() (Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleRefreshData handles 'r' for refreshing data or dismissing errors.
+// handleRefreshData handles 'r' for refreshing data, cycling audit result filter, or dismissing errors.
 func (m Model) handleRefreshData() (Model, tea.Cmd) {
+	// Cycle result filter in audit log
+	if m.currentView == ViewAuditLog && !m.audit.SearchActive {
+		m.cycleResultFilter()
+		m.audit.Scroll = 0
+		return m, nil
+	}
 	// If showing error modal, retry by clearing error and returning to previous view
 	if m.currentView == ViewError {
 		m.currentView = m.previousView

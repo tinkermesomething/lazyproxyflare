@@ -248,10 +248,14 @@ type MigrationState struct {
 
 // AuditState holds state for the audit log viewer
 type AuditState struct {
-	Logger *audit.Logger    // Audit logger instance
-	Logs   []audit.LogEntry // Loaded audit log entries
-	Cursor int              // Currently selected log entry
-	Scroll int              // Scroll offset for audit log view
+	Logger       *audit.Logger    // Audit logger instance
+	Logs         []audit.LogEntry // Loaded audit log entries
+	Cursor       int              // Currently selected log entry
+	Scroll       int              // Scroll offset for audit log view
+	SearchQuery  string           // Current search query for filtering
+	SearchActive bool             // Whether search input is active
+	OpFilter     string           // Operation type filter ("" = all)
+	ResultFilter string           // Result filter ("" = all)
 }
 
 // BackupState holds state for the backup manager

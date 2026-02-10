@@ -126,8 +126,18 @@ func (m Model) handleDismiss() (Model, tea.Cmd) {
 		m.err = nil
 		return m, nil
 	}
-	// If in audit log view, return to list
+	// If in audit log view, deactivate search first, then close
 	if m.currentView == ViewAuditLog {
+		if m.audit.SearchActive {
+			m.audit.SearchActive = false
+			m.audit.SearchQuery = ""
+			m.audit.Scroll = 0
+			return m, nil
+		}
+		// Clear filters on close
+		m.audit.OpFilter = ""
+		m.audit.ResultFilter = ""
+		m.audit.SearchQuery = ""
 		m.currentView = ViewList
 		m.err = nil
 		return m, nil
