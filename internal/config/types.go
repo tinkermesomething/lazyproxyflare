@@ -41,5 +41,6 @@ type DefaultsConfig struct {
 
 // UIConfig holds UI preferences
 type UIConfig struct {
-	Theme string `yaml:"theme"`
+	Theme  string `yaml:"theme"`
+	Editor string `yaml:"editor,omitempty"`
 }

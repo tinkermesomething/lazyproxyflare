@@ -171,6 +171,7 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 		Port:          fmt.Sprintf("%d", profileConfig.Defaults.Port),
 		SSL:           profileConfig.Defaults.SSL,
 		Proxied:       profileConfig.Defaults.Proxied,
+		Editor:        profileConfig.UI.Editor,
 	}
 	m.profile.EditCursor = 0
 	m.currentView = ViewProfileEdit
@@ -181,7 +182,7 @@ func (m Model) startProfileEdit(profileName string) (Model, tea.Cmd) {
 
 // handleProfileEditKeyPress handles key presses in profile edit view
 func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
-	const numFields = 12 // Total editable fields
+	const numFields = 13 // Total editable fields
 
 	switch key {
 	case "esc", "ctrl+w":
@@ -203,9 +204,9 @@ func (m Model) handleProfileEditKeyPress(key string) (Model, tea.Cmd) {
 	case " ":
 		// Toggle boolean fields
 		switch m.profile.EditCursor {
-		case 10: // SSL
+		case 11: // SSL
 			m.profile.EditData.SSL = !m.profile.EditData.SSL
-		case 11: // Proxied
+		case 12: // Proxied
 			m.profile.EditData.Proxied = !m.profile.EditData.Proxied
 		}
 		return m, nil
@@ -249,6 +250,8 @@ func (m *Model) profileEditAppendChar(char string) {
 		m.profile.EditData.CNAMETarget += char
 	case 8:
 		m.profile.EditData.Port += char
+	case 9:
+		m.profile.EditData.Editor += char
 	}
 }
 
@@ -280,6 +283,8 @@ func (m *Model) profileEditDeleteChar() {
 		m.profile.EditData.CNAMETarget = deleteLastChar(m.profile.EditData.CNAMETarget)
 	case 8:
 		m.profile.EditData.Port = deleteLastChar(m.profile.EditData.Port)
+	case 9:
+		m.profile.EditData.Editor = deleteLastChar(m.profile.EditData.Editor)
 	}
 }
 
@@ -335,6 +340,7 @@ func (m Model) saveProfileEdit() (Model, tea.Cmd) {
 	existingProfile.Defaults.Port = port
 	existingProfile.Defaults.SSL = data.SSL
 	existingProfile.Defaults.Proxied = data.Proxied
+	existingProfile.UI.Editor = data.Editor
 
 	// Handle rename
 	if data.Name != data.OriginalName {

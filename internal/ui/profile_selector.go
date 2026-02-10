@@ -137,6 +137,7 @@ func (m Model) renderProfileEditView() string {
 		{"Container Name", m.profile.EditData.ContainerName, false, false},
 		{"CNAME Target", m.profile.EditData.CNAMETarget, false, false},
 		{"Default Port", m.profile.EditData.Port, false, false},
+		{"Editor", m.profile.EditData.Editor, false, false},
 		{"", "", false, false}, // Separator
 		{"Default SSL", "", true, m.profile.EditData.SSL},
 		{"Default Proxied", "", true, m.profile.EditData.Proxied},

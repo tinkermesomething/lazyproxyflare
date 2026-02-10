@@ -288,6 +288,9 @@ type ProfileEditData struct {
 	Port        string // Default port
 	SSL         bool   // Default SSL setting
 	Proxied     bool   // Default proxied setting
+
+	// UI preferences
+	Editor string // Preferred editor command
 }
 
 type AddFormData struct {
