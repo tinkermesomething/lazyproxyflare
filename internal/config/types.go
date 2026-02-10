@@ -7,6 +7,7 @@ type Config struct {
 	Caddy      CaddyConfig      `yaml:"caddy"`
 	Defaults   DefaultsConfig   `yaml:"defaults"`
 	UI         UIConfig         `yaml:"ui"`
+	Backup     BackupConfig     `yaml:"backup,omitempty"`
 }
 
 // CloudflareConfig holds Cloudflare API credentials

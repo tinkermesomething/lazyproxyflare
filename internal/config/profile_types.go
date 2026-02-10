@@ -10,6 +10,13 @@ type ProfileConfig struct {
 	Proxy      ProxyConfig      `yaml:"proxy"`
 	Defaults   DefaultsConfig   `yaml:"defaults"`
 	UI         UIConfig         `yaml:"ui"`
+	Backup     BackupConfig     `yaml:"backup,omitempty"`
+}
+
+// BackupConfig holds backup rotation settings
+type BackupConfig struct {
+	MaxBackups int `yaml:"max_backups,omitempty"` // Maximum number of backups to keep (0 = unlimited)
+	MaxSizeMB  int `yaml:"max_size_mb,omitempty"` // Maximum total backup size in MB (0 = unlimited)
 }
 
 // ProfileMetadata contains profile metadata

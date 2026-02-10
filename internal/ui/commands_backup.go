@@ -192,11 +192,12 @@ func deleteBackupCmd(backupPath string) tea.Cmd {
 }
 
 // cleanupBackupsCmd deletes backups older than the specified retention period
-func cleanupBackupsCmd(caddyfilePath string, retentionDays int) tea.Cmd {
+func cleanupBackupsCmd(caddyfilePath string, retentionDays int, maxBackups int, maxSizeMB int) tea.Cmd {
 	return func() tea.Msg {
-		maxAge := time.Duration(retentionDays) * 24 * time.Hour
+		totalDeleted := 0
 
-		// Get list of old backups first to count them
+		// Age-based cleanup
+		maxAge := time.Duration(retentionDays) * 24 * time.Hour
 		oldBackups, err := caddy.GetOldBackups(caddyfilePath, maxAge)
 		if err != nil {
 			return cleanupBackupsMsg{
@@ -204,10 +205,8 @@ func cleanupBackupsCmd(caddyfilePath string, retentionDays int) tea.Cmd {
 				err:     fmt.Errorf("failed to get old backups: %w", err),
 			}
 		}
+		totalDeleted += len(oldBackups)
 
-		deletedCount := len(oldBackups)
-
-		// Actually delete them
 		err = caddy.CleanupOldBackups(caddyfilePath, maxAge)
 		if err != nil {
 			return cleanupBackupsMsg{
@@ -216,9 +215,25 @@ func cleanupBackupsCmd(caddyfilePath string, retentionDays int) tea.Cmd {
 			}
 		}
 
+		// Count-based cleanup
+		if maxBackups > 0 {
+			n, err := caddy.CleanupByCount(caddyfilePath, maxBackups)
+			if err == nil {
+				totalDeleted += n
+			}
+		}
+
+		// Size-based cleanup
+		if maxSizeMB > 0 {
+			n, err := caddy.CleanupBySize(caddyfilePath, maxSizeMB)
+			if err == nil {
+				totalDeleted += n
+			}
+		}
+
 		return cleanupBackupsMsg{
 			success:      true,
-			deletedCount: deletedCount,
+			deletedCount: totalDeleted,
 		}
 	}
 }

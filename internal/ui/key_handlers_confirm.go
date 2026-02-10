@@ -153,7 +153,7 @@ func (m Model) handleConfirmAction() (Model, tea.Cmd) {
 	// Confirm cleanup old backups (only in confirm cleanup screen)
 	if m.currentView == ViewConfirmCleanup && !m.loading {
 		m.loading = true
-		return m, cleanupBackupsCmd(m.config.Caddy.CaddyfilePath, m.backup.RetentionDays)
+		return m, cleanupBackupsCmd(m.config.Caddy.CaddyfilePath, m.backup.RetentionDays, m.config.Backup.MaxBackups, m.config.Backup.MaxSizeMB)
 	}
 	return m, nil
 }

@@ -437,3 +437,78 @@ func CleanupOldBackups(caddyfilePath string, maxAge time.Duration) error {
 
 	return nil
 }
+
+// CleanupByCount keeps the newest maxCount backups and deletes the rest.
+// Returns the number of backups deleted.
+func CleanupByCount(caddyfilePath string, maxCount int) (int, error) {
+	if maxCount <= 0 {
+		return 0, nil
+	}
+
+	backups, err := ListBackups(caddyfilePath)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(backups) <= maxCount {
+		return 0, nil
+	}
+
+	deleted := 0
+	// backups are sorted newest first, so delete from maxCount onwards
+	for _, b := range backups[maxCount:] {
+		if err := os.Remove(b.Path); err == nil {
+			deleted++
+		}
+	}
+
+	return deleted, nil
+}
+
+// CleanupBySize removes oldest backups until total size is under maxMB.
+// Returns the number of backups deleted.
+func CleanupBySize(caddyfilePath string, maxMB int) (int, error) {
+	if maxMB <= 0 {
+		return 0, nil
+	}
+
+	backups, err := ListBackups(caddyfilePath)
+	if err != nil {
+		return 0, err
+	}
+
+	maxBytes := int64(maxMB) * 1024 * 1024
+	var totalSize int64
+	for _, b := range backups {
+		totalSize += b.Size
+	}
+
+	if totalSize <= maxBytes {
+		return 0, nil
+	}
+
+	deleted := 0
+	// Delete oldest first (backups sorted newest first, so iterate from end)
+	for i := len(backups) - 1; i >= 0 && totalSize > maxBytes; i-- {
+		if err := os.Remove(backups[i].Path); err == nil {
+			totalSize -= backups[i].Size
+			deleted++
+		}
+	}
+
+	return deleted, nil
+}
+
+// GetTotalBackupSize returns the total size of all backups in bytes.
+func GetTotalBackupSize(caddyfilePath string) (int64, error) {
+	backups, err := ListBackups(caddyfilePath)
+	if err != nil {
+		return 0, err
+	}
+
+	var total int64
+	for _, b := range backups {
+		total += b.Size
+	}
+	return total, nil
+}

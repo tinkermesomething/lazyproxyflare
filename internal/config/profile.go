@@ -250,5 +250,6 @@ func ProfileToLegacyConfig(profile *ProfileConfig) *Config {
 		},
 		Defaults: profile.Defaults,
 		UI:       profile.UI,
+		Backup:   profile.Backup,
 	}
 }

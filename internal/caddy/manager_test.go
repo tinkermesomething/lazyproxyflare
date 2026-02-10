@@ -151,3 +151,90 @@ func TestValidateCaddyfilePathReplacement(t *testing.T) {
 		})
 	}
 }
+
+func TestCleanupByCount(t *testing.T) {
+	tmpDir := t.TempDir()
+	caddyfilePath := filepath.Join(tmpDir, "Caddyfile")
+	os.WriteFile(caddyfilePath, []byte("test"), 0644)
+
+	// Create 5 backups with distinct timestamps
+	for i := 0; i < 5; i++ {
+		backupPath := filepath.Join(tmpDir, "Caddyfile.backup.20240101_12000"+string(rune('0'+i)))
+		os.WriteFile(backupPath, []byte("backup content"), 0644)
+	}
+
+	backups, _ := ListBackups(caddyfilePath)
+	if len(backups) != 5 {
+		t.Fatalf("expected 5 backups, got %d", len(backups))
+	}
+
+	// Keep only 2
+	deleted, err := CleanupByCount(caddyfilePath, 2)
+	if err != nil {
+		t.Fatalf("cleanup error: %v", err)
+	}
+	if deleted != 3 {
+		t.Errorf("expected 3 deleted, got %d", deleted)
+	}
+
+	remaining, _ := ListBackups(caddyfilePath)
+	if len(remaining) != 2 {
+		t.Errorf("expected 2 remaining, got %d", len(remaining))
+	}
+}
+
+func TestCleanupBySize(t *testing.T) {
+	tmpDir := t.TempDir()
+	caddyfilePath := filepath.Join(tmpDir, "Caddyfile")
+	// Write a large enough file
+	data := make([]byte, 1024)
+	os.WriteFile(caddyfilePath, data, 0644)
+
+	// Create 3 backups (~1KB each)
+	for i := 0; i < 3; i++ {
+		BackupCaddyfile(caddyfilePath)
+	}
+
+	// Try to clean up to 0 MB limit — should delete all but keep trying
+	deleted, err := CleanupBySize(caddyfilePath, 0)
+	if err != nil {
+		t.Fatalf("cleanup error: %v", err)
+	}
+	// maxMB=0 means unlimited, so no deletion
+	if deleted != 0 {
+		t.Errorf("expected 0 deleted for maxMB=0, got %d", deleted)
+	}
+}
+
+func TestGetTotalBackupSize(t *testing.T) {
+	tmpDir := t.TempDir()
+	caddyfilePath := filepath.Join(tmpDir, "Caddyfile")
+	os.WriteFile(caddyfilePath, []byte("test content"), 0644)
+
+	BackupCaddyfile(caddyfilePath)
+
+	size, err := GetTotalBackupSize(caddyfilePath)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if size <= 0 {
+		t.Errorf("expected positive size, got %d", size)
+	}
+}
+
+func TestCleanupByCountNoop(t *testing.T) {
+	tmpDir := t.TempDir()
+	caddyfilePath := filepath.Join(tmpDir, "Caddyfile")
+	os.WriteFile(caddyfilePath, []byte("test"), 0644)
+
+	BackupCaddyfile(caddyfilePath)
+
+	// max=10 but only 1 backup — should not delete
+	deleted, err := CleanupByCount(caddyfilePath, 10)
+	if err != nil {
+		t.Fatalf("cleanup error: %v", err)
+	}
+	if deleted != 0 {
+		t.Errorf("expected 0 deleted, got %d", deleted)
+	}
+}
