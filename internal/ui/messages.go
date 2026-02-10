@@ -42,6 +42,18 @@ type editorFinishedMsg struct {
 	err error
 }
 
+type exportProfileMsg struct {
+	success bool
+	err     error
+	path    string
+}
+
+type importProfileMsg struct {
+	success     bool
+	err         error
+	profileName string
+}
+
 type syncEntryMsg struct {
 	success     bool
 	err         error

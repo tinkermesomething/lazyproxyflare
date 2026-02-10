@@ -40,6 +40,8 @@ const (
 	ViewSnippetWizard
 	ViewMigrationWizard
 	ViewConfirmDeleteProfile
+	ViewExportResult
+	ViewConfirmImport
 	ViewError
 )
 
@@ -234,6 +236,8 @@ type ProfileState struct {
 	EditData          ProfileEditData // Profile edit form data
 	EditCursor        int             // Current field in edit form
 	DeleteProfileName string          // Name of profile pending deletion
+	ExportPath        string          // Path of last export result
+	ImportPath        string          // Path for import (user input)
 }
 
 // MigrationState holds state for the migration wizard
