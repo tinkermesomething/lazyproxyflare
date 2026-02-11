@@ -1,742 +1,170 @@
 # LazyProxyFlare
 
-> A fast, good looking terminal UI for managing Cloudflare DNS records and reverse proxy configurations in perfect sync.
+> A terminal UI for managing Cloudflare DNS records and Caddy reverse proxy configurations in sync — inspired by [lazygit](https://github.com/jesseduffield/lazygit).
 
 > [!WARNING]
-> This tool **directly modifies** your Cloudflare DNS records and Caddyfile. Mistakes can take your services offline. **Always export your profile and back up your Caddyfile before making changes.** Use the built-in backup manager (`b`) and profile export (`x`) features. The author is not responsible for any data loss, DNS misconfiguration, or downtime caused by using this tool.
+> This tool **directly modifies** your Cloudflare DNS records and Caddyfile. Mistakes can take your services offline. **Always back up before making changes** — use the built-in backup manager (`b`) and profile export (`x`). The author is not responsible for any data loss, DNS misconfiguration, or downtime caused by using this tool.
 
 ---
 
-## What is LazyProxyFlare?
+## Why?
 
-LazyProxyFlare is a terminal UI (TUI) application inspired by [lazygit](https://github.com/jesseduffield/lazygit) that makes managing DNS records and reverse proxy configurations as intuitive as version control. Born from the frustration of manually keeping Cloudflare DNS and Caddy configurations synchronized, it provides a unified interface to view, create, update, and sync entries with confidence.
-
-**Perfect for:**
-- Homelab enthusiasts managing multiple services
-- Self-hosters running Caddy reverse proxy
-- Anyone who prefers keyboard-driven workflows
+If you self-host behind Caddy and use Cloudflare for DNS, you know the pain: add a service, create the DNS record, edit the Caddyfile, validate, restart the container — and hope you didn't fat-finger something. LazyProxyFlare keeps both in sync from one keyboard-driven interface.
 
 ---
 
 ## Features
 
-### Core Functionality
-- **Dual DNS Type Support**: Manage both CNAME and A records
-- **DNS-Only Mode**: Create DNS records without Caddy configuration
-- **Real-time Sync Detection**: Visual indicators for synced, orphaned, and mismatched entries
-- **CRUD Operations**: Create, Read, Update, Delete entries with validation
-- **Smart Rollback**: Automatic rollback on failures (DNS + Caddyfile + container)
-- **Automatic Backups**: Caddyfile backed up before every modification
-
-### Profile & Configuration
-- **Multi-Profile Support**: Manage multiple domains/environments with separate profiles
-- **Setup Wizard**: Interactive 5-step wizard for first-time configuration
-- **Profile Switching**: Quick profile switching with `p` keybinding
-- **Profile Selector**: Modal interface for choosing between multiple profiles
-- **Profile Editing**: Edit existing profiles directly (press `e` in profile selector)
-- **Profile Deletion**: Delete profiles with confirmation modal (press `d` in selector)
-- **Export/Import**: Export profiles as `.tar.gz` bundles, import from archive
-- **Docker Deployment**: Designed for Caddy running in Docker containers
-- **Custom Commands**: Configure custom validation and restart commands per profile
-- **Editor Integration**: Open Caddyfile in configured editor (press `E` on Caddy tab)
-
-### Advanced Features
-- **Multi-Level Filtering**: Filter by sync status, DNS type, or search query
-- **Flexible Sorting**: Alphabetical or by sync status
-- **Batch Operations**: Multi-select and bulk delete/sync
-- **Backup Manager**: View, restore, delete, and auto-cleanup old backups
-- **Audit Logging**: Complete operation history with filtering and search
-- **Backup Rotation**: Configurable max count and size limits for backups
-- **Multi-Panel Layout**: Lazygit-style interface with context-sensitive keybindings
-- **Full Mouse Support**: Click, scroll, and navigate with mouse or keyboard
-- **Snippet System**: Reusable configuration blocks for DRY Caddyfile management
-  - **Snippet Wizard**: Interactive creation with 14 pre-built templates across 4 categories
-  - **Smart Forms**: Contextual snippet suggestions in add/edit forms
-  - **Brownfield Support**: Automatic detection and editing of existing snippet imports
-  - **Visual Indicators**: Color-coded category badges in three-panel layout
-
-### Safety & Validation
-- **Pre-flight Validation**: Caddy config validation before commit
-- **Atomic Operations**: All-or-nothing updates with automatic rollback
-- **Backup System**: 30-day retention with manual cleanup option
-- **Input Validation**: IPv4, domain, and CIDR format checking
-- **Confirmation Dialogs**: All destructive operations require confirmation
+- **DNS + Caddy in sync** — create, edit, delete entries that update both Cloudflare DNS and your Caddyfile atomically with automatic rollback on failure
+- **CNAME and A records** — including DNS-only mode (no Caddy block)
+- **Orphan detection** — visual indicators for entries that exist in DNS but not Caddy (or vice versa), with one-key sync
+- **Multi-profile** — manage multiple domains/environments with separate profiles, export/import as `.tar.gz`
+- **Setup wizard** — interactive first-run configuration, no manual YAML required
+- **Batch operations** — multi-select entries for bulk delete or sync
+- **Snippet system** — reusable Caddy config blocks (IP restrictions, security headers, compression) with an interactive wizard (`w`) and smart form suggestions
+- **Backup manager** — automatic Caddyfile backups before every change, with restore, cleanup, and configurable rotation limits
+- **Audit log** — full operation history with filtering by type, result, and domain search
+- **Editor integration** — open your Caddyfile in `$EDITOR` directly from the UI (`E`)
+- **Mouse + keyboard** — full mouse support alongside vim-style and arrow key navigation
+- **Safety first** — pre-flight Caddy validation, confirmation dialogs on destructive ops, input format checking
 
 ---
 
 ## Installation
 
 ### Prerequisites
-- Go 1.22+ (for building from source)
+
+- Go 1.22+
 - Cloudflare API token with DNS edit permissions
-- Caddy server (Docker, systemd, or standalone)
+- Caddy server (Docker, docker-compose, or systemd)
 
 ### Build from Source
 
 ```bash
-# Clone the repository
 git clone https://github.com/tinkermesomething/lazyproxyflare.git
 cd lazyproxyflare
-
-# Build and install (recommended)
-make
-sudo make install
-
-# Or build without installing
-make build
-
-# Build with version tag
-make build VERSION=1.1.0
-```
-
-### CLI Flags
-
-```bash
-lazyproxyflare              # Launch TUI (default)
-lazyproxyflare --version    # Show version and exit
-lazyproxyflare --help       # Show usage and exit
-lazyproxyflare --profile X  # Load a specific profile by name
+make && sudo make install
 ```
 
 ### Quick Start
 
-**Option 1: Setup Wizard (Recommended for first-time users)**
-
-Simply run LazyProxyFlare and the interactive wizard will guide you through the setup:
+Just run it — the setup wizard handles the rest:
 
 ```bash
 lazyproxyflare
 ```
 
-The wizard guides you through 5 steps:
-1. **Welcome** - Introduction and overview
-2. **Basic Info** - Profile name and domain
-3. **Cloudflare** - API token and zone ID
-4. **Docker & Caddy** - Deployment method, container, and Caddyfile paths
-5. **Summary** - Review and confirm
+The wizard walks you through profile name, domain, Cloudflare credentials, and Caddy deployment settings. For multiple profiles, press `p` then `+` to create more.
 
-**Option 2: Manual Configuration**
+To skip the wizard, create a YAML file manually in `~/.config/lazyproxyflare/profiles/` — see [`config.example.yaml`](config.example.yaml) for the full reference.
 
-1. **Create configuration directory**
+### CLI Flags
 
 ```bash
-mkdir -p ~/.config/lazyproxyflare/profiles
-```
-
-2. **Create a profile YAML file** (e.g., `~/.config/lazyproxyflare/profiles/homelab.yaml`):
-
-```yaml
-profile:
-  name: "homelab"
-  description: "Home lab environment"
-  created: "2025-01-01T00:00:00Z"
-
-cloudflare:
-  api_token: "your_cloudflare_api_token"
-  zone_id: "your_zone_id_32_hex_chars"
-
-domain: "example.com"
-
-proxy:
-  type: "caddy"
-  deployment: "docker"              # docker, docker-compose, system
-  caddy:
-    caddyfile_path: "/etc/caddy/Caddyfile"
-    container_name: "caddy"
-    compose_file: ""                # Path to docker-compose.yml (if using compose)
-    container_caddyfile_path: ""    # Caddyfile path inside container
-    # Optional: Custom validation command (supports {path} and {container} placeholders)
-    validation_command: ""
-
-defaults:
-  cname_target: "example.com"
-  proxied: true
-  port: 80
-  ssl: false
-```
-
-3. **Run LazyProxyFlare**
-
-```bash
-lazyproxyflare
+lazyproxyflare              # Launch TUI
+lazyproxyflare --profile X  # Load a specific profile by name
+lazyproxyflare --version    # Show version
+lazyproxyflare --help       # Show usage
 ```
 
 ---
 
-## Usage
+## Keybindings
 
-### Main Interface
+Press `?` in the app for the full 5-page help screen. The essentials:
 
-The main view uses a three-panel layout. The top-right panel shows the **current tab's** details (DNS Record or Caddy Config), while the bottom-right panel shows the **other tab's** info for the same entry.
+| Key | Action |
+|-----|--------|
+| `a` | Add new entry |
+| `Enter` | Edit selected entry |
+| `d` | Delete selected entry |
+| `s` | Sync orphaned entry |
+| `Space` | Toggle selection |
+| `X` / `S` / `D` | Batch delete / sync / bulk menu |
+| `Tab` | Switch DNS ↔ Caddy tab |
+| `f` / `t` / `o` | Filter by status / DNS type / sort |
+| `/` | Search by domain |
+| `p` | Profile selector |
+| `b` | Backup manager |
+| `w` | Snippet wizard |
+| `l` | Audit log |
+| `E` | Open Caddyfile in editor |
+| `r` | Refresh data |
+| `q` | Quit |
 
-```
-┌─ LazyProxyFlare ── [DNS] ─────────────────────────────────────────────────┐
-│                                                                            │
-│ ┌─ Entries (15) ──────────────┐ ┌─ DNS Record ─────────────────────────┐ │
-│ │                              │ │ Domain: plex.example.com             │ │
-│ │ ✓ plex.example.com           │ │ Type: CNAME                          │ │
-│ │ ✓ grafana.example.com        │ │ Target: mail.example.com             │ │
-│ │ ⚠ test.example.com           │ │ Proxied: Yes                         │ │
-│ │                              │ ├─ Caddy Config ───────────────────────┤ │
-│ │                              │ │ Port: 32400  SSL: Yes                │ │
-│ │                              │ │ Snippets: ip_restricted              │ │
-│ └──────────────────────────────┘ └──────────────────────────────────────┘ │
-│                                                                            │
-│ [DNS] ↑↓ nav tab view a:add ⏎:edit d:del w:snippets p:profile /:search  │
-│ r:refresh b:backups ?:help q:quit                                         │
-└────────────────────────────────────────────────────────────────────────────┘
-```
-
-Press `Tab` to switch between the **DNS** and **Caddy** tabs — the panel titles and content swap accordingly.
-
-### Keyboard Shortcuts
-
-#### Navigation (Dashboard)
-- `↑/↓` - Navigate up/down (works everywhere)
-- `j/k` - Navigate up/down (list view only)
-- `g` / `G` - Jump to top / bottom
-- `Home` / `End` - Jump to top / bottom
-- `Tab` - Switch between DNS and Caddy tabs
-- `Shift+Tab` - Cycle panel focus (Entries → Snippets → Details → Entries)
-
-#### Actions (Dashboard)
-- `a` - Add new entry
-- `Enter` - Edit selected entry
-- `d` - Delete selected entry
-- `s` - Sync orphaned entry (create missing DNS or Caddy)
-- `r` - Refresh data from Cloudflare and Caddyfile
-- `Space` - Toggle selection checkbox
-
-#### Tools
-- `w` / `Ctrl+S` - Open snippet creation wizard
-- `b` / `Ctrl+B` - Open backup manager (view, restore, cleanup)
-- `p` / `Ctrl+P` - Open profile selector
-- `l` - View audit log
-- `m` - Caddyfile migration wizard
-- `?` / `h` / `Ctrl+H` - Help screen (5 pages, navigate with `←/→` or `1-5`)
-
-#### Filtering & Search
-- `f` - Cycle status filter (All → Synced → Orphaned DNS → Orphaned Caddy)
-- `t` - Cycle DNS type filter (All → CNAME → A)
-- `o` - Cycle sort mode (Alphabetical ↔ By Status)
-- `/` - Search/filter by domain name
-- `ESC` - Clear all filters, selections, and search
-
-#### Batch Operations
-- `X` - Delete all selected entries
-- `S` - Sync all selected entries
-- `D` - Bulk delete menu (all orphaned DNS or Caddy)
-
-#### Profile Selector
-- `e` - Edit selected profile
-- `d` - Delete selected profile
-- `x` - Export selected profile
-- `i` - Import profile from archive
-- `n` or `+` - Create new profile
-- `Enter` - Switch to selected profile
-
-#### Caddy Tab
-- `E` - Open Caddyfile in external editor (configured via profile or `$EDITOR`)
-
-#### Audit Log
-- `/` - Search by domain name
-- `f` - Cycle operation filter (All → Create → Update → Delete → Sync → Restore)
-- `r` - Cycle result filter (All → Success → Failure)
-
-#### General
-- `ESC` - Go back / close modal (also `Ctrl+W`)
-- `Ctrl+Q` or `q` - Quit
-- `y` / `n` - Confirm / cancel in confirmation dialogs
-
-#### Mouse Support
-- Click to select entries
-- Click checkboxes to toggle selection
-- Scroll wheel to navigate lists
-- Click form fields to focus
+Full reference: [KEYBINDINGS.md](docs/KEYBINDINGS.md)
 
 ---
 
 ## Configuration
 
-### Profile System
-
-LazyProxyFlare uses a profile-based configuration system that allows you to manage multiple domains and environments. Profiles are stored as YAML files in `~/.config/lazyproxyflare/profiles/`.
-
-**Startup Behavior:**
-- **No profiles** → Setup wizard launches automatically
-- **One profile** → Auto-loads the profile and starts
-- **Multiple profiles** → Profile selector modal appears
-
-**Creating Profiles:**
-1. **Setup Wizard** (Recommended): Run `lazyproxyflare` and follow the interactive wizard
-2. **Manual**: Create a YAML file in `~/.config/lazyproxyflare/profiles/`
-3. **Profile Selector**: Press `p` in main view, then `+` or `n` to launch wizard
-
-### Profile File Structure
-
-```yaml
-profile:
-  name: "homelab"
-  description: "Home lab environment"
-  created: "2025-01-01T00:00:00Z"
-
-cloudflare:
-  api_token: "your_api_token_here"
-  zone_id: "your_zone_id_32_hex_chars"
-
-domain: "example.com"
-
-proxy:
-  type: "caddy"
-  deployment: "docker"              # docker, docker-compose, system
-  caddy:
-    caddyfile_path: "/etc/caddy/Caddyfile"
-    container_name: "caddy"
-    compose_file: ""                # Path to docker-compose.yml (if using compose)
-    container_caddyfile_path: ""    # Caddyfile path inside container
-    # Optional: Custom validation/restart commands ({path} and {container} placeholders)
-    validation_command: ""
-    restart_command: ""
-
-defaults:
-  cname_target: "mail.example.com"  # Default CNAME target for new entries
-  proxied: true                     # Enable Cloudflare proxy by default
-  port: 80                          # Default reverse proxy port
-  ssl: false                        # Use HTTPS for upstream connections
-  lan_subnet: "10.0.0.0/24"        # Optional: LAN subnet for IP restrictions
-  allowed_external_ip: "1.2.3.4"   # Optional: Allowed external IP
-
-ui:
-  theme: "default"
-  editor: "vim"                   # Optional: preferred editor for Caddyfile editing
-
-backup:
-  max_backups: 10                 # Optional: maximum number of backups to keep (0 = unlimited)
-  max_size_mb: 50                 # Optional: maximum total backup size in MB (0 = unlimited)
-```
-
-### Profile Management
-
-**Switching Profiles:**
-- Press `p` to open profile selector
-- Navigate with `↑/↓` arrow keys
-- Press `Enter` to switch to selected profile
-- Data reloads automatically after switching
-
-**Editing Profiles:**
-- Open profile selector with `p` or `Ctrl+P`
-- Navigate to desired profile
-- Press `e` to edit
-- Update configuration fields (name, domain, API tokens, deployment settings)
-- Press `Enter` to save changes
-
-**Creating Additional Profiles:**
-- From profile selector: Press `+` or `n` to launch wizard
-- From main view: Press `p` to open selector, then `+`
-- Wizard guides you through all configuration steps
-
-**Last Used Profile:**
-LazyProxyFlare remembers the last profile you used and highlights it in the selector.
-
----
-
-## Snippet System
-
-LazyProxyFlare includes a powerful snippet system for managing reusable Caddy configuration blocks. Snippets help you maintain DRY (Don't Repeat Yourself) configurations and apply consistent settings across multiple entries.
-
-### What are Snippets?
-
-Snippets are named configuration blocks that can be imported into multiple Caddy domain blocks using the `import` directive. Instead of repeating the same configuration (like IP restrictions or security headers) in every entry, you define it once as a snippet and import it where needed.
-
-**Example:**
-```
-# Define snippet
-(ip_restricted) {
-    @external {
-        not remote_ip 10.0.28.0/24
-    }
-    respond @external 404
-}
-
-# Use snippet
-plex.example.com {
-    import ip_restricted
-    reverse_proxy http://localhost:32400
-}
-```
-
-### Snippet Wizard
-
-Press `w` to launch the interactive snippet creation wizard:
-
-1. **Welcome**: Learn about snippets and what can be created
-2. **IP Restriction**: Configure LAN subnet and optional external IP allowlist
-3. **Security Headers**: Choose from basic, strict, or paranoid presets
-4. **Performance**: Enable gzip and zstd compression
-5. **Summary**: Review and create selected snippets
-
-The wizard includes:
-- Live preview of generated snippet code
-- Duplicate detection (won't overwrite existing snippets)
-- Automatic Caddy validation before writing
-- Full rollback on validation failure
-
-### Available Snippet Types
-
-**IP Restriction (Access Control)**
-- Restricts access to LAN subnet
-- Optional external IP allowlist
-- Returns 404 to unauthorized IPs
-
-**Security Headers (Security)**
-- **Basic**: X-Content-Type-Options, X-Frame-Options, removes Server header
-- **Strict**: Adds CSP, Referrer-Policy, Permissions-Policy
-- **Paranoid**: Adds HSTS, X-XSS-Protection with strictest settings
-
-**Performance (Performance)**
-- Enables gzip compression
-- Enables zstd compression
-- Improves load times and reduces bandwidth
-
-### Using Snippets in Forms
-
-When adding or editing entries, snippets appear in the form below the standard checkboxes:
-
-- **Color-coded badges** show snippet category
-- **Smart suggestions** recommend relevant snippets:
-  - `ip_restricted` suggested when LANOnly is enabled
-  - `security_headers` suggested when SSL is enabled
-  - `performance` always suggested (beneficial for all)
-- **Space bar** toggles snippet selection
-- **Preview** shows final Caddyfile with `import` statements
-
-### Three-Panel Layout
-
-The main interface includes a dedicated snippets panel:
-
-```
-┌─ Entries ─────┬─ Details ──────┬─ Snippets ────────┐
-│               │                │                   │
-│ ✓ plex        │ Domain: plex   │ [Security]        │
-│ ✓ grafana     │ Target: :32400 │ security_headers  │
-│               │ Snippets:      │ (used by 5)       │
-│               │ ip_restricted  │                   │
-│               │ security...    │ [Performance]     │
-│               │                │ performance       │
-│               │                │ (used by 8)       │
-└───────────────┴────────────────┴───────────────────┘
-```
-
-Use `Shift+Tab` to cycle panel focus (Entries → Snippets → Details). When the snippets panel is focused, `↑/↓` navigates snippets instead of entries.
-
-### Brownfield Integration
-
-LazyProxyFlare automatically detects existing snippet imports in your Caddyfile:
-
-- **Details Panel**: Shows colored badges for applied snippets
-- **Edit Form**: Pre-selects snippets currently used by the entry
-- **Usage Tracking**: Shows which entries use each snippet
-- **Seamless Updates**: Add or remove snippets through the form interface
-
-**Workflow:**
-1. Select entry with existing snippets
-2. View colored badges in details panel
-3. Press `Enter` to edit
-4. Snippet checkboxes show current state
-5. Toggle snippets on/off with `Space`
-6. Press `Enter` to preview, then `y` to save
-
----
-
-## Workflows
-
-### Adding a New Service
-
-1. Press `a` to open the add entry form
-2. Fill in the subdomain (e.g., "plex")
-3. Choose DNS type (CNAME or A)
-4. Enter target (domain for CNAME, IP for A record)
-5. Configure Caddy options (port, SSL, restrictions)
-6. Press `Enter` to preview
-7. Confirm with `y` to create
-
-**Result:** DNS record created in Cloudflare + Caddy block added + container restarted
-
-### Syncing Orphaned Entries
-
-**Scenario:** You added a Caddy configuration manually but forgot to create the DNS record.
-
-1. Press `f` to filter → select "Orphaned Caddy"
-2. Navigate to the entry showing `⚠ Orphaned (Caddy)`
-3. Press `s` to sync
-4. Choose "Create DNS record from Caddy config"
-5. Confirm with `y`
-
-**Result:** DNS record created automatically with settings from Caddyfile
-
-### Batch Cleanup
-
-**Scenario:** Clean up 10 old DNS records that no longer have Caddy configs.
-
-1. Press `f` → select "Orphaned DNS"
-2. Press `Space` on each entry to select
-3. Press `X` to batch delete selected
-4. Review the list and confirm with `y`
-
-**Result:** All selected DNS records deleted in one operation
-
-### Backup Management
-
-1. Press `b` to open backup manager
-2. Navigate with `↑/↓`
-3. Press `Enter` to preview a backup (use `←/→` to browse, `PgUp/PgDn` to scroll)
-4. Press `R` to restore (with scope selection and confirmation)
-5. Press `x` to delete a single backup
-6. Press `c` to cleanup old backups (>30 days)
-
----
-
-## Architecture
-
-### Project Structure
-
-```
-lazyproxyflare/
-├── cmd/lazyproxyflare/
-│   └── main.go                 # Entry point, CLI flags
-├── internal/
-│   ├── audit/                  # Audit logging system
-│   │   └── logger.go
-│   ├── caddy/                  # Caddyfile operations
-│   │   ├── manager.go          # Backup, restore, format, validate
-│   │   ├── parser.go           # Parsing logic with snippet support
-│   │   ├── generator.go        # Caddyfile block generation
-│   │   ├── snippet.go          # Snippet data model and categorization
-│   │   ├── migration.go        # Caddyfile migration engine
-│   │   ├── migration_parser.go # Migration parsing
-│   │   ├── domain_manager.go   # Domain-level operations
-│   │   └── types.go
-│   ├── cloudflare/             # Cloudflare API client
-│   │   ├── client.go
-│   │   └── types.go
-│   ├── config/                 # Configuration management
-│   │   ├── config.go
-│   │   ├── profile.go          # Multi-profile system
-│   │   ├── profile_types.go
-│   │   ├── export.go           # Profile export/import (.tar.gz)
-│   │   └── types.go
-│   ├── diff/                   # DNS ↔ Caddy comparison
-│   │   ├── engine.go
-│   │   └── types.go
-│   └── ui/                     # Terminal UI (Bubbletea)
-│       ├── app.go              # Init, Update dispatch, View dispatch, styles
-│       ├── model.go            # State management (8 sub-structs)
-│       ├── model_init.go       # 4 NewModel* constructors
-│       ├── messages.go         # Async message type definitions
-│       ├── key_handlers.go     # Keyboard dispatch table
-│       ├── key_handlers_enter.go    # Enter key handler
-│       ├── key_handlers_tab.go      # Tab/Shift+Tab handlers
-│       ├── key_handlers_toggle.go   # Space key handler
-│       ├── key_handlers_input.go    # Text input handler
-│       ├── key_handlers_simple.go   # 35+ simple key handlers
-│       ├── key_handlers_confirm.go  # Y-key confirmation dispatch
-│       ├── key_handlers_dismiss.go  # Esc/Ctrl+W dismiss dispatch
-│       ├── key_handlers_nav.go      # Arrow key navigation dispatch
-│       ├── update_handlers.go  # Async message handlers
-│       ├── update_mouse.go     # Mouse input handling
-│       ├── commands_crud.go    # Create/update/delete/sync commands
-│       ├── commands_bulk.go    # Bulk/batch delete and sync commands
-│       ├── commands_backup.go  # Backup/restore/cleanup/refresh commands
-│       ├── views.go            # Help pages, status bar, rendering
-│       ├── views_render.go     # List/details/add/edit/preview rendering
-│       ├── panels.go           # Three-panel layout, modal rendering
-│       ├── forms.go            # Add/edit forms with snippet selection
-│       ├── confirmations.go    # Confirmation dialogs
-│       ├── backups.go          # Backup manager views
-│       ├── auditlog.go         # Audit log viewer
-│       ├── colors.go           # Color palette
-│       ├── helpers.go          # Filtering & sorting
-│       ├── snippets_panel.go   # Snippets panel rendering
-│       ├── snippet_wizard.go   # Snippet wizard integration
-│       ├── snippet_operations.go # Snippet CRUD + wizard config
-│       ├── wizard.go           # Profile setup wizard (5-step)
-│       ├── wizard_views.go     # Wizard step rendering
-│       ├── wizard_update.go    # Wizard state transitions
-│       ├── migration_wizard.go # Caddyfile migration wizard
-│       ├── profile_selector.go # Profile selector modal
-│       ├── profile_update.go   # Profile loading/switching
-│       └── snippet_wizard/     # Snippet wizard package
-│           ├── wizard.go       # Wizard engine
-│           ├── templates.go    # 14 built-in templates
-│           ├── auto_detect.go  # Pattern detection
-│           ├── validation.go   # Input validation
-│           └── views/          # Step renderers
-├── Makefile                    # Build, install, test, clean
-├── config.example.yaml         # Configuration template
-├── TECHNICAL_MANUAL.md         # Complete reference manual
-├── README.md
-└── docs/
-    ├── KEYBINDINGS.md          # Complete keybinding reference
-    ├── SNIPPET_WIZARD.md       # Snippet wizard documentation
-    └── CONTRIBUTING.md         # Development guide
-```
-
-### Technology Stack
-
-- **Language:** Go 1.22+
-- **TUI Framework:** [Bubbletea](https://github.com/charmbracelet/bubbletea) (Elm architecture)
-- **Styling:** [Lipgloss](https://github.com/charmbracelet/lipgloss)
-- **Components:** [Bubbles](https://github.com/charmbracelet/bubbles)
-- **Config:** YAML (gopkg.in/yaml.v3)
-- **APIs:** Cloudflare DNS API, Docker CLI
-
----
-
-## Development
-
-### Building
-
-```bash
-make build              # Optimized build
-make build-dev          # Build with debug symbols
-make test               # Run tests
-make install            # Install to /usr/local/bin
-```
-
-### Code Statistics
-
-- **Total Lines:** ~25,400 lines of Go
-- **UI Files:** 55 focused files (largest <800 lines)
-- **Packages:** 9 well-organized packages
-- **Test Files:** 18 test files with unit tests
-- **Features:** Complete CRUD, profiles, snippets, batch ops, backup/restore, audit logging
-
-### Design Principles
-
-1. **Safety First:** All operations are validated, backed up, and can be rolled back
-2. **User Experience:** Keyboard-driven workflow with context-sensitive help
-3. **Clean Architecture:** Layered design (UI → Application → Domain → Infrastructure)
-4. **Single Responsibility:** Each file/module has one clear purpose
-5. **Testability:** Business logic isolated from UI for easy testing
-
----
-
-## Roadmap
-
-### v1.0
-- Complete CRUD operations for DNS and Caddy entries
-- Advanced filtering, sorting, and batch operations
-- Multi-profile system with interactive setup wizard
-- Backup management with 30-day retention and audit logging
-- Full mouse and keyboard support with lazygit-style interface
-- **Snippet system** for reusable Caddyfile configurations
-  - Three-panel layout with dedicated snippets panel
-  - Interactive snippet creation wizard
-  - Smart form suggestions and brownfield support
-  - Auto-detection and visual indicators
-
-### v1.1
-
-**Architecture & Code Quality**
-- Major codebase refactoring: decomposed monolithic `app.go` (3,500+ lines) into 15+ focused files
-- Extracted 8 model sub-structs for cleaner state management
-- Pure keyboard dispatch table with single-responsibility handlers
-- Separated CRUD, bulk, and backup commands into dedicated modules
-- Async message handling and mouse input extracted to standalone handlers
-- Snippet operations and view rendering isolated into focused files
-- Pre-compiled regex patterns and DRY Cloudflare client initialization
-- Zero behavior changes — all refactoring verified with full test suite
-
-### v1.2 (Current)
-
-**User Experience**
-- Profile deletion UI with confirmation modal
-- External Caddyfile editor integration (`E` key, per-profile `editor` setting + `$EDITOR` fallback)
-- Editor preference stored in profile YAML (`ui.editor`)
-
-**Data & Configuration Management**
-- Export/import profiles as `.tar.gz` bundles (profile YAML + audit log)
-- Audit log filtering by operation type, result status, and domain search
-- Backup rotation with configurable max count (`max_backups`) and size (`max_size_mb`) limits
-
-### v1.3 (Planned)
-
-**Security**
-- OS keyring integration: Securely store Cloudflare API tokens
-
-**User Experience**
-- Configurable keybindings: User-defined shortcuts for efficient navigation
-- Theme customization: Personalize the application's appearance with custom color schemes
-
-**Core Functionality Enhancements**
-- TXT record support: Expand DNS management to include TXT records
-- Snippet library: Access and share community-contributed Caddy snippet templates
-
-### v2.0 (Future)
-- Support for other DNS providers (Route53, DigitalOcean)
-- Support for other reverse proxies (nginx, Traefik)
-- Support for other deployment methods (systemd, binary)
-
----
-
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
-- Development setup
-- Code structure overview
-- Testing guidelines
-- Pull request process
+Profiles live in `~/.config/lazyproxyflare/profiles/` as YAML files. See [`config.example.yaml`](config.example.yaml) for all available options.
+
+**Startup behavior:**
+- No profiles → wizard launches automatically
+- One profile → auto-loads
+- Multiple profiles → selector appears
+
+**Profile management** (from the profile selector, `p`):
+- `e` edit, `d` delete, `x` export, `i` import, `n`/`+` create new
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
 **Config validation errors:**
-- Ensure `zone_id` is exactly 32 hex characters
-- Ensure `domain` is a valid FQDN (e.g., example.com)
-- Check CIDR format for `lan_subnet` (e.g., 10.0.0.0/24)
+- `zone_id` must be exactly 32 hex characters
+- `domain` must be a valid FQDN (e.g., `example.com`)
+- `lan_subnet` must be valid CIDR (e.g., `10.0.0.0/24`)
 
 **Caddy validation failures:**
-- Check Caddyfile syntax with `caddy validate`
-- Ensure LazyProxyFlare has read/write access to Caddyfile
-- Review backup files in case of corruption
+- Check syntax with `caddy validate`
+- Ensure LazyProxyFlare has read/write access to the Caddyfile
+- Check backups if the file got corrupted
 
 **Docker restart failures:**
-- Verify container name matches `docker ps`
-- Ensure user has Docker socket access
-- Check Docker daemon is running
+- Verify container name matches `docker ps` output
+- Ensure your user has Docker socket access
 
 **API errors:**
-- Verify API token permissions (Zone.DNS Edit)
-- Check zone_id matches your domain in Cloudflare
-- Ensure network connectivity to Cloudflare API
+- Verify API token has `Zone.DNS Edit` permission
+- Check `zone_id` matches your domain in Cloudflare dashboard
+
+---
+
+## Roadmap
+
+### v1.3 (Planned)
+- OS keyring integration for API token storage
+- Configurable keybindings and theme customization
+- TXT record support
+- Community snippet library
+
+### v2.0 (Future)
+- Additional DNS providers (Route53, DigitalOcean)
+- Additional reverse proxies (nginx, Traefik)
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development setup, code structure, and testing guidelines.
 
 ---
 
 ## Credits
 
 - Inspired by [lazygit](https://github.com/jesseduffield/lazygit) by Jesse Duffield
-- Built with [Charm.sh](https://charm.sh/) ecosystem
-- Powered by [Cloudflare API](https://developers.cloudflare.com/api/)
-- Caddy server: [caddyserver.com](https://caddyserver.com/)
-- Developed with [Claude Code](https://claude.ai/claude-code) by Anthropic — architecture, refactoring, and feature implementation
-
----
+- Built with the [Charm.sh](https://charm.sh/) ecosystem ([Bubbletea](https://github.com/charmbracelet/bubbletea), [Lipgloss](https://github.com/charmbracelet/lipgloss), [Bubbles](https://github.com/charmbracelet/bubbles))
+- Powered by [Cloudflare API](https://developers.cloudflare.com/api/) and [Caddy](https://caddyserver.com/)
+- Developed with [Claude Code](https://claude.ai/claude-code) by Anthropic
 
 ## License
 
-GNUGPLv3 License - see LICENSE file for details
-
----
+GPLv3 — see [LICENSE](LICENSE) for details.
 
 ## Support
 
-- Documentation: See [KEYBINDINGS.md](docs/KEYBINDINGS.md)
-- Issues: [GitHub Issues](https://github.com/tinkermesomething/lazyproxyflare/issues)
-- Discussions: [GitHub Discussions](https://github.com/tinkermesomething/lazyproxyflare/discussions)
-
----
-
-**Made with ❤️ for the homelab and self-hosting community**
+- [GitHub Issues](https://github.com/tinkermesomething/lazyproxyflare/issues)
+- [GitHub Discussions](https://github.com/tinkermesomething/lazyproxyflare/discussions)
+- [Full keybinding reference](docs/KEYBINDINGS.md) · [Technical manual](TECHNICAL_MANUAL.md)
