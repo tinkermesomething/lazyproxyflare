@@ -14,7 +14,7 @@ GOTEST := $(GOCMD) test
 GOMOD := $(GOCMD) mod
 
 # Version (override with: make build VERSION=1.0.0)
-VERSION ?= dev
+VERSION ?= 1.2.1
 
 # Build flags
 LDFLAGS := -s -w -X main.Version=$(VERSION)
