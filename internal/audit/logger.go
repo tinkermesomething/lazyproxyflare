@@ -21,6 +21,18 @@ const (
 	OperationRestore     OperationType = "restore"
 )
 
+// Operations lists every OperationType, in the order the UI filter cycles them.
+// Add new operation constants here too.
+var Operations = []OperationType{
+	OperationCreate,
+	OperationUpdate,
+	OperationDelete,
+	OperationSync,
+	OperationBatchDelete,
+	OperationBatchSync,
+	OperationRestore,
+}
+
 // EntityType represents what entity was affected
 type EntityType string
 

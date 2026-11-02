@@ -91,3 +91,24 @@ func TestAuditLogShortListDoesNotScroll(t *testing.T) {
 		t.Errorf("scrolled a list that fits: Scroll = %d", m.audit.Scroll)
 	}
 }
+
+// Every operation the app can log must be reachable through the filter.
+func TestCycleOpFilterCoversEveryOperation(t *testing.T) {
+	m := createTestModel()
+	seen := map[string]bool{}
+	for i := 0; i < len(audit.Operations)+1; i++ {
+		m.cycleOpFilter()
+		seen[m.audit.OpFilter] = true
+	}
+	for _, op := range audit.Operations {
+		if !seen[string(op)] {
+			t.Errorf("filter never selects %q", op)
+		}
+	}
+	if !seen[""] {
+		t.Error("filter never returns to ALL")
+	}
+	if m.audit.OpFilter != "" {
+		t.Errorf("after a full cycle filter = %q, want ALL", m.audit.OpFilter)
+	}
+}

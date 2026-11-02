@@ -37,7 +37,10 @@ func (m Model) getFilteredAuditLogs() []audit.LogEntry {
 
 // cycleOpFilter cycles through operation type filters
 func (m *Model) cycleOpFilter() {
-	ops := []string{"", "create", "update", "delete", "sync", "restore"}
+	ops := []string{""}
+	for _, op := range audit.Operations {
+		ops = append(ops, string(op))
+	}
 	for i, op := range ops {
 		if op == m.audit.OpFilter {
 			m.audit.OpFilter = ops[(i+1)%len(ops)]
