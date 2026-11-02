@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	"lazyproxyflare/internal/cmdlog"
 )
 
 const apiBaseURL = "https://api.cloudflare.com/client/v4"
@@ -28,6 +30,7 @@ type Client struct {
 	httpClient *http.Client
 	baseURL    string
 	wait       func(time.Duration) // replaced in tests to skip retry sleeps
+	log        *cmdlog.Log
 }
 
 // NewClient creates a new Cloudflare API client
@@ -39,6 +42,7 @@ func NewClient(apiToken string) *Client {
 		},
 		baseURL: apiBaseURL,
 		wait:    time.Sleep,
+		log:     cmdlog.Default,
 	}
 }
 
@@ -72,14 +76,26 @@ func (c *Client) doRequest(method, path string, body []byte) ([]byte, error) {
 		req.Header.Set("Authorization", "Bearer "+c.apiToken)
 		req.Header.Set("Content-Type", "application/json")
 
+		started := time.Now()
+		entry := cmdlog.Entry{Time: started, Kind: cmdlog.API, Summary: method + " " + path}
+
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
+			entry.Status, entry.Err, entry.Duration = "error", err.Error(), time.Since(started)
+			c.log.Add(entry)
 			return nil, fmt.Errorf("request failed: %w", err)
 		}
 
 		// Read one byte past the cap so an oversized body is detected, not silently cut.
 		respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 		resp.Body.Close()
+
+		entry.Status, entry.Duration = strconv.Itoa(resp.StatusCode), time.Since(started)
+		if resp.StatusCode != http.StatusOK {
+			entry.Err = string(respBody)
+		}
+		c.log.Add(entry)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to read response: %w", err)
 		}

@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"lazyproxyflare/internal/cmdlog"
 )
 
 // newTestClient points a Client at the test server and removes retry sleeps.
@@ -16,6 +18,7 @@ func newTestClient(t *testing.T, srv *httptest.Server) *Client {
 	c := NewClient("test-token")
 	c.baseURL = srv.URL
 	c.wait = func(time.Duration) {}
+	c.log = cmdlog.New(50)
 	return c
 }
 
@@ -140,5 +143,66 @@ func TestResponseBodyIsCapped(t *testing.T) {
 	_, err := newTestClient(t, srv).ListDNSRecords("z", "")
 	if err == nil || !strings.Contains(err.Error(), "too large") {
 		t.Fatalf("expected size error, got %v", err)
+	}
+}
+
+func TestRequestsAreRecordedWithoutSecrets(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if atomic.AddInt32(&calls, 1) == 1 {
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		io.WriteString(w, okRecordBody)
+	}))
+	defer srv.Close()
+
+	c := newTestClient(t, srv)
+	if _, err := c.CreateDNSRecord("zone1", DNSRecord{Type: "CNAME", Name: "secret-name.example.com", Content: "b.example.com"}); err != nil {
+		t.Fatal(err)
+	}
+
+	entries := c.log.Entries()
+	if len(entries) != 2 {
+		t.Fatalf("got %d entries, want 2 (one per attempt): %+v", len(entries), entries)
+	}
+	if entries[0].Status != "429" || entries[1].Status != "200" {
+		t.Errorf("statuses = %q, %q; want 429, 200", entries[0].Status, entries[1].Status)
+	}
+	for _, e := range entries {
+		if e.Kind != cmdlog.API || e.Summary != "POST /zones/zone1/dns_records" {
+			t.Errorf("unexpected entry: %+v", e)
+		}
+		all := e.Summary + e.Status + e.Err
+		if strings.Contains(all, "test-token") || strings.Contains(all, "secret-name") {
+			t.Errorf("entry leaks token or request body: %+v", e)
+		}
+	}
+}
+
+func TestFailedRequestsRecordTheError(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		io.WriteString(w, `{"errors":[{"message":"Invalid access token"}]}`)
+	}))
+	defer srv.Close()
+
+	c := newTestClient(t, srv)
+	if _, err := c.ListDNSRecords("z", ""); err == nil {
+		t.Fatal("expected error")
+	}
+	e := c.log.Entries()[0]
+	if e.Status != "403" || !strings.Contains(e.Err, "Invalid access token") {
+		t.Errorf("failure not recorded: %+v", e)
+	}
+
+	// A connection that cannot be made is recorded too.
+	srv.Close()
+	if _, err := c.ListDNSRecords("z", ""); err == nil {
+		t.Fatal("expected error")
+	}
+	entries := c.log.Entries()
+	if last := entries[len(entries)-1]; last.Status != "error" || last.Err == "" {
+		t.Errorf("transport failure not recorded: %+v", last)
 	}
 }

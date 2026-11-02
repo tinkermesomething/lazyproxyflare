@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"lazyproxyflare/internal/cmdlog"
 )
 
 // TestValidateCaddyfileDockerDefault tests that Docker deployment uses docker compose exec when validation command is empty
@@ -236,5 +238,28 @@ func TestCleanupByCountNoop(t *testing.T) {
 	}
 	if deleted != 0 {
 		t.Errorf("expected 0 deleted, got %d", deleted)
+	}
+}
+
+// Shell commands the app runs must show up in the command log.
+func TestValidateCaddyfileRecordsCommand(t *testing.T) {
+	cmdlog.Default.Clear()
+	t.Cleanup(cmdlog.Default.Clear)
+
+	if err := ValidateCaddyfile("/srv/Caddyfile", "", "", "", "echo {path}"); err != nil {
+		t.Fatal(err)
+	}
+	entries := cmdlog.Default.Entries()
+	if len(entries) != 1 || entries[0].Summary != "echo /srv/Caddyfile" || entries[0].Status != "ok" {
+		t.Errorf("unexpected entries: %+v", entries)
+	}
+
+	cmdlog.Default.Clear()
+	if err := ValidateCaddyfile("/srv/Caddyfile", "", "", "", "false"); err == nil {
+		t.Fatal("expected validation failure")
+	}
+	entries = cmdlog.Default.Entries()
+	if len(entries) != 1 || entries[0].Status != "exit 1" {
+		t.Errorf("failure not recorded: %+v", entries)
 	}
 }

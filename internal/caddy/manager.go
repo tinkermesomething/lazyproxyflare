@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"lazyproxyflare/internal/cmdlog"
 )
 
 // DockerContainer represents a running Docker container
@@ -21,7 +23,7 @@ type DockerContainer struct {
 func ListDockerContainers(filterCaddy bool) ([]DockerContainer, error) {
 	// Run docker ps to get container names and images
 	cmd := exec.Command("docker", "ps", "--format", "{{.Names}}|{{.Image}}")
-	output, err := cmd.CombinedOutput()
+	output, err := cmdlog.Default.Run(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list Docker containers: %w", err)
 	}
@@ -256,7 +258,7 @@ func FormatCaddyfile(caddyfilePath, containerPath, containerName, dockerMethod, 
 	}
 
 	// Execute command
-	output, err := cmd.CombinedOutput()
+	output, err := cmdlog.Default.Run(cmd)
 	if err != nil {
 		return fmt.Errorf("format command failed: %s\nCommand: %s\nOutput: %s", err, cmdStr, string(output))
 	}
@@ -301,7 +303,7 @@ func ValidateCaddyfile(caddyfilePath, containerPath, containerName, composeFileP
 		cmd = exec.Command(parts[0], parts[1:]...)
 	}
 
-	output, err := cmd.CombinedOutput()
+	output, err := cmdlog.Default.Run(cmd)
 	if err != nil {
 		return fmt.Errorf("validation command failed: %s\nCommand: %s\nOutput: %s", err, cmdStr, string(output))
 	}
@@ -321,7 +323,7 @@ func FormatAndValidateCaddyfile(caddyfilePath, containerPath, containerName, doc
 // RestartCaddy restarts the Caddy container
 func RestartCaddy(containerName string) error {
 	cmd := exec.Command("docker", "restart", containerName)
-	output, err := cmd.CombinedOutput()
+	output, err := cmdlog.Default.Run(cmd)
 	if err != nil {
 		return fmt.Errorf("restart failed: %s\n%s", err, string(output))
 	}
