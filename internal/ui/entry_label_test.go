@@ -20,8 +20,8 @@ func TestEntryLabel(t *testing.T) {
 	}{
 		{"dns only", diff.SyncedEntry{Domain: "www.example.com"}, "www.example.com"},
 		{"single-domain block", diff.SyncedEntry{Domain: "plex.example.com", Caddy: single}, "plex.example.com"},
-		{"shared block, primary", diff.SyncedEntry{Domain: "mail.example.com", Caddy: shared}, "mail.example.com (shared ×3)"},
-		{"shared block, secondary", diff.SyncedEntry{Domain: "autodiscover.example.com", Caddy: shared}, "autodiscover.example.com (shared ×3)"},
+		{"shared block, primary", diff.SyncedEntry{Domain: "mail.example.com", Caddy: shared}, "mail.example.com (shared x3)"},
+		{"shared block, secondary", diff.SyncedEntry{Domain: "autodiscover.example.com", Caddy: shared}, "autodiscover.example.com (shared x3)"},
 		{"legacy block without Domains list", diff.SyncedEntry{Domain: "old.example.com", Caddy: &caddy.CaddyEntry{Domain: "old.example.com"}}, "old.example.com"},
 	}
 	for _, tt := range tests {

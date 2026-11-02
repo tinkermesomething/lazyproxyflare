@@ -151,7 +151,7 @@ func (m Model) renderComplementaryPanel(height int) string {
 func entryLabel(entry diff.SyncedEntry) string {
 	if entry.Caddy != nil {
 		if n := caddy.GetDomainCount(entry.Caddy); n > 1 {
-			return fmt.Sprintf("%s (shared ×%d)", entry.Domain, n)
+			return fmt.Sprintf("%s (shared x%d)", entry.Domain, n)
 		}
 	}
 	return entry.Domain
