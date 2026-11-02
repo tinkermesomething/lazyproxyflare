@@ -57,8 +57,26 @@ func ListProfiles() ([]string, error) {
 	return profiles, nil
 }
 
+// ValidateProfileName rejects names that would escape the profiles directory
+// or hide the file. Spaces stay allowed so existing profiles keep loading.
+func ValidateProfileName(name string) error {
+	if name == "" {
+		return fmt.Errorf("profile name is required")
+	}
+	if strings.ContainsAny(name, "/\\\x00") {
+		return fmt.Errorf("profile name cannot contain path separators")
+	}
+	if strings.HasPrefix(name, ".") {
+		return fmt.Errorf("profile name cannot start with a dot")
+	}
+	return nil
+}
+
 // LoadProfile loads a profile configuration by name
 func LoadProfile(name string) (*ProfileConfig, error) {
+	if err := ValidateProfileName(name); err != nil {
+		return nil, err
+	}
 	profilesDir, err := GetProfilesDir()
 	if err != nil {
 		return nil, err
@@ -95,6 +113,9 @@ func LoadProfile(name string) (*ProfileConfig, error) {
 
 // SaveProfile saves a profile configuration
 func SaveProfile(name string, profile *ProfileConfig) error {
+	if err := ValidateProfileName(name); err != nil {
+		return err
+	}
 	profilesDir, err := GetProfilesDir()
 	if err != nil {
 		return err
@@ -136,6 +157,9 @@ func SaveProfile(name string, profile *ProfileConfig) error {
 
 // DeleteProfile removes a profile file
 func DeleteProfile(name string) error {
+	if err := ValidateProfileName(name); err != nil {
+		return err
+	}
 	profilesDir, err := GetProfilesDir()
 	if err != nil {
 		return err

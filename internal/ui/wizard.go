@@ -219,8 +219,8 @@ func GetFieldCount(step WizardStep, data *WizardData) int {
 func ValidateCurrentStep(step WizardStep, data *WizardData) error {
 	switch step {
 	case WizardStepBasicInfo:
-		if data.ProfileName == "" {
-			return fmt.Errorf("profile name is required")
+		if err := config.ValidateProfileName(data.ProfileName); err != nil {
+			return err
 		}
 		if data.Domain == "" {
 			return fmt.Errorf("domain is required")
