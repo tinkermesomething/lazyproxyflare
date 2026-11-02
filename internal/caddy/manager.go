@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -335,6 +336,16 @@ type BackupInfo struct {
 	Path      string
 	Timestamp time.Time
 	Size      int64
+	// Managed is true for backups this tool named itself (.backup.YYYYMMDD_HHMMSS).
+	// Hand-named backups are never removed by cleanup.
+	Managed bool
+}
+
+var managedBackupSuffix = regexp.MustCompile(`\.backup\.\d{8}_\d{6}$`)
+
+// IsManagedBackup reports whether path was named by BackupCaddyfile.
+func IsManagedBackup(path string) bool {
+	return managedBackupSuffix.MatchString(path)
 }
 
 // ListBackups returns a list of all Caddyfile backups, sorted by timestamp (newest first)
@@ -359,6 +370,7 @@ func ListBackups(caddyfilePath string) ([]BackupInfo, error) {
 			Path:      match,
 			Timestamp: info.ModTime(),
 			Size:      info.Size(),
+			Managed:   IsManagedBackup(match),
 		})
 	}
 
@@ -393,11 +405,12 @@ func GetOldBackups(caddyfilePath string, maxAge time.Duration) ([]BackupInfo, er
 			continue
 		}
 
-		if now.Sub(info.ModTime()) > maxAge {
+		if IsManagedBackup(match) && now.Sub(info.ModTime()) > maxAge {
 			oldBackups = append(oldBackups, BackupInfo{
 				Path:      match,
 				Timestamp: info.ModTime(),
 				Size:      info.Size(),
+				Managed:   true,
 			})
 		}
 	}
@@ -416,28 +429,29 @@ func GetOldBackups(caddyfilePath string, maxAge time.Duration) ([]BackupInfo, er
 
 // CleanupOldBackups removes backup files older than a specified duration
 func CleanupOldBackups(caddyfilePath string, maxAge time.Duration) error {
-	dir := filepath.Dir(caddyfilePath)
-	baseName := filepath.Base(caddyfilePath)
-	pattern := baseName + ".backup.*"
-
-	matches, err := filepath.Glob(filepath.Join(dir, pattern))
+	old, err := GetOldBackups(caddyfilePath, maxAge)
 	if err != nil {
-		return fmt.Errorf("failed to find backups: %w", err)
+		return err
 	}
-
-	now := time.Now()
-	for _, match := range matches {
-		info, err := os.Stat(match)
-		if err != nil {
-			continue
-		}
-
-		if now.Sub(info.ModTime()) > maxAge {
-			os.Remove(match)
-		}
+	for _, b := range old {
+		os.Remove(b.Path)
 	}
-
 	return nil
+}
+
+// managedBackups lists only the backups cleanup may delete, newest first.
+func managedBackups(caddyfilePath string) ([]BackupInfo, error) {
+	all, err := ListBackups(caddyfilePath)
+	if err != nil {
+		return nil, err
+	}
+	var out []BackupInfo
+	for _, b := range all {
+		if b.Managed {
+			out = append(out, b)
+		}
+	}
+	return out, nil
 }
 
 // CleanupByCount keeps the newest maxCount backups and deletes the rest.
@@ -447,7 +461,7 @@ func CleanupByCount(caddyfilePath string, maxCount int) (int, error) {
 		return 0, nil
 	}
 
-	backups, err := ListBackups(caddyfilePath)
+	backups, err := managedBackups(caddyfilePath)
 	if err != nil {
 		return 0, err
 	}
@@ -474,7 +488,7 @@ func CleanupBySize(caddyfilePath string, maxMB int) (int, error) {
 		return 0, nil
 	}
 
-	backups, err := ListBackups(caddyfilePath)
+	backups, err := managedBackups(caddyfilePath)
 	if err != nil {
 		return 0, err
 	}
