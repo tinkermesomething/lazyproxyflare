@@ -74,7 +74,26 @@ func formatErrorForDisplay(err error, maxWidth int) string {
 
 // renderAddFormContent renders the add entry form modal content
 func (m Model) renderAddFormContent() string {
+	lines, focus := m.addFormLines()
+	return windowFormLines(lines, focus, m.formRows())
+}
+
+// formRows is how many content rows the (non-large) form modal can show.
+func (m Model) formRows() int {
+	_, mh := modalDimensions(m.width, m.height, false)
+	return mh - 2
+}
+
+// addFormLines renders every form line and returns the line index of the
+// focused field, so the caller can scroll the modal to it.
+func (m Model) addFormLines() ([]string, int) {
 	var b strings.Builder
+	focusLine := -1
+	mark := func(field int) {
+		if m.addForm.FocusedField == field && focusLine < 0 {
+			focusLine = strings.Count(b.String(), "\n")
+		}
+	}
 
 	// Subdomain field (multi-line textarea for multiple subdomains)
 	subdomain := struct {
@@ -89,6 +108,7 @@ func (m Model) renderAddFormContent() string {
 		focused:     m.addForm.FocusedField == 0,
 	}
 
+	mark(0)
 	b.WriteString(normalStyle.Render(subdomain.label + ":"))
 	b.WriteString("\n")
 
@@ -124,6 +144,7 @@ func (m Model) renderAddFormContent() string {
 	b.WriteString("\n")
 
 	// DNS Type selector (field 1)
+	mark(1)
 	b.WriteString(normalStyle.Render("DNS Type:"))
 	b.WriteString("\n  ")
 
@@ -148,6 +169,7 @@ func (m Model) renderAddFormContent() string {
 		dnsTargetPlaceholder = "(IP address for A record)"
 	}
 
+	mark(2)
 	dnsTarget := struct {
 		label       string
 		value       string
@@ -194,6 +216,7 @@ func (m Model) renderAddFormContent() string {
 	if m.addForm.DNSOnly {
 		dnsOnlyCheckmark = "[✓]"
 	}
+	mark(3)
 	b.WriteString(dnsOnlyStyle.Render(dnsOnlyCheckmark + " DNS Only (skip Caddy configuration)"))
 	b.WriteString("\n\n")
 
@@ -206,6 +229,7 @@ func (m Model) renderAddFormContent() string {
 	if m.addForm.Proxied {
 		proxiedCheckmark = "[✓]"
 	}
+	mark(6)
 	b.WriteString(proxiedStyle.Render(proxiedCheckmark + " Proxy through Cloudflare (orange cloud)"))
 	b.WriteString("\n\n")
 
@@ -247,6 +271,7 @@ func (m Model) renderAddFormContent() string {
 		}
 
 		// Label
+		mark(field.fieldIndex)
 		b.WriteString(normalStyle.Render(field.label + ":"))
 		b.WriteString("\n  ")
 
@@ -302,6 +327,7 @@ func (m Model) renderAddFormContent() string {
 			cbStyle = selectedStyle.Copy().Reverse(false).Bold(true).Foreground(lipgloss.Color("#00D7FF"))
 		}
 
+		mark(cb.index)
 		b.WriteString(cbStyle.Render(checkmark + " " + cb.label))
 		b.WriteString("\n")
 	}
@@ -366,6 +392,7 @@ func (m Model) renderAddFormContent() string {
 				}
 
 				// Consistent indentation with other form fields
+				mark(snippetFieldIndex)
 				b.WriteString("  ")
 				b.WriteString(snippetStyle.Render(snippetLine))
 				b.WriteString("\n")
@@ -395,6 +422,7 @@ func (m Model) renderAddFormContent() string {
 		}
 
 		// Multi-line display for custom config
+		mark(customConfigFieldIndex)
 		customConfigLines := strings.Split(customConfigDisplay, "\n")
 		for i, line := range customConfigLines {
 			if i > 0 {
@@ -412,7 +440,38 @@ func (m Model) renderAddFormContent() string {
 	b.WriteString("\n")
 	b.WriteString(StyleDim.Render("Navigate: ↑↓/jk  Toggle: space  Preview: enter  Cancel: esc"))
 
-	return b.String()
+	return strings.Split(b.String(), "\n"), focusLine
+}
+
+// windowFormLines shows at most rows lines of a form. The last line (the key
+// hints) stays pinned. The window starts as high as it can while still showing
+// the focused line plus a few lines after it, so a multi-line field is visible.
+func windowFormLines(lines []string, focus, rows int) string {
+	if rows < 4 || len(lines) <= rows {
+		return strings.Join(lines, "\n")
+	}
+	footer := lines[len(lines)-1]
+	body := lines[:len(lines)-1]
+	// Drop the blank spacer above the footer; it is re-added below.
+	for len(body) > 0 && strings.TrimSpace(body[len(body)-1]) == "" {
+		body = body[:len(body)-1]
+	}
+	view := rows - 2 // footer + spacer
+	const lookahead = 4
+	offset := 0
+	if focus >= 0 && focus+lookahead > view {
+		offset = min(focus+lookahead-view, focus)
+	}
+	offset = max(0, min(offset, len(body)-view))
+	out := append([]string{}, body[offset:min(offset+view, len(body))]...)
+	hint := ""
+	if offset > 0 {
+		hint += "▲ "
+	}
+	if offset+view < len(body) {
+		hint += "▼ "
+	}
+	return strings.Join(out, "\n") + "\n" + StyleDim.Render(strings.TrimSpace(hint+"more")) + "\n" + footer
 }
 
 // shouldSuggestSnippet returns true if a snippet should be suggested based on current form state
@@ -433,10 +492,15 @@ func (m Model) shouldSuggestSnippet(snippetName string) bool {
 // renderEditFormContent renders the edit entry form modal content
 func (m Model) renderEditFormContent() string {
 	// Edit form is the add form, plus a warning when the Caddy block is custom.
+	lines, focus := m.addFormLines()
 	if note := m.customCaddyBlockNote(); note != "" {
-		return note + "\n\n" + m.renderAddFormContent()
+		noteLines := strings.Split(note+"\n", "\n")
+		lines = append(noteLines, lines...)
+		if focus >= 0 {
+			focus += len(noteLines)
+		}
 	}
-	return m.renderAddFormContent()
+	return windowFormLines(lines, focus, m.formRows())
 }
 
 // customCaddyReason returns why the entry being edited cannot be safely
