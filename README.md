@@ -24,6 +24,7 @@ If you self-host behind Caddy and use Cloudflare for DNS, you know the pain: add
 - **Snippet system** — reusable Caddy config blocks (IP restrictions, security headers, compression) with an interactive wizard (`w`) and smart form suggestions
 - **Backup manager** — automatic Caddyfile backups before every change, with restore, cleanup, and configurable rotation limits
 - **Audit log** — full operation history with filtering by type, result, and domain search
+- **Command log** — every Cloudflare API call and Caddy command this session, with status and timing (`@`); request bodies and tokens are never logged
 - **Editor integration** — open your Caddyfile in `$EDITOR` directly from the UI (`E`)
 - **Mouse + keyboard** — full mouse support alongside vim-style and arrow key navigation
 - **Safety first** — pre-flight Caddy validation, confirmation dialogs on destructive ops, input format checking
@@ -88,6 +89,7 @@ Press `?` in the app for the full 5-page help screen. The essentials:
 | `b` | Backup manager |
 | `w` | Snippet wizard |
 | `l` | Audit log |
+| `@` | Command log (API calls and Caddy commands, no secrets) |
 | `E` | Open Caddyfile in editor |
 | `r` | Refresh data |
 | `q` | Quit |

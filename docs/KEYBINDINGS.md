@@ -141,7 +141,7 @@ Interactive forms for creating or editing entries.
 | Key | Action | Description |
 |-----|--------|-------------|
 | `Enter` | Next step | Preview form **or** confirm preview (context-dependent) |
-| `Ctrl+M` | Insert newline | In Custom Caddy Config field only (Enter proceeds to preview) |
+| `Ctrl+J` | Insert newline | In Custom Caddy Config field only (Enter proceeds to preview) |
 | `ESC` | Cancel | Close form without saving, return to main view |
 
 **Form Fields:**
