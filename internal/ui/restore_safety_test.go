@@ -69,3 +69,20 @@ func TestStaleRefreshFromPreviousProfileIsIgnored(t *testing.T) {
 		t.Error("the matching refresh must end loading")
 	}
 }
+
+func TestRefreshDoesNotFallBackToTheWorkingDirectory(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+	os.WriteFile(filepath.Join(dir, "Caddyfile"), []byte("wrong.example.com {\n}\n"), 0o644)
+
+	cfg := &config.Config{}
+	cfg.Caddy.CaddyfilePath = filepath.Join(dir, "does-not-exist", "Caddyfile")
+	cfg.Cloudflare.APIToken = "t"
+	msg := fetchData(cfg)
+	if msg.err == nil || !strings.Contains(msg.err.Error(), "cannot read the Caddyfile") {
+		t.Errorf("want a clear read error, got %v", msg.err)
+	}
+	if len(msg.entries) != 0 {
+		t.Error("entries were loaded from the wrong file")
+	}
+}

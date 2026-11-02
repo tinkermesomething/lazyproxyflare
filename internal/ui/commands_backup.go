@@ -227,11 +227,9 @@ func fetchData(cfg *config.Config) refreshCompleteMsg {
 	// Parse Caddyfile
 	caddyContent, err := os.ReadFile(cfg.Caddy.CaddyfilePath)
 	if err != nil {
-		// Try local Caddyfile if configured path fails
-		caddyContent, err = os.ReadFile("Caddyfile")
-		if err != nil {
-			return refreshCompleteMsg{err: err}
-		}
+		// Never fall back to a Caddyfile in the working directory: it would show
+		// (and then edit) a file that is not the one this profile manages.
+		return refreshCompleteMsg{err: fmt.Errorf("cannot read the Caddyfile for this profile: %w", err)}
 	}
 
 	// Parse with snippets
