@@ -83,6 +83,11 @@ func (m *Model) configureTextInputForField() {
 			m.wizardTextInput.Validate = validatePath
 		}
 	}
+
+	// One input is reused for every field. SetValue keeps the old cursor
+	// position when it is still inside the new text, so a prefilled field would
+	// otherwise open with the cursor in the middle of it.
+	m.wizardTextInput.CursorEnd()
 }
 
 // Validation functions

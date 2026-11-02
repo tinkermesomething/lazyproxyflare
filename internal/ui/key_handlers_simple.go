@@ -103,6 +103,10 @@ func (m Model) handleOpenBulkDeleteMenu() (Model, tea.Cmd) {
 
 // handleOpenBackupManager opens the backup manager.
 func (m Model) handleOpenBackupManager() (Model, tea.Cmd) {
+	// "b" also means "go back and edit" on the wizard review screen.
+	if m.currentView == ViewWizard {
+		return m.handleWizardKeyPress("b")
+	}
 	if m.currentView == ViewList && !m.loading {
 		m.backup.Cursor = 0
 		m.backup.ScrollOffset = 0
@@ -208,6 +212,10 @@ func (m Model) handleQuit() (Model, tea.Cmd) {
 
 // handleCancelConfirmation cancels confirmation dialogs with 'n'.
 func (m Model) handleCancelConfirmation() (Model, tea.Cmd) {
+	// "n" cancels on the wizard review screen.
+	if m.currentView == ViewWizard {
+		return m.handleWizardKeyPress("n")
+	}
 	if m.currentView == ViewConfirmDeleteProfile {
 		m.profile.DeleteProfileName = ""
 		m.currentView = ViewProfileSelector

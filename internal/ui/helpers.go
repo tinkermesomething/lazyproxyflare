@@ -129,5 +129,7 @@ func getSelectedSnippetNames(selectedSnippets map[string]bool) []string {
 			selected = append(selected, name)
 		}
 	}
+	// Map order is random; sort so editing an entry does not shuffle its imports.
+	sort.Strings(selected)
 	return selected
 }
