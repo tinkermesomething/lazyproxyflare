@@ -39,6 +39,9 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Older versions created these files world-readable; fix them before any read.
+	config.TightenDefaultPermissions()
+
 	// If --profile specified, load that directly
 	if *profileFlag != "" {
 		autoLoadProfile(*profileFlag)

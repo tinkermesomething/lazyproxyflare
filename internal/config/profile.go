@@ -278,3 +278,48 @@ func ProfileToLegacyConfig(profile *ProfileConfig) *Config {
 		Backup:   profile.Backup,
 	}
 }
+
+// TightenPermissions makes the config directory private: 0700 for directories,
+// 0600 for the files in them (profiles can hold a plaintext API token).
+// os.WriteFile and os.MkdirAll only apply a mode when they create something,
+// so files written by older versions stay world-readable until this runs.
+// Best effort: symlinks are skipped and errors are ignored, because failing to
+// tighten must never stop the app from starting.
+func TightenPermissions(configDir string) {
+	chmodIfLoose(configDir, 0700)
+	profilesDir := filepath.Join(configDir, "profiles")
+	chmodIfLoose(profilesDir, 0700)
+
+	for _, dir := range []string{configDir, profilesDir} {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if e.Type().IsRegular() {
+				chmodIfLoose(filepath.Join(dir, e.Name()), 0600)
+			}
+		}
+	}
+}
+
+// TightenDefaultPermissions runs TightenPermissions on ~/.config/lazyproxyflare.
+func TightenDefaultPermissions() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+	TightenPermissions(filepath.Join(homeDir, ".config", "lazyproxyflare"))
+}
+
+// chmodIfLoose removes any permission bits outside want. It never adds bits and
+// never follows symlinks.
+func chmodIfLoose(path string, want os.FileMode) {
+	info, err := os.Lstat(path)
+	if err != nil || info.Mode()&os.ModeSymlink != 0 {
+		return
+	}
+	if perm := info.Mode().Perm(); perm&^want != 0 {
+		_ = os.Chmod(path, perm&want)
+	}
+}
