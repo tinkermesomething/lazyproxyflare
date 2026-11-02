@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"lazyproxyflare/internal/audit"
 )
 
@@ -62,51 +61,68 @@ func (m *Model) cycleResultFilter() {
 
 // renderAuditLogView renders the audit log viewer modal
 func (m Model) renderAuditLogView() string {
-	width := m.width
-	height := m.height
+	return RenderModalOverlayLarge("", "Audit Log", m.renderAuditLogContent(), m.width, m.height)
+}
 
-	// Calculate modal dimensions (2/3 of screen, same as RenderModalOverlay)
-	modalWidth := width * 2 / 3
-	if modalWidth < 40 {
-		modalWidth = 40
+// Rows of the modal not available to entries: borders (2), filter bar (1),
+// blank (1), blank before the count (1), count (1), hint (1) and one spare.
+const auditModalChrome = 8
+
+// auditEntryBudget is how many screen lines the entries may use.
+func (m Model) auditEntryBudget() int {
+	_, h := modalDimensions(m.width, m.height, true)
+	return max(h-auditModalChrome, 3)
+}
+
+// auditDisplayEntries returns the filtered entries, newest first.
+func (m Model) auditDisplayEntries() []audit.LogEntry {
+	filtered := m.getFilteredAuditLogs()
+	out := make([]audit.LogEntry, len(filtered))
+	for i, e := range filtered {
+		out[len(filtered)-1-i] = e
 	}
-	if modalWidth > 80 {
-		modalWidth = 80
+	return out
+}
+
+// auditEntryHeight is the number of screen lines one entry takes (1 to 4).
+func (m Model) auditEntryHeight(e audit.LogEntry) int {
+	return strings.Count(m.formatLogEntry(e), "\n") + 1
+}
+
+// auditPageEnd returns the index after the last entry that fits when drawing
+// from start. At least one entry is always shown.
+func (m Model) auditPageEnd(entries []audit.LogEntry, start int) int {
+	budget, used, end := m.auditEntryBudget(), 0, start
+	for end < len(entries) {
+		h := m.auditEntryHeight(entries[end])
+		if used+h > budget && end > start {
+			break
+		}
+		used += h
+		end++
 	}
+	return end
+}
 
-	modalHeight := height * 2 / 3
-	if modalHeight < 15 {
-		modalHeight = 15
+// auditMaxScroll is the largest valid Scroll: the one whose page ends on the
+// oldest entry. Entries vary in height, so count back from the end.
+func (m Model) auditMaxScroll() int {
+	entries := m.auditDisplayEntries()
+	budget, used, shown := m.auditEntryBudget(), 0, 0
+	for i := len(entries) - 1; i >= 0; i-- {
+		h := m.auditEntryHeight(entries[i])
+		if used+h > budget && shown > 0 {
+			break
+		}
+		used += h
+		shown++
 	}
-
-	// Modal styling (matching RenderModalOverlay)
-	modalStyle := lipgloss.NewStyle().
-		Border(lipgloss.DoubleBorder()).
-		BorderForeground(ColorBlue).
-		Background(lipgloss.Color("#0a0a0a")).
-		Width(modalWidth - 2).
-		Height(modalHeight - 2).
-		Padding(1, 2)
-
-	// Render content with calculated modal height
-	content := m.renderAuditLogContent(modalHeight)
-
-	return lipgloss.Place(
-		width,
-		height,
-		lipgloss.Center,
-		lipgloss.Center,
-		modalStyle.Render(content),
-	)
+	return len(entries) - shown
 }
 
 // renderAuditLogContent renders the audit log list content
-func (m Model) renderAuditLogContent(modalHeight int) string {
+func (m Model) renderAuditLogContent() string {
 	var b strings.Builder
-
-	// Title
-	b.WriteString(StyleInfo.Render("Audit Log"))
-	b.WriteString("\n")
 
 	// Filter bar
 	opLabel := "ALL"
@@ -143,39 +159,13 @@ func (m Model) renderAuditLogContent(modalHeight int) string {
 		b.WriteString(StyleDim.Render("No entries match the current filters."))
 		b.WriteString("\n\n")
 	} else {
-		// Calculate visible area
-		reservedLines := 13
-		availableHeight := modalHeight - reservedLines
-		if availableHeight < 3 {
-			availableHeight = 3
-		}
-		visibleEntries := availableHeight / 3
-
-		// Ensure scroll offset is valid
-		if m.audit.Scroll > len(filteredLogs)-1 {
-			m.audit.Scroll = len(filteredLogs) - 1
-		}
-		if m.audit.Scroll < 0 {
-			m.audit.Scroll = 0
-		}
-
-		// Display entries in reverse chronological order (newest first)
-		start := m.audit.Scroll
-		end := start + visibleEntries
-		if end > len(filteredLogs) {
-			end = len(filteredLogs)
-		}
-
-		// Reverse the logs for display (newest first)
-		reversedLogs := make([]audit.LogEntry, len(filteredLogs))
-		for i, log := range filteredLogs {
-			reversedLogs[len(filteredLogs)-1-i] = log
-		}
+		entries := m.auditDisplayEntries()
+		start := min(max(m.audit.Scroll, 0), m.auditMaxScroll())
+		end := m.auditPageEnd(entries, start)
 
 		// Render visible entries
 		for i := start; i < end; i++ {
-			entry := reversedLogs[i]
-			b.WriteString(m.formatLogEntry(entry))
+			b.WriteString(m.formatLogEntry(entries[i]))
 			b.WriteString("\n")
 		}
 

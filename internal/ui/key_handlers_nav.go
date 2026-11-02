@@ -1,7 +1,6 @@
 package ui
 
 import (
-
 	tea "github.com/charmbracelet/bubbletea"
 
 	"lazyproxyflare/internal/caddy"
@@ -113,19 +112,7 @@ func (m Model) handleNavigateDown() (Model, tea.Cmd) {
 	}
 	// In audit log: scroll down
 	if m.currentView == ViewAuditLog && !m.loading {
-		// Calculate visible entries based on modal height
-		modalHeight := m.height * 2 / 3
-		if modalHeight < 15 {
-			modalHeight = 15
-		}
-		reservedLines := 11
-		availableHeight := modalHeight - reservedLines
-		if availableHeight < 3 {
-			availableHeight = 3
-		}
-		visibleEntries := availableHeight / 3
-		// Only scroll if there's more content below
-		if m.audit.Scroll+visibleEntries < len(m.audit.Logs) {
+		if m.audit.Scroll < m.auditMaxScroll() {
 			m.audit.Scroll++
 		}
 		return m, nil
