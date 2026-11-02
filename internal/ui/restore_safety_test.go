@@ -45,3 +45,27 @@ func TestRestoreRollsBackWhenValidationFails(t *testing.T) {
 		t.Error("the backup being restored was modified")
 	}
 }
+
+func TestStaleRefreshFromPreviousProfileIsIgnored(t *testing.T) {
+	m := mgrModel(t)
+	m.config.Cloudflare.ZoneID = "zone-b"
+	m.loading = true
+	m.entries = nil
+
+	stale := refreshCompleteMsg{source: "zone-a|" + m.config.Caddy.CaddyfilePath}
+	stale.snippets = m.snippets
+	updated, _ := m.Update(stale)
+	got := updated.(Model)
+	if len(got.snippets) != len(m.snippets) && len(got.snippets) != 0 {
+		t.Fatal("unexpected snippet change")
+	}
+	if !got.loading {
+		t.Error("a stale refresh must not end the current profile's loading state")
+	}
+
+	fresh := refreshCompleteMsg{source: refreshSourceOf(m.config), snippets: m.snippets}
+	updated, _ = m.Update(fresh)
+	if updated.(Model).loading {
+		t.Error("the matching refresh must end loading")
+	}
+}

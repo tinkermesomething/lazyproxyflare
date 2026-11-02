@@ -206,44 +206,55 @@ func cleanupBackupsCmd(caddyfilePath string, retentionDays int, maxBackups int, 
 // refreshDataCmd fetches fresh data from Cloudflare and Caddyfile
 func refreshDataCmd(cfg *config.Config) tea.Cmd {
 	return func() tea.Msg {
-		// Get API token
-		apiToken, err := cfg.GetAPIToken()
-		if err != nil {
-			return refreshCompleteMsg{err: fmt.Errorf("failed to get API token: %w", err)}
-		}
-
-		// Parse Caddyfile
-		caddyContent, err := os.ReadFile(cfg.Caddy.CaddyfilePath)
-		if err != nil {
-			// Try local Caddyfile if configured path fails
-			caddyContent, err = os.ReadFile("Caddyfile")
-			if err != nil {
-				return refreshCompleteMsg{err: err}
-			}
-		}
-
-		// Parse with snippets
-		parsed := caddy.ParseCaddyfileWithSnippets(string(caddyContent))
-
-		// Fetch DNS records from Cloudflare
-		cfClient := cloudflare.NewClient(apiToken)
-
-		cnameRecords, err := cfClient.ListDNSRecords(cfg.Cloudflare.ZoneID, "CNAME")
-		if err != nil {
-			return refreshCompleteMsg{err: err}
-		}
-
-		aRecords, err := cfClient.ListDNSRecords(cfg.Cloudflare.ZoneID, "A")
-		if err != nil {
-			return refreshCompleteMsg{err: err}
-		}
-
-		// Combine all DNS records
-		allDNS := append(cnameRecords, aRecords...)
-
-		// Run diff engine
-		syncedEntries := diff.Compare(allDNS, parsed.Entries)
-
-		return refreshCompleteMsg{entries: syncedEntries, snippets: parsed.Snippets, err: nil}
+		msg := fetchData(cfg)
+		msg.source = refreshSourceOf(cfg)
+		return msg
 	}
+}
+
+// refreshSourceOf identifies which profile a refresh was started for.
+func refreshSourceOf(cfg *config.Config) string {
+	return cfg.Cloudflare.ZoneID + "|" + cfg.Caddy.CaddyfilePath
+}
+
+func fetchData(cfg *config.Config) refreshCompleteMsg {
+	// Get API token
+	apiToken, err := cfg.GetAPIToken()
+	if err != nil {
+		return refreshCompleteMsg{err: fmt.Errorf("failed to get API token: %w", err)}
+	}
+
+	// Parse Caddyfile
+	caddyContent, err := os.ReadFile(cfg.Caddy.CaddyfilePath)
+	if err != nil {
+		// Try local Caddyfile if configured path fails
+		caddyContent, err = os.ReadFile("Caddyfile")
+		if err != nil {
+			return refreshCompleteMsg{err: err}
+		}
+	}
+
+	// Parse with snippets
+	parsed := caddy.ParseCaddyfileWithSnippets(string(caddyContent))
+
+	// Fetch DNS records from Cloudflare
+	cfClient := cloudflare.NewClient(apiToken)
+
+	cnameRecords, err := cfClient.ListDNSRecords(cfg.Cloudflare.ZoneID, "CNAME")
+	if err != nil {
+		return refreshCompleteMsg{err: err}
+	}
+
+	aRecords, err := cfClient.ListDNSRecords(cfg.Cloudflare.ZoneID, "A")
+	if err != nil {
+		return refreshCompleteMsg{err: err}
+	}
+
+	// Combine all DNS records
+	allDNS := append(cnameRecords, aRecords...)
+
+	// Run diff engine
+	syncedEntries := diff.Compare(allDNS, parsed.Entries)
+
+	return refreshCompleteMsg{entries: syncedEntries, snippets: parsed.Snippets, err: nil}
 }

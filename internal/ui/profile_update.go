@@ -144,6 +144,12 @@ func (m Model) loadProfile(profileName string) (Model, tea.Cmd) {
 	// Clear selections
 	m.selectedEntries = make(map[string]bool)
 
+	// Drop per-profile UI state so nothing from the old profile survives.
+	m.snippetPanel = SnippetPanelState{}
+	m.addForm = AddFormData{}
+	m.editingEntry = nil
+	m.backup = BackupState{RetentionDays: m.backup.RetentionDays}
+
 	// Return to main view
 	m.currentView = ViewList
 

@@ -20,6 +20,11 @@ func (m Model) handleAsyncMsg(msg tea.Msg) (Model, tea.Cmd, bool) {
 		return m.handleSnippetOp(msg), nil, true
 
 	case refreshCompleteMsg:
+		// A slow refresh for the previous profile must not overwrite the
+		// profile we switched to. The switch started its own refresh.
+		if m.config != nil && msg.source != "" && msg.source != refreshSourceOf(m.config) {
+			return m, nil, true
+		}
 		m.loading = false
 		if msg.err != nil {
 			m.err = msg.err

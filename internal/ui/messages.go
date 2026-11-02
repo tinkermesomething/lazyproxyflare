@@ -12,6 +12,7 @@ type refreshCompleteMsg struct {
 	entries  []diff.SyncedEntry
 	snippets []caddy.Snippet
 	err      error
+	source   string // refreshSourceOf the profile this was fetched for
 }
 
 type createEntryMsg struct {
