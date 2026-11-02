@@ -58,7 +58,7 @@ type Logger struct {
 // NewLogger creates a new audit logger
 func NewLogger(configDir string) (*Logger, error) {
 	// Ensure config directory exists
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
 
@@ -74,7 +74,7 @@ func (l *Logger) Log(entry LogEntry) error {
 	}
 
 	// Open log file in append mode
-	file, err := os.OpenFile(l.logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(l.logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open audit log: %w", err)
 	}
@@ -146,7 +146,7 @@ func (l *Logger) RotateLogs(maxEntries int) error {
 	entries = entries[len(entries)-maxEntries:]
 
 	// Rewrite log file with truncated entries
-	file, err := os.OpenFile(l.logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(l.logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open audit log for rotation: %w", err)
 	}

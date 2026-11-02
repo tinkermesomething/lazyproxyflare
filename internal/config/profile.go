@@ -101,7 +101,7 @@ func SaveProfile(name string, profile *ProfileConfig) error {
 	}
 
 	// Ensure profiles directory exists
-	if err := os.MkdirAll(profilesDir, 0755); err != nil {
+	if err := os.MkdirAll(profilesDir, 0700); err != nil {
 		return fmt.Errorf("failed to create profiles directory: %w", err)
 	}
 
@@ -126,7 +126,8 @@ func SaveProfile(name string, profile *ProfileConfig) error {
 
 	// Write to file
 	profilePath := filepath.Join(profilesDir, name+".yaml")
-	if err := os.WriteFile(profilePath, data, 0644); err != nil {
+	// 0600: profile may hold a plaintext API token
+	if err := os.WriteFile(profilePath, data, 0600); err != nil {
 		return fmt.Errorf("failed to write profile file: %w", err)
 	}
 
@@ -179,12 +180,12 @@ func SetLastUsedProfile(name string) error {
 	}
 
 	configDir := filepath.Join(homeDir, ".config", "lazyproxyflare")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0700); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
 	lastProfilePath := filepath.Join(configDir, "last_profile.txt")
-	return os.WriteFile(lastProfilePath, []byte(name), 0644)
+	return os.WriteFile(lastProfilePath, []byte(name), 0600)
 }
 
 // validateProfile validates a profile configuration
