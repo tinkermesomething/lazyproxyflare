@@ -40,6 +40,7 @@ check:
 		echo "  macOS:  brew install go"; \
 		echo "  Ubuntu: sudo apt install golang-go"; \
 		echo "  Fedora: sudo dnf install golang"; \
+		echo "This project needs Go 1.26. Go 1.21+ fetches it by itself (GOTOOLCHAIN=auto)."; \
 		exit 1; \
 	}
 	@echo "$(GREEN)✓ Go found:$(NC) $$($(GOCMD) version)"

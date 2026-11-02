@@ -34,7 +34,7 @@ If you self-host behind Caddy and use Cloudflare for DNS, you know the pain: add
 
 ### Prerequisites
 
-- Go 1.22+
+- Go 1.26+ (Go 1.21 or newer downloads it on its own through `GOTOOLCHAIN=auto`, the default)
 - Cloudflare API token with DNS edit permissions
 - Caddy server (Docker, docker-compose, or systemd)
 
