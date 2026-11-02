@@ -450,60 +450,7 @@ func formatKeybinding(key, description string) string {
 
 // getStatusBarContent returns the content for the status bar
 func (m Model) getStatusBarContent() string {
-	if m.loading {
-		return StyleInfo.Render("⟳ Loading...")
-	}
-
-	// Errors are now shown in a modal, not in status bar
-	if m.err != nil {
-		return StyleDim.Render("Error occurred - see modal above")
-	}
-
-	if m.searching {
-		return fmt.Sprintf("Search: %s_ (%s to accept, %s to cancel)",
-			m.searchQuery,
-			StyleKeybinding.Render("enter"),
-			StyleKeybinding.Render("esc"))
-	}
-
-	// Context-sensitive keybindings
-	if len(m.selectedEntries) > 0 {
-		return fmt.Sprintf("Navigate: %s  Select: %s  Batch: %s %s  Clear: %s",
-			StyleKeybinding.Render("↑↓"),
-			StyleKeybinding.Render("space"),
-			formatKeybinding("X", "delete"),
-			formatKeybinding("S", "sync"),
-			StyleKeybinding.Render("esc"))
-	}
-
-	// Tab indicator
-	tabHint := ""
-	if m.activeTab == TabCloudflare {
-		tabHint = StyleDim.Render("[DNS]")
-	} else {
-		tabHint = StyleDim.Render("[Caddy]")
-	}
-
-	editorHint := ""
-	if m.activeTab == TabCaddy {
-		editorHint = formatKeybinding("E", "editor") + " "
-	}
-
-	return fmt.Sprintf("%s %s %s %s %s %s %s%s %s %s %s %s %s %s",
-		tabHint,
-		StyleKeybinding.Render("↑↓")+" nav",
-		StyleKeybinding.Render("tab")+" view",
-		formatKeybinding("a", "add"),
-		formatKeybinding("⏎", "edit"),
-		formatKeybinding("d", "del"),
-		editorHint,
-		formatKeybinding("w", "snippets"),
-		formatKeybinding("p", "profile"),
-		formatKeybinding("/", "search"),
-		formatKeybinding("r", "refresh"),
-		formatKeybinding("b", "backups"),
-		formatKeybinding("?", "help"),
-		formatKeybinding("q", "quit"))
+	return m.getStatusBarContentFor(m.width)
 }
 
 // renderHelpModalContent returns help content for modal display (paginated)
