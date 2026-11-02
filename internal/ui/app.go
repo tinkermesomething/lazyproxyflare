@@ -122,6 +122,8 @@ func (m Model) View() string {
 		return m.renderProfileEditView()
 	case ViewAuditLog:
 		return m.renderAuditLogView()
+	case ViewCommandLog:
+		return m.renderCommandLogView()
 	}
 
 	// Always render the main panel layout as base (for views that need it)

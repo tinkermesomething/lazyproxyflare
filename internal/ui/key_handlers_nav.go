@@ -110,6 +110,13 @@ func (m Model) handleNavigateDown() (Model, tea.Cmd) {
 		}
 		return m, nil
 	}
+	// In command log: scroll down
+	if m.currentView == ViewCommandLog && !m.loading {
+		if m.cmdLogScroll < m.commandLogMaxScroll() {
+			m.cmdLogScroll++
+		}
+		return m, nil
+	}
 	// In audit log: scroll down
 	if m.currentView == ViewAuditLog && !m.loading {
 		if m.audit.Scroll < m.auditMaxScroll() {
@@ -307,6 +314,11 @@ func (m Model) handleNavigateUp() (Model, tea.Cmd) {
 	// In backup preview: scroll up
 	if m.currentView == ViewBackupPreview && !m.loading && m.backup.PreviewScroll > 0 {
 		m.backup.PreviewScroll--
+		return m, nil
+	}
+	// In command log: scroll up
+	if m.currentView == ViewCommandLog && !m.loading && m.cmdLogScroll > 0 {
+		m.cmdLogScroll--
 		return m, nil
 	}
 	// In audit log: scroll up

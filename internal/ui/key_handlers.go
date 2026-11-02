@@ -81,6 +81,9 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "l", "L":
 		return m.handleOpenAuditLog()
 
+	case "@":
+		return m.handleOpenCommandLog()
+
 	case "p", "ctrl+p":
 		return m.handleProfileOrPreview()
 

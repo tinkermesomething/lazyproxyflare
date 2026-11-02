@@ -76,6 +76,7 @@ func (m Model) footerHints() []footerHint {
 		footerHint{key: "/", desc: "search", prio: 3},
 		footerHint{key: "r", desc: "refresh", prio: 4},
 		footerHint{key: "b", desc: "backups", prio: 4},
+		footerHint{key: "@", desc: "log", prio: 5},
 		help, quit,
 	)
 }

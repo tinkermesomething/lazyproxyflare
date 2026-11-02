@@ -33,6 +33,7 @@ const (
 	ViewConfirmRestore
 	ViewConfirmCleanup
 	ViewAuditLog
+	ViewCommandLog
 	ViewSnippetDetail
 	ViewProfileSelector
 	ViewProfileEdit
@@ -365,6 +366,7 @@ type Model struct {
 
 	// Audit log state
 	audit AuditState
+	cmdLogScroll int // Scroll offset for the command log view
 
 	// Panel state
 	panelFocus PanelFocus // Which panel is focused (left or right)

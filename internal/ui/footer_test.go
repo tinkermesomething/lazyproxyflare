@@ -90,3 +90,17 @@ func TestFooterReflectsContext(t *testing.T) {
 		t.Errorf("dns tab must not offer editor: %q", got)
 	}
 }
+
+func TestFooterAdvertisesCommandLogAndHelpDocumentsIt(t *testing.T) {
+	m := createTestModel()
+	if got := footerText(m, 200); !strings.Contains(got, "@:log") {
+		t.Errorf("footer should advertise the command log: %q", got)
+	}
+	for page := 0; page < 5; page++ {
+		m.helpPage = page
+		if strings.Contains(stripANSI(m.renderHelpModalContent()), "Command log") {
+			return
+		}
+	}
+	t.Error("no help page documents the command log")
+}

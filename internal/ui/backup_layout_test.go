@@ -231,3 +231,38 @@ func TestBackupPreviewBoxStaysInsideModal(t *testing.T) {
 		})
 	}
 }
+
+// The hint lines promise j/k as well as the arrow keys in every scrollable modal.
+func TestJKScrollsLikeArrowsInModals(t *testing.T) {
+	t.Run("backup manager", func(t *testing.T) {
+		m := newBackupModel(t, 10, 179, 49)
+		m, _ = m.handleListDown()
+		m, _ = m.handleListDown()
+		if m.backup.Cursor != 2 {
+			t.Errorf("after j j cursor = %d, want 2", m.backup.Cursor)
+		}
+		m, _ = m.handleListUp()
+		if m.backup.Cursor != 1 {
+			t.Errorf("after k cursor = %d, want 1", m.backup.Cursor)
+		}
+	})
+	t.Run("audit log", func(t *testing.T) {
+		m := newAuditModel(40, 120, 30)
+		m, _ = m.handleListDown()
+		if m.audit.Scroll != 1 {
+			t.Errorf("after j Scroll = %d, want 1", m.audit.Scroll)
+		}
+		m, _ = m.handleListUp()
+		if m.audit.Scroll != 0 {
+			t.Errorf("after k Scroll = %d, want 0", m.audit.Scroll)
+		}
+	})
+	t.Run("list view still moves its own cursor", func(t *testing.T) {
+		m := createTestModel()
+		m.entries = nil
+		m, _ = m.handleListDown()
+		if m.currentView != ViewList {
+			t.Errorf("view changed to %v", m.currentView)
+		}
+	})
+}

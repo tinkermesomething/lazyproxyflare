@@ -298,6 +298,9 @@ func (m Model) handleListEnd() (Model, tea.Cmd) {
 
 // handleListDown navigates down in list view (j key, entries only).
 func (m Model) handleListDown() (Model, tea.Cmd) {
+	if m.isScrollModal() {
+		return m.handleNavigateDown()
+	}
 	if m.currentView == ViewList && !m.searching {
 		if m.cursor < len(m.getFilteredEntries())-1 {
 			m.cursor++
@@ -379,6 +382,9 @@ func (m Model) handleBackspaceKey() (Model, tea.Cmd) {
 
 // handleListUp navigates up in list view (k key, entries only).
 func (m Model) handleListUp() (Model, tea.Cmd) {
+	if m.isScrollModal() {
+		return m.handleNavigateUp()
+	}
 	if m.currentView == ViewList && !m.searching {
 		if m.cursor > 0 {
 			m.cursor--
@@ -646,6 +652,9 @@ func (m Model) handleGoToTop() (Model, tea.Cmd) {
 	if m.currentView == ViewBackupPreview && !m.loading {
 		m.backup.PreviewScroll = 0
 	}
+	if m.currentView == ViewCommandLog {
+		m.cmdLogScroll = 0
+	}
 	return m, nil
 }
 
@@ -668,6 +677,9 @@ func (m Model) handleGoToBottom() (Model, tea.Cmd) {
 	// In backup preview: scroll to bottom
 	if m.currentView == ViewBackupPreview && !m.loading {
 		m.backup.PreviewScroll = m.backupMaxPreviewScroll()
+	}
+	if m.currentView == ViewCommandLog {
+		m.cmdLogScroll = m.commandLogMaxScroll()
 	}
 	return m, nil
 }
