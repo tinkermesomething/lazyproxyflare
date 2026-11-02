@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -144,6 +145,18 @@ func TestGetAPIToken(t *testing.T) {
 		}
 		if got != "env-secret" {
 			t.Errorf("got %q, want %q", got, "env-secret")
+		}
+	})
+
+	t.Run("unset env var returns error", func(t *testing.T) {
+		os.Unsetenv("NONEXISTENT_VAR_12345")
+		cfg := &Config{Cloudflare: CloudflareConfig{APIToken: "${NONEXISTENT_VAR_12345}"}}
+		got, err := cfg.GetAPIToken()
+		if err == nil {
+			t.Fatalf("expected error for unset env var, got token %q", got)
+		}
+		if !strings.Contains(err.Error(), "NONEXISTENT_VAR_12345") {
+			t.Errorf("error should name the variable, got: %v", err)
 		}
 	})
 }

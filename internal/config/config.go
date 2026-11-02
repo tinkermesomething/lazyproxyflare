@@ -22,6 +22,11 @@ func (c *Config) GetAPIToken() (string, error) {
 	if token == "" {
 		return "", fmt.Errorf("api_token is empty or the referenced environment variable is not set")
 	}
+	// expandEnvVars returns the original ${VAR} when the variable is unset.
+	// Fail here instead of sending the literal string to Cloudflare as a bearer token.
+	if token == c.Cloudflare.APIToken && strings.HasPrefix(token, "${") && strings.HasSuffix(token, "}") {
+		return "", fmt.Errorf("environment variable %s referenced by api_token is not set", token[2:len(token)-1])
+	}
 	return token, nil
 }
 
