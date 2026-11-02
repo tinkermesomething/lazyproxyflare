@@ -7,20 +7,25 @@ import (
 	"time"
 
 	"lazyproxyflare/internal/caddy"
+	"lazyproxyflare/internal/textdiff"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
 // DiffLine represents a single line in a diff view
 type DiffLine struct {
-	Type    string // "same", "removed", "added", "context"
+	Type    string // "same", "removed", "added", "context", "hunk"
 	Content string
 	LineNum int // Line number in original/backup file
 }
 
-// GenerateDiff creates a simple line-by-line diff between two files
+// diffContext is the number of unchanged lines shown around each change.
+const diffContext = 3
+
+// GenerateDiff diffs the current file (old side) against a backup (new side),
+// i.e. what restoring the backup would change. Output is unified-diff style:
+// a "hunk" header, then "context", "removed" and "added" lines.
 func GenerateDiff(currentPath, backupPath string) ([]DiffLine, error) {
-	// Read both files
 	currentContent, err := os.ReadFile(currentPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read current file: %w", err)
@@ -31,55 +36,34 @@ func GenerateDiff(currentPath, backupPath string) ([]DiffLine, error) {
 		return nil, fmt.Errorf("failed to read backup file: %w", err)
 	}
 
-	// Split into lines
 	currentLines := strings.Split(string(currentContent), "\n")
 	backupLines := strings.Split(string(backupContent), "\n")
 
-	var diff []DiffLine
-
-	// Build maps for quick lookup
-	currentMap := make(map[string]bool)
-	for _, line := range currentLines {
-		currentMap[line] = true
-	}
-
-	backupMap := make(map[string]bool)
-	for _, line := range backupLines {
-		backupMap[line] = true
-	}
-
-	// Process lines - simple algorithm showing all unique lines
-	// First, show lines only in current (will be removed)
-	for i, line := range currentLines {
-		if !backupMap[line] {
-			diff = append(diff, DiffLine{
-				Type:    "removed",
-				Content: line,
-				LineNum: i + 1,
-			})
-		}
-	}
-
-	// Then show lines only in backup (will be added)
-	for i, line := range backupLines {
-		if !currentMap[line] {
-			diff = append(diff, DiffLine{
-				Type:    "added",
-				Content: line,
-				LineNum: i + 1,
-			})
-		}
-	}
-
-	// If diff is empty, files are identical
-	if len(diff) == 0 {
-		diff = append(diff, DiffLine{
+	hunks := textdiff.Hunks(textdiff.Lines(currentLines, backupLines), diffContext)
+	if len(hunks) == 0 {
+		return []DiffLine{{
 			Type:    "same",
 			Content: "No changes - backup is identical to current Caddyfile",
-			LineNum: 0,
-		})
+		}}, nil
 	}
 
+	var diff []DiffLine
+	for _, h := range hunks {
+		diff = append(diff, DiffLine{
+			Type:    "hunk",
+			Content: fmt.Sprintf("@@ -%d,%d +%d,%d @@", h.OldStart, h.OldLen, h.NewStart, h.NewLen),
+		})
+		for _, op := range h.Ops {
+			switch op.Kind {
+			case textdiff.Equal:
+				diff = append(diff, DiffLine{Type: "context", Content: op.Text, LineNum: op.OldLine})
+			case textdiff.Delete:
+				diff = append(diff, DiffLine{Type: "removed", Content: op.Text, LineNum: op.OldLine})
+			case textdiff.Insert:
+				diff = append(diff, DiffLine{Type: "added", Content: op.Text, LineNum: op.NewLine})
+			}
+		}
+	}
 	return diff, nil
 }
 
@@ -254,6 +238,10 @@ func (m Model) renderBackupPreviewView() string {
 				styledLine = lipgloss.NewStyle().
 					Foreground(lipgloss.Color("#51CF66")).
 					Render(fmt.Sprintf("+ %s", line.Content))
+			case "hunk":
+				styledLine = lipgloss.NewStyle().Foreground(ColorBlue).Render(line.Content)
+			case "context":
+				styledLine = StyleDim.Render("  " + line.Content)
 			case "same":
 				// Gray for no changes message
 				styledLine = StyleDim.Render(line.Content)
@@ -279,7 +267,7 @@ func (m Model) renderBackupPreviewView() string {
 
 	// Scroll indicator
 	if len(diffLines) > visibleHeight {
-		scrollInfo := fmt.Sprintf("[Showing %d-%d of %d changes]", start+1, end, len(diffLines))
+		scrollInfo := fmt.Sprintf("[Showing %d-%d of %d lines]", start+1, end, len(diffLines))
 		b.WriteString(StyleDim.Render(scrollInfo))
 		b.WriteString("\n")
 	}
