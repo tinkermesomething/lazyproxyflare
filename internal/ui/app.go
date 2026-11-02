@@ -149,8 +149,15 @@ func (m Model) renderView() string {
 		return m.renderCommandLogView()
 	}
 
-	// Always render the main panel layout as base (for views that need it)
-	base := m.renderPanelLayout()
+	// Render the main panel layout as base for modals. Without a loaded config
+	// (startup on the profile selector with several profiles) there is no main
+	// layout, so modals such as "delete profile" go over the selector instead.
+	var base string
+	if m.config != nil {
+		base = m.renderPanelLayout()
+	} else {
+		base = m.renderProfileSelectorView()
+	}
 
 	// Overlay modals on top of the main view
 	switch m.currentView {
