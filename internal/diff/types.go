@@ -44,8 +44,8 @@ func (s SyncStatus) Icon() string {
 
 // SyncedEntry represents the result of comparing DNS and Caddy
 type SyncedEntry struct {
-	Domain string                   // Primary domain name
-	DNS    *cloudflare.DNSRecord    // nil if not in DNS
-	Caddy  *caddy.CaddyEntry        // nil if not in Caddy
-	Status SyncStatus               // Sync status
+	Domain string                // Primary domain name
+	DNS    *cloudflare.DNSRecord // nil if not in DNS
+	Caddy  *caddy.CaddyEntry     // nil if not in Caddy
+	Status SyncStatus            // Sync status
 }

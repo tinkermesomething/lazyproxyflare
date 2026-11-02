@@ -152,10 +152,6 @@ func (m Model) loadProfile(profileName string) (Model, tea.Cmd) {
 	return m, refreshDataCmd(m.config)
 }
 
-
-
-
-
 // startWizard initializes wizard state and switches to wizard view
 func (m Model) startWizard() Model {
 	// Reset wizard state

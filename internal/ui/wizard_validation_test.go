@@ -20,9 +20,9 @@ func TestValidateProfile(t *testing.T) {
 
 	// Test cases
 	tests := []struct {
-		name        string
-		wizardData  WizardData
-		shouldError bool
+		name          string
+		wizardData    WizardData
+		shouldError   bool
 		errorContains string
 	}{
 		{
@@ -59,7 +59,7 @@ func TestValidateProfile(t *testing.T) {
 				CaddyfilePath:    "",
 				ContainerName:    "caddy",
 			},
-			shouldError: true,
+			shouldError:   true,
 			errorContains: "cannot be empty",
 		},
 		{
@@ -72,7 +72,7 @@ func TestValidateProfile(t *testing.T) {
 				CaddyfilePath:    "/nonexistent/directory/Caddyfile",
 				ContainerName:    "caddy",
 			},
-			shouldError: true,
+			shouldError:   true,
 			errorContains: "parent directory does not exist",
 		},
 		{
@@ -85,7 +85,7 @@ func TestValidateProfile(t *testing.T) {
 				CaddyfilePath:    testCaddyfile,
 				ContainerName:    "",
 			},
-			shouldError: true,
+			shouldError:   true,
 			errorContains: "container name cannot be empty",
 		},
 	}
@@ -113,7 +113,7 @@ func TestValidateProfile(t *testing.T) {
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
 		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-		len(s) > len(substr)+1 && findSubstring(s, substr)))
+			len(s) > len(substr)+1 && findSubstring(s, substr)))
 }
 
 func findSubstring(s, substr string) bool {

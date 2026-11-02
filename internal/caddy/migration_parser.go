@@ -8,11 +8,11 @@ import (
 
 // MigrationContent represents a complete parsed Caddyfile for migration
 type MigrationContent struct {
-	GlobalOptions string         // Global block content (everything inside the { } at top)
-	Snippets      []Snippet      // All parsed snippets with metadata
-	Entries       []CaddyEntry   // All parsed domain entries
-	RawContent    string         // Original file content
-	HasContent    bool           // True if file has any entries or snippets
+	GlobalOptions string       // Global block content (everything inside the { } at top)
+	Snippets      []Snippet    // All parsed snippets with metadata
+	Entries       []CaddyEntry // All parsed domain entries
+	RawContent    string       // Original file content
+	HasContent    bool         // True if file has any entries or snippets
 }
 
 // ParseCaddyfileForMigration reads and parses a Caddyfile from disk for migration purposes

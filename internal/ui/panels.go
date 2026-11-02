@@ -101,9 +101,9 @@ func NewPanelLayout(width, height int) PanelLayout {
 		SnippetsWidth:  rightWidth,
 		SnippetsHeight: snippetsHeight,
 		// Legacy compatibility
-		RightWidth:     rightWidth,
-		RightHeight:    contentHeight,
-		StatusHeight:   1,
+		RightWidth:   rightWidth,
+		RightHeight:  contentHeight,
+		StatusHeight: 1,
 	}
 }
 

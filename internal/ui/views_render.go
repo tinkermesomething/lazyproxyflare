@@ -633,4 +633,3 @@ func (m Model) renderPreviewScreen() string {
 
 	return b.String()
 }
-

@@ -108,9 +108,9 @@ func (s *Snippet) Lines() int {
 // CategorizationHint represents a pattern for auto-detecting snippet categories
 type CategorizationHint struct {
 	Category   SnippetCategory
-	Keywords   []string  // Keywords to look for in content
-	MinMatches int       // Minimum keyword matches required
-	Confidence float64   // Confidence if all keywords match
+	Keywords   []string // Keywords to look for in content
+	MinMatches int      // Minimum keyword matches required
+	Confidence float64  // Confidence if all keywords match
 }
 
 // Auto-categorization hints for snippet detection

@@ -52,14 +52,14 @@ const (
 
 // LogEntry represents a single audit log entry
 type LogEntry struct {
-	Timestamp   time.Time              `json:"timestamp"`
-	Operation   OperationType          `json:"operation"`
-	EntityType  EntityType             `json:"entity_type"`
-	Domain      string                 `json:"domain"`
-	Details     map[string]interface{} `json:"details,omitempty"`
-	Result      Result                 `json:"result"`
-	Error       string                 `json:"error,omitempty"`
-	BatchCount  int                    `json:"batch_count,omitempty"` // For batch operations
+	Timestamp  time.Time              `json:"timestamp"`
+	Operation  OperationType          `json:"operation"`
+	EntityType EntityType             `json:"entity_type"`
+	Domain     string                 `json:"domain"`
+	Details    map[string]interface{} `json:"details,omitempty"`
+	Result     Result                 `json:"result"`
+	Error      string                 `json:"error,omitempty"`
+	BatchCount int                    `json:"batch_count,omitempty"` // For batch operations
 }
 
 // Logger handles audit logging operations

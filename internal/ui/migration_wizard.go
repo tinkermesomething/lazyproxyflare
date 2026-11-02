@@ -12,22 +12,22 @@ import (
 type MigrationWizardStep int
 
 const (
-	MigrationStepOptions MigrationWizardStep = iota // Option selection
-	MigrationStepConfirm                            // Confirm migration
-	MigrationStepProgress                           // Migration in progress
-	MigrationStepComplete                           // Migration complete
+	MigrationStepOptions  MigrationWizardStep = iota // Option selection
+	MigrationStepConfirm                             // Confirm migration
+	MigrationStepProgress                            // Migration in progress
+	MigrationStepComplete                            // Migration complete
 )
 
 // MigrationWizardData holds the state for migration wizard
 type MigrationWizardData struct {
-	Step            MigrationWizardStep
-	ParsedContent   *caddy.MigrationContent
-	Options         caddy.MigrationOptions
-	OptionCursor    int    // Which option is selected (0-4)
-	BackupPath      string // Path to created backup
-	Error           error  // Any error during migration
-	InProgress      bool   // Migration is running
-	CaddyfilePath   string // Path to Caddyfile being migrated
+	Step          MigrationWizardStep
+	ParsedContent *caddy.MigrationContent
+	Options       caddy.MigrationOptions
+	OptionCursor  int    // Which option is selected (0-4)
+	BackupPath    string // Path to created backup
+	Error         error  // Any error during migration
+	InProgress    bool   // Migration is running
+	CaddyfilePath string // Path to Caddyfile being migrated
 }
 
 // renderMigrationWizard renders the appropriate migration wizard screen

@@ -58,5 +58,5 @@ var (
 			Bold(true)
 
 	StyleKeybindingDesc = lipgloss.NewStyle().
-			Foreground(ColorWhite)
+				Foreground(ColorWhite)
 )

@@ -311,38 +311,38 @@ func TestRemoveDomain(t *testing.T) {
 
 func TestSetPrimaryDomain(t *testing.T) {
 	tests := []struct {
-		name           string
-		entry          CaddyEntry
-		newPrimary     string
-		expectError    bool
+		name            string
+		entry           CaddyEntry
+		newPrimary      string
+		expectError     bool
 		expectedPrimary string
 	}{
 		{
-			name:           "set third as primary",
-			entry:          CaddyEntry{Domains: []string{"first.com", "second.com", "third.com"}},
-			newPrimary:     "third.com",
-			expectError:    false,
+			name:            "set third as primary",
+			entry:           CaddyEntry{Domains: []string{"first.com", "second.com", "third.com"}},
+			newPrimary:      "third.com",
+			expectError:     false,
 			expectedPrimary: "third.com",
 		},
 		{
-			name:           "set already primary",
-			entry:          CaddyEntry{Domains: []string{"first.com", "second.com"}},
-			newPrimary:     "first.com",
-			expectError:    false,
+			name:            "set already primary",
+			entry:           CaddyEntry{Domains: []string{"first.com", "second.com"}},
+			newPrimary:      "first.com",
+			expectError:     false,
 			expectedPrimary: "first.com",
 		},
 		{
-			name:           "set non-existent as primary",
-			entry:          CaddyEntry{Domains: []string{"first.com", "second.com"}},
-			newPrimary:     "notfound.com",
-			expectError:    true,
+			name:            "set non-existent as primary",
+			entry:           CaddyEntry{Domains: []string{"first.com", "second.com"}},
+			newPrimary:      "notfound.com",
+			expectError:     true,
 			expectedPrimary: "first.com", // Should remain unchanged
 		},
 		{
-			name:           "case insensitive",
-			entry:          CaddyEntry{Domains: []string{"first.com", "second.com", "third.com"}},
-			newPrimary:     "SECOND.COM",
-			expectError:    false,
+			name:            "case insensitive",
+			entry:           CaddyEntry{Domains: []string{"first.com", "second.com", "third.com"}},
+			newPrimary:      "SECOND.COM",
+			expectError:     false,
 			expectedPrimary: "SECOND.COM",
 		},
 	}
@@ -368,26 +368,26 @@ func TestSetPrimaryDomain(t *testing.T) {
 
 func TestMigrateToMultiDomain(t *testing.T) {
 	tests := []struct {
-		name           string
-		entry          CaddyEntry
+		name            string
+		entry           CaddyEntry
 		expectedDomains int
 		expectedPrimary string
 	}{
 		{
-			name:           "migrate old Domain field",
-			entry:          CaddyEntry{Domain: "old.example.com"},
+			name:            "migrate old Domain field",
+			entry:           CaddyEntry{Domain: "old.example.com"},
 			expectedDomains: 1,
 			expectedPrimary: "old.example.com",
 		},
 		{
-			name:           "already migrated",
-			entry:          CaddyEntry{Domains: []string{"new.example.com"}},
+			name:            "already migrated",
+			entry:           CaddyEntry{Domains: []string{"new.example.com"}},
 			expectedDomains: 1,
 			expectedPrimary: "new.example.com",
 		},
 		{
-			name:           "fix missing Domain field",
-			entry:          CaddyEntry{Domains: []string{"fixed.example.com"}, Domain: ""},
+			name:            "fix missing Domain field",
+			entry:           CaddyEntry{Domains: []string{"fixed.example.com"}, Domain: ""},
 			expectedDomains: 1,
 			expectedPrimary: "fixed.example.com",
 		},

@@ -110,7 +110,7 @@ func TestWizardStartFromProfileSelector(t *testing.T) {
 func TestWizardEnterKeyFullPath(t *testing.T) {
 	// Create model in wizard mode (same as runtime)
 	m := NewModelWithWizard()
-	
+
 	// Verify initial state matches what we expect at runtime
 	if m.currentView != ViewWizard {
 		t.Fatalf("Expected ViewWizard, got %d", m.currentView)
@@ -118,20 +118,20 @@ func TestWizardEnterKeyFullPath(t *testing.T) {
 	if m.wizardStep != WizardStepWelcome {
 		t.Fatalf("Expected WizardStepWelcome, got %d", m.wizardStep)
 	}
-	
+
 	// Call Init() like bubbletea does
 	m.Init()
-	
+
 	// Verify isWizardTextInputStep returns false for WelcomeStep
 	if m.isWizardTextInputStep() {
 		t.Fatal("WizardStepWelcome should NOT be a text input step")
 	}
-	
+
 	// Simulate Enter key through Update() (the real path)
 	enterKey := tea.KeyPressMsg{Code: tea.KeyEnter}
 	result, _ := m.Update(enterKey)
 	newModel := result.(Model)
-	
+
 	// Verify we advanced
 	if newModel.wizardStep == WizardStepWelcome {
 		t.Errorf("Expected to advance from WizardStepWelcome, but still on welcome step")

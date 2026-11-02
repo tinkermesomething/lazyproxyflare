@@ -127,9 +127,9 @@ func (m Model) renderProfileEditView() string {
 
 	// Define fields
 	fields := []struct {
-		label string
-		value string
-		isBool bool
+		label   string
+		value   string
+		isBool  bool
 		boolVal bool
 	}{
 		{"Profile Name", m.profile.EditData.Name, false, false},

@@ -12,10 +12,10 @@ import (
 type WizardStep int
 
 const (
-	WizardStepWelcome WizardStep = iota
-	WizardStepBasicInfo   // Profile name + Domain
-	WizardStepCloudflare  // API Token + Zone ID
-	WizardStepDockerConfig // Docker method, compose path, container, caddyfile paths
+	WizardStepWelcome      WizardStep = iota
+	WizardStepBasicInfo               // Profile name + Domain
+	WizardStepCloudflare              // API Token + Zone ID
+	WizardStepDockerConfig            // Docker method, compose path, container, caddyfile paths
 	WizardStepSummary
 )
 
@@ -36,12 +36,12 @@ const (
 
 // Fields for WizardStepCaddyConfig (Step 3: Caddy Configuration)
 const (
-	FieldDeploymentMethod WizardField = iota // Docker Compose, Plain Docker, or System
-	FieldComposeFilePath                     // Only for Docker Compose
-	FieldContainerName                       // Only for Docker
-	FieldCaddyfilePath                       // Always required
-	FieldCaddyfileContainerPath              // Only for Docker
-	FieldCaddyBinaryPath                     // Only for System (auto-detected)
+	FieldDeploymentMethod       WizardField = iota // Docker Compose, Plain Docker, or System
+	FieldComposeFilePath                           // Only for Docker Compose
+	FieldContainerName                             // Only for Docker
+	FieldCaddyfilePath                             // Always required
+	FieldCaddyfileContainerPath                    // Only for Docker
+	FieldCaddyBinaryPath                           // Only for System (auto-detected)
 )
 
 // WizardData holds all data collected during wizard

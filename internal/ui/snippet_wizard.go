@@ -14,12 +14,12 @@ type GeneratedSnippet = snippet_wizard.GeneratedSnippet
 
 // Constants for backward compatibility
 const (
-	SnippetWizardWelcome           = snippet_wizard.StepWelcome
-	SnippetWizardAutoDetect        = snippet_wizard.StepAutoDetect
-	SnippetWizardIPRestriction     = snippet_wizard.StepIPRestriction
-	SnippetWizardSecurityHeaders   = snippet_wizard.StepSecurityHeaders
-	SnippetWizardPerformance       = snippet_wizard.StepPerformance
-	SnippetWizardSummary           = snippet_wizard.StepSummary
+	SnippetWizardWelcome         = snippet_wizard.StepWelcome
+	SnippetWizardAutoDetect      = snippet_wizard.StepAutoDetect
+	SnippetWizardIPRestriction   = snippet_wizard.StepIPRestriction
+	SnippetWizardSecurityHeaders = snippet_wizard.StepSecurityHeaders
+	SnippetWizardPerformance     = snippet_wizard.StepPerformance
+	SnippetWizardSummary         = snippet_wizard.StepSummary
 )
 
 // renderSnippetWizardWelcome renders the welcome screen for snippet wizard
@@ -83,7 +83,7 @@ func (m Model) renderSnippetWizardTemplateSelection() string {
 	for key, tmpl := range availableTemplates {
 		templateInfoMap[key] = snippet_wizard_views.TemplateInfo{
 			Name:        tmpl.Name,
-			Description:tmpl.Description,
+			Description: tmpl.Description,
 			Category:    tmpl.Category,
 			Selected:    m.snippetWizardData.SelectedTemplates[key],
 			InUse:       existingSnippets[key],

@@ -95,9 +95,9 @@ func TestValidateCIDR(t *testing.T) {
 		{"172.16.0.0/12", true},
 		{"", true}, // Empty is valid (optional field)
 		{"not-a-cidr", false},
-		{"10.0.0.0", false}, // Missing /prefix
+		{"10.0.0.0", false},    // Missing /prefix
 		{"10.0.0.0/33", false}, // Invalid prefix (>32)
-		{"10.0.0/24", false}, // Incomplete IP
+		{"10.0.0/24", false},   // Incomplete IP
 		{"256.0.0.0/8", false}, // Invalid IP octet
 	}
 

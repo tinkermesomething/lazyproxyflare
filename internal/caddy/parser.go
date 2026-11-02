@@ -387,4 +387,3 @@ func parseReverseProxy(entry *CaddyEntry, line string) {
 		}
 	}
 }
-

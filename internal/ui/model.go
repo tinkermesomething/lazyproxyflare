@@ -51,9 +51,9 @@ const (
 type RestoreScope int
 
 const (
-	RestoreAll RestoreScope = iota // Restore both Caddyfile and DNS
-	RestoreDNSOnly                  // Restore DNS records only
-	RestoreCaddyOnly                // Restore Caddyfile only
+	RestoreAll       RestoreScope = iota // Restore both Caddyfile and DNS
+	RestoreDNSOnly                       // Restore DNS records only
+	RestoreCaddyOnly                     // Restore Caddyfile only
 )
 
 // String returns human-readable restore scope name
@@ -88,9 +88,9 @@ func (r RestoreScope) Description() string {
 type DeleteScope int
 
 const (
-	DeleteAll DeleteScope = iota // Delete both DNS and Caddy
-	DeleteDNSOnly                 // Delete DNS record only
-	DeleteCaddyOnly               // Delete Caddyfile entry only
+	DeleteAll       DeleteScope = iota // Delete both DNS and Caddy
+	DeleteDNSOnly                      // Delete DNS record only
+	DeleteCaddyOnly                    // Delete Caddyfile entry only
 )
 
 // String returns human-readable delete scope name
@@ -183,7 +183,7 @@ type ActiveTab int
 
 const (
 	TabCloudflare ActiveTab = iota // DNS/Cloudflare information
-	TabCaddy                        // Caddy/reverse proxy configuration
+	TabCaddy                       // Caddy/reverse proxy configuration
 )
 
 // String returns human-readable tab name
@@ -264,12 +264,12 @@ type AuditState struct {
 
 // BackupState holds state for the backup manager
 type BackupState struct {
-	Cursor        int          // Currently selected backup
-	ScrollOffset  int          // For scrolling backup list
-	PreviewPath   string       // Path of backup being previewed/restored
-	PreviewScroll int          // Scroll offset for backup preview content
-	RetentionDays int          // Days to keep backups (for cleanup)
-	RestoreScope      RestoreScope // What to restore (All/DNS/Caddy)
+	Cursor             int          // Currently selected backup
+	ScrollOffset       int          // For scrolling backup list
+	PreviewPath        string       // Path of backup being previewed/restored
+	PreviewScroll      int          // Scroll offset for backup preview content
+	RetentionDays      int          // Days to keep backups (for cleanup)
+	RestoreScope       RestoreScope // What to restore (All/DNS/Caddy)
 	RestoreScopeCursor int          // Cursor for restore scope selection (0-2)
 }
 
@@ -353,10 +353,10 @@ type Model struct {
 	selectedEntries map[string]bool // Track selected entries by domain name
 
 	// Form data
-	addForm          AddFormData       // Add/Edit entry form state
-	editingEntry     *diff.SyncedEntry // Entry being edited (nil if adding new)
-	delete DeleteState // Single-entry deletion state
-	sync   SyncState   // Single-entry sync state
+	addForm      AddFormData       // Add/Edit entry form state
+	editingEntry *diff.SyncedEntry // Entry being edited (nil if adding new)
+	delete       DeleteState       // Single-entry deletion state
+	sync         SyncState         // Single-entry sync state
 
 	// Bulk delete state
 	bulkDelete BulkDeleteState
@@ -365,7 +365,7 @@ type Model struct {
 	backup BackupState
 
 	// Audit log state
-	audit AuditState
+	audit        AuditState
 	cmdLogScroll int // Scroll offset for the command log view
 
 	// Panel state
@@ -375,10 +375,10 @@ type Model struct {
 	profile ProfileState
 
 	// Wizard state
-	wizardStep            WizardStep             // Current wizard step
-	wizardData            WizardData             // Data collected during wizard
-	wizardCursor          int                    // Cursor for selections in wizard
-	wizardTextInput       textinput.Model        // Text input component for wizard (supports paste)
+	wizardStep             WizardStep              // Current wizard step
+	wizardData             WizardData              // Data collected during wizard
+	wizardCursor           int                     // Cursor for selections in wizard
+	wizardTextInput        textinput.Model         // Text input component for wizard (supports paste)
 	wizardDockerContainers []caddy.DockerContainer // Detected Docker containers for wizard
 
 	// Snippet panel state

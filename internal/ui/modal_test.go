@@ -71,7 +71,7 @@ func TestRenderModalWithTitleLongTitleTruncation(t *testing.T) {
 	// So we need an even longer title or smaller width
 	longTitle := strings.Repeat("A", 100)
 	content := "Content"
-	width := 160  // Large enough to render without panic, but title still long
+	width := 160 // Large enough to render without panic, but title still long
 	height := 10
 
 	result := renderModalWithTitle(longTitle, content, width, height)

@@ -22,8 +22,8 @@ type WizardMode int
 
 const (
 	ModeTemplated WizardMode = iota // Templated - Advanced
-	ModeCustom                       // Custom - Paste Your Own
-	ModeGuided                       // Guided - Step by Step
+	ModeCustom                      // Custom - Paste Your Own
+	ModeGuided                      // Guided - Step by Step
 )
 
 // String returns human-readable mode name
@@ -185,8 +185,8 @@ type SnippetWizardData struct {
 	EnabledCategories map[string]bool // Which categories to configure
 
 	// Auto-detection
-	DetectedPatterns []DetectedPattern   // Patterns found in Caddyfile
-	SelectedPatterns map[string]bool     // Which patterns user selected to extract
+	DetectedPatterns []DetectedPattern // Patterns found in Caddyfile
+	SelectedPatterns map[string]bool   // Which patterns user selected to extract
 
 	// Dynamic snippet configurations
 	SnippetConfigs map[string]SnippetConfig // Key: snippet name
@@ -195,10 +195,10 @@ type SnippetWizardData struct {
 	SelectedTemplates map[string]bool // Which templates user selected (key: template name)
 
 	// Custom mode fields
-	CustomSnippetName      string             // User-provided snippet name
-	CustomSnippetContent   string             // User-pasted snippet content
-	CustomNameInput        textinput.Model    // Text input for snippet name (supports paste)
-	CustomContentInput     textarea.Model     // Textarea for snippet content (multi-line, supports paste)
+	CustomSnippetName    string          // User-provided snippet name
+	CustomSnippetContent string          // User-pasted snippet content
+	CustomNameInput      textinput.Model // Text input for snippet name (supports paste)
+	CustomContentInput   textarea.Model  // Textarea for snippet content (multi-line, supports paste)
 
 	// Legacy fields (backward compatibility for existing 3 snippets)
 	CreateIPRestriction   bool

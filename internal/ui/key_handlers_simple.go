@@ -488,8 +488,8 @@ func (m Model) handleDeleteAction() (Model, tea.Cmd) {
 	// Delete selected entry (from list view)
 	if m.currentView == ViewList && !m.searching && !m.loading && len(m.getFilteredEntries()) > 0 {
 		m.delete.EntryIndex = m.cursor
-		m.delete.ScopeCursor = 0         // Reset cursor
-		m.delete.Scope = DeleteAll       // Default to delete all
+		m.delete.ScopeCursor = 0        // Reset cursor
+		m.delete.Scope = DeleteAll      // Default to delete all
 		m.currentView = ViewDeleteScope // Go to scope selection first
 		return m, nil
 	}
@@ -699,4 +699,3 @@ func (m Model) handleAddProfile() (Model, tea.Cmd) {
 	}
 	return m, nil
 }
-

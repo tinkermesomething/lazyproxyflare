@@ -36,15 +36,15 @@ func NewModel(entries []diff.SyncedEntry, snippets []caddy.Snippet, cfg *config.
 	}
 
 	return Model{
-		entries:             entries,
-		snippets:            snippets,
-		config:              cfg,
-		cursor:              0,
-		currentView:         ViewList,
-		selectedEntries:     make(map[string]bool),
-		backup:              BackupState{RetentionDays: 30}, // Default: keep backups for 30 days
-		panelFocus:          PanelFocusLeft,
-		audit:               AuditState{Logger: auditLogger},
+		entries:         entries,
+		snippets:        snippets,
+		config:          cfg,
+		cursor:          0,
+		currentView:     ViewList,
+		selectedEntries: make(map[string]bool),
+		backup:          BackupState{RetentionDays: 30}, // Default: keep backups for 30 days
+		panelFocus:      PanelFocusLeft,
+		audit:           AuditState{Logger: auditLogger},
 	}
 }
 
@@ -70,20 +70,20 @@ func NewModelWithWizard() Model {
 	ti.SetWidth(60)
 
 	return Model{
-		entries:             []diff.SyncedEntry{},
-		snippets:            []caddy.Snippet{},
-		config:              nil,
-		cursor:              0,
-		currentView:         ViewWizard,
-		wizardStep:          WizardStepWelcome,
-		wizardData:          WizardData{},
-		wizardCursor:        0,
-		wizardTextInput:     ti,
-		profile:             ProfileState{Available: []string{}},
-		selectedEntries:     make(map[string]bool),
-		backup:              BackupState{RetentionDays: 30},
-		panelFocus:          PanelFocusLeft,
-		audit:               AuditState{Logger: auditLogger},
+		entries:         []diff.SyncedEntry{},
+		snippets:        []caddy.Snippet{},
+		config:          nil,
+		cursor:          0,
+		currentView:     ViewWizard,
+		wizardStep:      WizardStepWelcome,
+		wizardData:      WizardData{},
+		wizardCursor:    0,
+		wizardTextInput: ti,
+		profile:         ProfileState{Available: []string{}},
+		selectedEntries: make(map[string]bool),
+		backup:          BackupState{RetentionDays: 30},
+		panelFocus:      PanelFocusLeft,
+		audit:           AuditState{Logger: auditLogger},
 	}
 }
 
@@ -114,17 +114,17 @@ func NewModelWithProfile(entries []diff.SyncedEntry, snippets []caddy.Snippet, c
 	ti.SetWidth(60)
 
 	return Model{
-		entries:             entries,
-		snippets:            snippets,
-		config:              cfg,
-		profile:             ProfileState{CurrentName: profileName},
-		cursor:              0,
-		currentView:         ViewList,
-		selectedEntries:     make(map[string]bool),
-		backup:              BackupState{RetentionDays: 30},
-		panelFocus:          PanelFocusLeft,
-		audit:               AuditState{Logger: auditLogger},
-		wizardTextInput:     ti,
+		entries:         entries,
+		snippets:        snippets,
+		config:          cfg,
+		profile:         ProfileState{CurrentName: profileName},
+		cursor:          0,
+		currentView:     ViewList,
+		selectedEntries: make(map[string]bool),
+		backup:          BackupState{RetentionDays: 30},
+		panelFocus:      PanelFocusLeft,
+		audit:           AuditState{Logger: auditLogger},
+		wizardTextInput: ti,
 	}
 }
 
@@ -159,16 +159,16 @@ func NewModelWithProfileSelector(profiles []string, lastUsedProfile string) Mode
 	ti.SetWidth(60)
 
 	return Model{
-		entries:             []diff.SyncedEntry{},
-		snippets:            []caddy.Snippet{},
-		config:              nil,
-		profile:             ProfileState{CurrentName: lastUsedProfile, Available: profiles},
-		cursor:              cursor,
-		currentView:         ViewProfileSelector,
-		selectedEntries:     make(map[string]bool),
-		backup:              BackupState{RetentionDays: 30},
-		panelFocus:          PanelFocusLeft,
-		audit:               AuditState{Logger: auditLogger},
-		wizardTextInput:     ti,
+		entries:         []diff.SyncedEntry{},
+		snippets:        []caddy.Snippet{},
+		config:          nil,
+		profile:         ProfileState{CurrentName: lastUsedProfile, Available: profiles},
+		cursor:          cursor,
+		currentView:     ViewProfileSelector,
+		selectedEntries: make(map[string]bool),
+		backup:          BackupState{RetentionDays: 30},
+		panelFocus:      PanelFocusLeft,
+		audit:           AuditState{Logger: auditLogger},
+		wizardTextInput: ti,
 	}
 }

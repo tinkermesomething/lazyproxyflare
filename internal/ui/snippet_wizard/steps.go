@@ -5,14 +5,14 @@ type WizardStep int
 
 const (
 	// Phase 1: Existing steps (backward compatibility)
-	StepWelcome WizardStep = iota
-	StepAutoDetect          // Phase 2: Show detected patterns from Caddyfile
-	StepTemplateSelection   // Phase 5: Select which templates to configure
-	StepTemplateParams      // Phase 5: Configure parameters for selected templates
+	StepWelcome           WizardStep = iota
+	StepAutoDetect                   // Phase 2: Show detected patterns from Caddyfile
+	StepTemplateSelection            // Phase 5: Select which templates to configure
+	StepTemplateParams               // Phase 5: Configure parameters for selected templates
 	StepIPRestriction
 	StepSecurityHeaders
 	StepPerformance
-	StepCustomSnippet       // Phase 5: Free-form paste or templated creation
+	StepCustomSnippet // Phase 5: Free-form paste or templated creation
 	StepSummary
 
 	// Phase 2+: New steps for expanded wizard (future)

@@ -194,25 +194,25 @@ func TestRenderSnippetsPanelTitle_TabCloudflareWithSnippets(t *testing.T) {
 	m.activeTab = TabCloudflare
 	m.snippets = []caddy.Snippet{
 		{
-			Name:       "oauth",
-			Category:   caddy.SnippetOAuthHeaders,
-			Content:    "# OAuth config",
-			LineStart:  10,
-			LineEnd:    15,
+			Name:      "oauth",
+			Category:  caddy.SnippetOAuthHeaders,
+			Content:   "# OAuth config",
+			LineStart: 10,
+			LineEnd:   15,
 		},
 		{
-			Name:       "rate-limit",
-			Category:   caddy.SnippetPerformance,
-			Content:    "# Rate limit",
-			LineStart:  20,
-			LineEnd:    25,
+			Name:      "rate-limit",
+			Category:  caddy.SnippetPerformance,
+			Content:   "# Rate limit",
+			LineStart: 20,
+			LineEnd:   25,
 		},
 		{
-			Name:       "headers",
-			Category:   caddy.SnippetSecurityHeaders,
-			Content:    "# Security headers",
-			LineStart:  30,
-			LineEnd:    35,
+			Name:      "headers",
+			Category:  caddy.SnippetSecurityHeaders,
+			Content:   "# Security headers",
+			LineStart: 30,
+			LineEnd:   35,
 		},
 	}
 	m.entries = []diff.SyncedEntry{
@@ -236,18 +236,18 @@ func TestRenderSnippetsPanelTitle_SingleCategorySnippets(t *testing.T) {
 	m.activeTab = TabCloudflare
 	m.snippets = []caddy.Snippet{
 		{
-			Name:       "oauth",
-			Category:   caddy.SnippetOAuthHeaders,
-			Content:    "# OAuth",
-			LineStart:  1,
-			LineEnd:    5,
+			Name:      "oauth",
+			Category:  caddy.SnippetOAuthHeaders,
+			Content:   "# OAuth",
+			LineStart: 1,
+			LineEnd:   5,
 		},
 		{
-			Name:       "jwt",
-			Category:   caddy.SnippetOAuthHeaders,
-			Content:    "# JWT",
-			LineStart:  10,
-			LineEnd:    15,
+			Name:      "jwt",
+			Category:  caddy.SnippetOAuthHeaders,
+			Content:   "# JWT",
+			LineStart: 10,
+			LineEnd:   15,
 		},
 	}
 	m.entries = []diff.SyncedEntry{
@@ -290,11 +290,11 @@ func TestRenderSnippetsPanelTitle_TabSwitchAwareness(t *testing.T) {
 	m := createTestModel()
 	m.snippets = []caddy.Snippet{
 		{
-			Name:       "oauth",
-			Category:   caddy.SnippetOAuthHeaders,
-			Content:    "# OAuth",
-			LineStart:  1,
-			LineEnd:    5,
+			Name:      "oauth",
+			Category:  caddy.SnippetOAuthHeaders,
+			Content:   "# OAuth",
+			LineStart: 1,
+			LineEnd:   5,
 		},
 	}
 	m.entries = []diff.SyncedEntry{
@@ -356,18 +356,18 @@ func TestRenderSnippetsPanelTitle_MultiCategorySnippets(t *testing.T) {
 	m.activeTab = TabCloudflare
 	m.snippets = []caddy.Snippet{
 		{
-			Name:       "oauth",
-			Category:   caddy.SnippetOAuthHeaders,
-			Content:    "# OAuth",
-			LineStart:  1,
-			LineEnd:    5,
+			Name:      "oauth",
+			Category:  caddy.SnippetOAuthHeaders,
+			Content:   "# OAuth",
+			LineStart: 1,
+			LineEnd:   5,
 		},
 		{
-			Name:       "rate-limit",
-			Category:   caddy.SnippetPerformance,
-			Content:    "# Rate limit",
-			LineStart:  10,
-			LineEnd:    15,
+			Name:      "rate-limit",
+			Category:  caddy.SnippetPerformance,
+			Content:   "# Rate limit",
+			LineStart: 10,
+			LineEnd:   15,
 		},
 	}
 	m.entries = []diff.SyncedEntry{

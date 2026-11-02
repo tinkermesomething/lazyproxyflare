@@ -88,7 +88,7 @@ func TestCompare(t *testing.T) {
 			},
 			expected: map[string]SyncStatus{
 				"primary.example.com": StatusSynced,
-				"alias.example.com":  StatusSynced,
+				"alias.example.com":   StatusSynced,
 			},
 		},
 		{
@@ -101,7 +101,7 @@ func TestCompare(t *testing.T) {
 			},
 			expected: map[string]SyncStatus{
 				"primary.example.com": StatusSynced,
-				"alias.example.com":  StatusOrphanedCaddy,
+				"alias.example.com":   StatusOrphanedCaddy,
 			},
 		},
 	}

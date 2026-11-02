@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"fmt"
 	tea "charm.land/bubbletea/v2"
+	"fmt"
 	"lazyproxyflare/internal/caddy"
 )
 
