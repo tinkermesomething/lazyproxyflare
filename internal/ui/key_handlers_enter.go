@@ -16,11 +16,6 @@ import (
 func (m Model) handleEnterKey() (Model, tea.Cmd) {
 	// Edit selected entry (from list view)
 	if m.currentView == ViewList && !m.searching && !m.loading {
-		// Skip if snippets panel is focused (no action needed)
-		if m.panelFocus == PanelFocusSnippets {
-			return m, nil
-		}
-
 		// Edit DNS entry
 		filteredEntries := m.getFilteredEntries()
 		if m.cursor < len(filteredEntries) {
@@ -88,22 +83,6 @@ func (m Model) handleEnterKey() (Model, tea.Cmd) {
 			}
 			m.editingEntry = &entry
 			m.currentView = ViewEdit
-			return m, nil
-		}
-	}
-
-	// If in snippet detail view mode, enter edit mode
-	if m.currentView == ViewSnippetDetail && !m.snippetPanel.Editing {
-		if m.snippetPanel.Cursor < len(m.snippets) {
-			// Initialize textarea with snippet content
-			ta := textarea.New()
-			ta.SetWidth(70)
-			ta.SetHeight(15)
-			ta.SetValue(m.snippets[m.snippetPanel.Cursor].Content)
-			ta.Focus()
-			m.snippetPanel.EditTextarea = ta
-			m.snippetPanel.Editing = true
-			m.snippetPanel.EditingIndex = m.snippetPanel.Cursor
 			return m, nil
 		}
 	}

@@ -87,6 +87,7 @@ func ParseCaddyfileWithSnippets(content string) ParsedCaddyfile {
 		if strings.HasPrefix(line, "(") && strings.Contains(line, ")") {
 			snippet, endLine := parseSnippetBlock(lines, i)
 			if snippet != nil {
+				snippet.Comment = leadingComment(lines, i)
 				snippets = append(snippets, *snippet)
 				if ParserLogger != nil {
 					ParserLogger.Printf("✓ Parsed snippet: %s (category: %s, confidence: %.2f) at lines %d-%d",

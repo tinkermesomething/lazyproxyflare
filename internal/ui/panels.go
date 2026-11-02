@@ -22,7 +22,6 @@ type PanelFocus int
 const (
 	PanelFocusLeft PanelFocus = iota
 	PanelFocusDetails
-	PanelFocusSnippets
 )
 
 // PanelLayout calculates panel dimensions based on terminal size

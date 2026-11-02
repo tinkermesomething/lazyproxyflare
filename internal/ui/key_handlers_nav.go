@@ -190,25 +190,7 @@ func (m Model) handleNavigateDown() (Model, tea.Cmd) {
 	}
 	// In list view: navigate down (entries or snippets depending on focus)
 	if m.currentView == ViewList && !m.searching {
-		if m.panelFocus == PanelFocusSnippets {
-			// Navigate snippets
-			if m.snippetPanel.Cursor < len(m.snippets)-1 {
-				m.snippetPanel.Cursor++
-				// Auto-scroll snippet panel
-				layout := NewPanelLayout(m.width, m.height)
-				availableHeight := layout.SnippetsHeight - 5
-				if availableHeight < 4 {
-					availableHeight = 4
-				}
-				visibleSnippets := availableHeight / 4 // 4 lines per snippet
-				if visibleSnippets < 1 {
-					visibleSnippets = 1
-				}
-				if m.snippetPanel.Cursor >= m.snippetPanel.ScrollOffset+visibleSnippets {
-					m.snippetPanel.ScrollOffset++
-				}
-			}
-		} else if m.cursor < len(m.getFilteredEntries())-1 {
+		if m.cursor < len(m.getFilteredEntries())-1 {
 			// Navigate entries
 			m.cursor++
 			// Auto-scroll
@@ -387,16 +369,7 @@ func (m Model) handleNavigateUp() (Model, tea.Cmd) {
 	}
 	// In list view: navigate up (entries or snippets depending on focus)
 	if m.currentView == ViewList && !m.searching {
-		if m.panelFocus == PanelFocusSnippets {
-			// Navigate snippets
-			if m.snippetPanel.Cursor > 0 {
-				m.snippetPanel.Cursor--
-				// Auto-scroll snippet panel
-				if m.snippetPanel.Cursor < m.snippetPanel.ScrollOffset {
-					m.snippetPanel.ScrollOffset--
-				}
-			}
-		} else if m.cursor > 0 {
+		if m.cursor > 0 {
 			// Navigate entries
 			m.cursor--
 			// Auto-scroll

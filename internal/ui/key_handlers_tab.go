@@ -146,8 +146,6 @@ func (m Model) handleShiftTabKey() (Model, tea.Cmd) {
 	if m.currentView == ViewList {
 		switch m.panelFocus {
 		case PanelFocusLeft:
-			m.panelFocus = PanelFocusSnippets
-		case PanelFocusSnippets:
 			m.panelFocus = PanelFocusDetails
 		case PanelFocusDetails:
 			m.panelFocus = PanelFocusLeft

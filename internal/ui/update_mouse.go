@@ -26,6 +26,9 @@ type mouseEvent struct {
 // handleMouse handles all mouse input events
 func (m Model) handleMouse(msg mouseEvent) (Model, tea.Cmd) {
 	switch m.currentView {
+	case ViewSnippetManager, ViewSnippetDetail:
+		return m.handleSnippetMouse(msg)
+
 	case ViewList:
 		layout := NewPanelLayout(m.width, m.height)
 
@@ -93,13 +96,11 @@ func (m Model) handleMouse(msg mouseEvent) (Model, tea.Cmd) {
 					}
 				}
 			} else {
-				// Right panels clicked - determine if details or snippets based on Y position
-				// Title bar (1) + Details panel height + border (2) = threshold for snippets panel
+				// Right panels clicked: only the top one takes focus. The bottom one
+				// shows the other tab's info and is never focused.
 				detailsThresholdY := 1 + layout.DetailsHeight + 2
 				if msg.Y < detailsThresholdY {
 					m.panelFocus = PanelFocusDetails
-				} else {
-					m.panelFocus = PanelFocusSnippets
 				}
 			}
 		}

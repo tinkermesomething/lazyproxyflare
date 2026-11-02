@@ -84,8 +84,6 @@ func (m Model) footerHints() []footerHint {
 // footerTag names where the hints apply.
 func (m Model) footerTag() string {
 	switch {
-	case m.panelFocus == PanelFocusSnippets:
-		return "[Snippets]"
 	case m.panelFocus == PanelFocusDetails:
 		return "[Details]"
 	case m.activeTab == TabCaddy:

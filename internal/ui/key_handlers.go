@@ -7,6 +7,23 @@ import (
 // handleKeyMsg handles all keyboard input for the application.
 // This method was extracted from Update() to improve maintainability.
 func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
+	// The snippet manager owns every key in its views.
+	if m.currentView == ViewSnippetManager || m.currentView == ViewSnippetDetail {
+		return m.handleSnippetKey(msg)
+	}
+
+	// The wizard may have been started from the snippet manager: when it
+	// closes, go back there instead of to the list.
+	inWizard := m.currentView == ViewSnippetWizard
+	m, cmd := m.dispatchKey(msg)
+	if inWizard && m.currentView == ViewList {
+		m = m.returnFromSnippetWizard()
+	}
+	return m, cmd
+}
+
+// dispatchKey handles a key press for every view except the snippet manager.
+func (m Model) dispatchKey(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 	// Handle text input first — if consumed, skip the switch
 	if m, cmd, handled := m.handleTextInput(msg); handled {
 		return m, cmd
@@ -57,14 +74,14 @@ func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 		return m.handleEditProfile()
 
 	case "w":
-		return m.handleOpenSnippetWizard()
+		return m.handleOpenSnippetManager()
 
 	case "ctrl+s":
 		// Save profile edit if in that view
 		if m.currentView == ViewProfileEdit {
 			return m.handleProfileEditKeyPress("ctrl+s")
 		}
-		return m.handleOpenSnippetWizard()
+		return m.handleOpenSnippetManager()
 
 	case "d":
 		return m.handleDeleteAction()

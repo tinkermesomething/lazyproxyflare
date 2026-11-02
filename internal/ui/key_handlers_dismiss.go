@@ -120,19 +120,6 @@ func (m Model) handleDismiss() (Model, tea.Cmd) {
 		m.err = nil
 		return m, nil
 	}
-	// If in snippet detail view, handle edit mode or return to list
-	if m.currentView == ViewSnippetDetail {
-		if m.snippetPanel.Editing {
-			// Cancel edit mode, return to view mode
-			m.snippetPanel.Editing = false
-			m.err = nil
-			return m, nil
-		}
-		// Return to list from view mode
-		m.currentView = ViewList
-		m.err = nil
-		return m, nil
-	}
 	if m.currentView == ViewCommandLog {
 		m.currentView = ViewList
 		return m, nil

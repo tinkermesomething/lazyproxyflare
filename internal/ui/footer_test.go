@@ -18,7 +18,6 @@ func TestFooterFitsOneLineAtEveryWidth(t *testing.T) {
 		"list dns":       func(m Model) Model { return m },
 		"list caddy":     func(m Model) Model { m.activeTab = TabCaddy; return m },
 		"details panel":  func(m Model) Model { m.panelFocus = PanelFocusDetails; return m },
-		"snippets panel": func(m Model) Model { m.panelFocus = PanelFocusSnippets; return m },
 		"with filter":    func(m Model) Model { m.searchQuery = "plex"; return m },
 		"with selection": func(m Model) Model { m.selectedEntries = map[string]bool{"a": true}; return m },
 	}
@@ -66,12 +65,12 @@ func TestFooterDropsLowPriorityFirst(t *testing.T) {
 func TestFooterReflectsContext(t *testing.T) {
 	m := createTestModel()
 
-	m.panelFocus = PanelFocusSnippets
-	if got := footerText(m, 200); !strings.Contains(got, "Snippets") {
-		t.Errorf("snippets focus not shown: %q", got)
+	m.panelFocus = PanelFocusDetails
+	if got := footerText(m, 200); !strings.Contains(got, "Details") {
+		t.Errorf("details focus not shown: %q", got)
 	}
 	if got := footerText(m, 200); strings.Contains(got, "add") {
-		t.Errorf("snippets panel must not advertise entry add: %q", got)
+		t.Errorf("details panel must not advertise entry add: %q", got)
 	}
 
 	m = createTestModel()

@@ -89,6 +89,7 @@ type Snippet struct {
 	Category     SnippetCategory // Auto-detected or manually set category
 	Content      string          // Raw Caddy config block (without the (name) { } wrapper)
 	Description  string          // User-friendly description
+	Comment      string          // The comment lines directly above the snippet, if any
 	LineStart    int             // Location in Caddyfile (1-indexed)
 	LineEnd      int             // End location in Caddyfile (1-indexed)
 	AutoDetected bool            // Was category auto-detected?

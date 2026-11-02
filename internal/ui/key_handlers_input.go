@@ -211,18 +211,6 @@ func (m Model) handleTextInput(msg tea.KeyPressMsg) (Model, tea.Cmd, bool) {
 		}
 	}
 
-	// Handle text input in snippet edit mode using textarea component
-	if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
-		key := msg.String()
-		if key == "y" || key == "enter" || key == "d" || key == "esc" {
-			// Let these fall through to save/delete/cancel handlers
-		} else {
-			var cmd tea.Cmd
-			m.snippetPanel.EditTextarea, cmd = m.snippetPanel.EditTextarea.Update(msg)
-			return m, cmd, true
-		}
-	}
-
 	return m, nil, false
 }
 
@@ -244,9 +232,6 @@ func (m Model) handlePaste(msg tea.PasteMsg) (Model, tea.Cmd) {
 			m.snippetWizardData.CustomContentInput, cmd = m.snippetWizardData.CustomContentInput.Update(msg)
 			m.snippetWizardData.CustomSnippetContent = m.snippetWizardData.CustomContentInput.Value()
 		}
-
-	case m.currentView == ViewSnippetDetail && m.snippetPanel.Editing:
-		m.snippetPanel.EditTextarea, cmd = m.snippetPanel.EditTextarea.Update(msg)
 	}
 	return m, cmd
 }

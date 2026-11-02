@@ -479,10 +479,6 @@ func (m Model) handleDeleteAction() (Model, tea.Cmd) {
 	if m.currentView == ViewProfileSelector {
 		return m.handleProfileSelectorKeyPress("d")
 	}
-	// Delete snippet when in edit mode
-	if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
-		return m.deleteSnippet()
-	}
 	// Delete backup from preview mode
 	if m.currentView == ViewBackupPreview && !m.loading {
 		backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
@@ -648,13 +644,8 @@ func (m Model) handleRefreshData() (Model, tea.Cmd) {
 // handleGoToTop handles 'g' for going to top of list or backup preview.
 func (m Model) handleGoToTop() (Model, tea.Cmd) {
 	if m.currentView == ViewList && !m.searching {
-		if m.panelFocus == PanelFocusSnippets {
-			m.snippetPanel.Cursor = 0
-			m.snippetPanel.ScrollOffset = 0
-		} else {
-			m.cursor = 0
-			m.scrollOffset = 0
-		}
+		m.cursor = 0
+		m.scrollOffset = 0
 	}
 	// In backup preview: scroll to top
 	if m.currentView == ViewBackupPreview && !m.loading {
@@ -669,17 +660,10 @@ func (m Model) handleGoToTop() (Model, tea.Cmd) {
 // handleGoToBottom handles 'G' for going to bottom of list or backup preview.
 func (m Model) handleGoToBottom() (Model, tea.Cmd) {
 	if m.currentView == ViewList && !m.searching {
-		if m.panelFocus == PanelFocusSnippets {
-			if len(m.snippets) > 0 {
-				m.snippetPanel.Cursor = len(m.snippets) - 1
-				// Calculate scroll offset (if needed in future)
-			}
-		} else {
-			filtered := m.getFilteredEntries()
-			m.cursor = len(filtered) - 1
-			if len(filtered) > m.height-5 {
-				m.scrollOffset = len(filtered) - (m.height - 5)
-			}
+		filtered := m.getFilteredEntries()
+		m.cursor = len(filtered) - 1
+		if len(filtered) > m.height-5 {
+			m.scrollOffset = len(filtered) - (m.height - 5)
 		}
 	}
 	// In backup preview: scroll to bottom

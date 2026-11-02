@@ -34,7 +34,8 @@ const (
 	ViewConfirmCleanup
 	ViewAuditLog
 	ViewCommandLog
-	ViewSnippetDetail
+	ViewSnippetManager // list of snippets in the Caddyfile (key: w)
+	ViewSnippetDetail  // one snippet: view, edit, delete
 	ViewProfileSelector
 	ViewProfileEdit
 	ViewWizard
@@ -224,11 +225,18 @@ type SyncState struct {
 
 // SnippetPanelState holds state for the snippet panel and editing
 type SnippetPanelState struct {
-	Cursor       int            // Currently selected snippet
-	ScrollOffset int            // For scrolling snippet list
-	Editing      bool           // Whether we're in snippet edit mode
-	EditTextarea textarea.Model // Textarea for editing snippet content
-	EditingIndex int            // Index of snippet being edited
+	Cursor        int            // Selected row in the manager; len(snippets) is "+ New snippet"
+	ScrollOffset  int            // First visible row of the list
+	DetailName    string         // Snippet shown in the detail view
+	DetailScroll  int            // First visible body line in the detail view
+	Editing       bool           // Whether we're in snippet edit mode
+	EditTextarea  textarea.Model // Textarea for editing snippet content
+	EditInitial   string         // Textarea text right after load (tabs expanded); detects "no change"
+	EditBase      string         // Body when editing started; a save fails if the file changed since
+	ConfirmDelete bool           // Waiting for y/n on delete
+	Busy          bool           // A change is being applied (backup, validate, restart)
+	FromManager   bool           // The wizard was started from the manager
+	Notice        string         // Result or error shown at the bottom of the manager
 }
 
 // ProfileState holds state for profile selection and editing

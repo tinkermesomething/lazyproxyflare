@@ -16,6 +16,9 @@ import (
 // Returns (model, cmd, handled) where handled indicates if the message was processed.
 func (m Model) handleAsyncMsg(msg tea.Msg) (Model, tea.Cmd, bool) {
 	switch msg := msg.(type) {
+	case snippetOpMsg:
+		return m.handleSnippetOp(msg), nil, true
+
 	case refreshCompleteMsg:
 		m.loading = false
 		if msg.err != nil {

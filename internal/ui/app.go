@@ -96,6 +96,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 	case tea.PasteMsg:
+		if m.currentView == ViewSnippetDetail {
+			return m.handleSnippetPaste(msg)
+		}
 		return m.handlePaste(msg)
 
 	case tea.MouseClickMsg:
@@ -209,8 +212,11 @@ func (m Model) renderView() string {
 	case ViewConfirmCleanup:
 		return RenderModalOverlay(base, "Confirm Cleanup", m.renderConfirmCleanupContent(), m.width, m.height)
 
+	case ViewSnippetManager:
+		return RenderModalOverlayLarge(base, "Snippets", m.renderSnippetManagerContent(), m.width, m.height)
+
 	case ViewSnippetDetail:
-		return RenderModalOverlay(base, "Snippet Details", m.renderSnippetDetailView(), m.width, m.height)
+		return RenderModalOverlayLarge(base, "Snippet: "+m.snippetPanel.DetailName, m.renderSnippetDetailContent(), m.width, m.height)
 
 	case ViewSnippetWizard:
 		title := "Snippet Creation Wizard"

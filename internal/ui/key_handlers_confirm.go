@@ -75,10 +75,6 @@ func (m Model) handleConfirmAction() (Model, tea.Cmd) {
 		m.currentView = ViewProfileSelector
 		return m, nil
 	}
-	// Save snippet changes when in edit mode
-	if m.currentView == ViewSnippetDetail && m.snippetPanel.Editing {
-		return m.saveSnippetEdit()
-	}
 	// Handle 'y' (confirm) in wizard summary
 	if m.currentView == ViewWizard && m.wizardStep == WizardStepSummary {
 		return m.handleWizardSummaryConfirm()

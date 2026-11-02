@@ -519,7 +519,7 @@ func (m Model) renderHelpPage1() string {
 	var right strings.Builder
 	right.WriteString(StyleInfo.Render("Tools"))
 	right.WriteString("\n")
-	right.WriteString(fmt.Sprintf("  %s  Snippet wizard\n", StyleKeybinding.Render("w")))
+	right.WriteString(fmt.Sprintf("  %s  Snippet manager\n", StyleKeybinding.Render("w")))
 	right.WriteString(fmt.Sprintf("  %s  Backup manager\n", StyleKeybinding.Render("b")))
 	right.WriteString(fmt.Sprintf("  %s  Audit log\n", StyleKeybinding.Render("l")))
 	right.WriteString(fmt.Sprintf("  %s  Command log\n", StyleKeybinding.Render("@")))
@@ -623,7 +623,7 @@ func (m Model) renderHelpPage4() string {
 	var left strings.Builder
 	left.WriteString(StyleInfo.Render("Tools Menu"))
 	left.WriteString("\n")
-	left.WriteString(fmt.Sprintf("  %s  Snippet wizard\n", StyleKeybinding.Render("w")))
+	left.WriteString(fmt.Sprintf("  %s  Snippet manager\n", StyleKeybinding.Render("w")))
 	left.WriteString(fmt.Sprintf("  %s  Backup manager\n", StyleKeybinding.Render("b / Ctrl+B")))
 	left.WriteString(fmt.Sprintf("  %s  Audit log\n", StyleKeybinding.Render("l")))
 	left.WriteString(fmt.Sprintf("  %s  Command log\n", StyleKeybinding.Render("@")))
@@ -666,11 +666,13 @@ func (m Model) renderHelpPage5() string {
 	left.WriteString(fmt.Sprintf("  %s  Next step\n", StyleKeybinding.Render("Enter")))
 	left.WriteString(fmt.Sprintf("  %s  Back / Cancel\n", StyleKeybinding.Render("Esc")))
 	left.WriteString("\n")
-	left.WriteString(StyleInfo.Render("Snippet Editing"))
+	left.WriteString(StyleInfo.Render("Snippet Manager (w)"))
 	left.WriteString("\n")
+	left.WriteString(fmt.Sprintf("  %s  View snippet\n", StyleKeybinding.Render("Enter")))
 	left.WriteString(fmt.Sprintf("  %s  Edit snippet\n", StyleKeybinding.Render("e")))
-	left.WriteString(fmt.Sprintf("  %s  Save changes\n", StyleKeybinding.Render("y")))
-	left.WriteString(fmt.Sprintf("  %s  Delete snippet\n", StyleKeybinding.Render("d")))
+	left.WriteString(fmt.Sprintf("  %s  Save edit\n", StyleKeybinding.Render("Ctrl+S")))
+	left.WriteString(fmt.Sprintf("  %s  Delete (unused only)\n", StyleKeybinding.Render("d")))
+	left.WriteString(fmt.Sprintf("  %s  New snippet (wizard)\n", StyleKeybinding.Render("n")))
 
 	var right strings.Builder
 	right.WriteString(StyleInfo.Render("Profile Edit"))
