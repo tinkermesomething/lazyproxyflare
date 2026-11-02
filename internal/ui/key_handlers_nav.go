@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"os"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -87,14 +85,7 @@ func (m Model) handleNavigateDown() (Model, tea.Cmd) {
 		backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 		if err == nil && m.backup.Cursor < len(backups)-1 {
 			m.backup.Cursor++
-			// Adjust scroll if needed
-			visibleHeight := m.height - 8
-			if visibleHeight < 1 {
-				visibleHeight = 10
-			}
-			if m.backup.Cursor >= m.backup.ScrollOffset+visibleHeight {
-				m.backup.ScrollOffset++
-			}
+			m.backup.ScrollOffset = scrollIntoView(m.backup.Cursor, m.backup.ScrollOffset, m.backupListRows())
 		}
 		return m, nil
 	}
@@ -114,18 +105,9 @@ func (m Model) handleNavigateDown() (Model, tea.Cmd) {
 	}
 	// In backup preview: scroll down
 	if m.currentView == ViewBackupPreview && !m.loading {
-		// Read backup to get line count
-		content, err := os.ReadFile(m.backup.PreviewPath)
-		if err == nil {
-			lines := strings.Split(string(content), "\n")
-			visibleHeight := m.height - 12
-			if visibleHeight < 5 {
-				visibleHeight = 5
-			}
-			// Only scroll if there's more content below
-			if m.backup.PreviewScroll+visibleHeight < len(lines) {
-				m.backup.PreviewScroll++
-			}
+		// Only scroll if there's more diff below
+		if m.backup.PreviewScroll < m.backupMaxPreviewScroll() {
+			m.backup.PreviewScroll++
 		}
 		return m, nil
 	}
@@ -318,10 +300,7 @@ func (m Model) handleNavigateUp() (Model, tea.Cmd) {
 	// In backup manager: navigate up
 	if m.currentView == ViewBackupManager && !m.loading && m.backup.Cursor > 0 {
 		m.backup.Cursor--
-		// Adjust scroll if needed
-		if m.backup.Cursor < m.backup.ScrollOffset {
-			m.backup.ScrollOffset--
-		}
+		m.backup.ScrollOffset = scrollIntoView(m.backup.Cursor, m.backup.ScrollOffset, m.backupListRows())
 		return m, nil
 	}
 	// In delete scope selection: navigate up

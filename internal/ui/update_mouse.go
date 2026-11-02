@@ -94,9 +94,7 @@ func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
 			// Scroll up
 			if m.backup.Cursor > 0 {
 				m.backup.Cursor--
-				if m.backup.Cursor < m.backup.ScrollOffset {
-					m.backup.ScrollOffset = m.backup.Cursor
-				}
+				m.backup.ScrollOffset = scrollIntoView(m.backup.Cursor, m.backup.ScrollOffset, m.backupListRows())
 			}
 
 		case tea.MouseWheelDown:
@@ -104,30 +102,14 @@ func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
 			backups, _ := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 			if m.backup.Cursor < len(backups)-1 {
 				m.backup.Cursor++
-				visibleHeight := m.height - 10
-				if visibleHeight < 1 {
-					visibleHeight = 10
-				}
-				if m.backup.Cursor >= m.backup.ScrollOffset+visibleHeight {
-					m.backup.ScrollOffset++
-				}
+				m.backup.ScrollOffset = scrollIntoView(m.backup.Cursor, m.backup.ScrollOffset, m.backupListRows())
 			}
 
 		case tea.MouseLeft:
-			// Click to select a backup
-			// Calculate exact modal position (same as panels.go)
-			modalHeight := m.height * 2 / 3
-			if modalHeight < 15 {
-				modalHeight = 15
-			}
-			modalStartY := (m.height - modalHeight) / 2
+			// Click to select a backup: map the screen row to a list row
+			relativeY := msg.Y - m.backupListTopY()
 
-			// Calculate relative Y position within modal
-			// Account for: modal border (1), title (1), blank line (1),
-			// "Total backups: N" line (1), blank line (1) = 5 lines total
-			relativeY := msg.Y - modalStartY - 5
-
-			if relativeY >= 0 {
+			if relativeY >= 0 && relativeY < m.backupListRows() {
 				clickedIndex := m.backup.ScrollOffset + relativeY
 				backups, _ := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 				if clickedIndex >= 0 && clickedIndex < len(backups) {

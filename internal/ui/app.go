@@ -160,10 +160,10 @@ func (m Model) View() string {
 		return RenderModalOverlay(base, "Confirm Batch Sync", m.renderConfirmBatchSyncContent(), m.width, m.height)
 
 	case ViewBackupManager:
-		return RenderModalOverlay(base, "Backup Manager", m.renderBackupManagerContent(), m.width, m.height)
+		return RenderModalOverlayLarge(base, "Backup Manager", m.renderBackupManagerContent(), m.width, m.height)
 
 	case ViewBackupPreview:
-		return RenderModalOverlay(base, "Backup Preview", m.renderBackupPreviewContent(), m.width, m.height)
+		return RenderModalOverlayLarge(base, "Backup Preview", m.renderBackupPreviewContent(), m.width, m.height)
 
 	case ViewDeleteScope:
 		return RenderModalOverlay(base, "Delete Scope", m.renderDeleteScopeContent(), m.width, m.height)

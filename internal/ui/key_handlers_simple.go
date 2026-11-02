@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -260,11 +259,7 @@ func (m Model) handleCancelConfirmation() (Model, tea.Cmd) {
 // handleBackupPageUp pages up in backup preview.
 func (m Model) handleBackupPageUp() (Model, tea.Cmd) {
 	if m.currentView == ViewBackupPreview && !m.loading {
-		visibleHeight := m.height - 12
-		if visibleHeight < 5 {
-			visibleHeight = 5
-		}
-		m.backup.PreviewScroll -= visibleHeight
+		m.backup.PreviewScroll -= m.backupPreviewRows()
 		if m.backup.PreviewScroll < 0 {
 			m.backup.PreviewScroll = 0
 		}
@@ -275,22 +270,7 @@ func (m Model) handleBackupPageUp() (Model, tea.Cmd) {
 // handleBackupPageDown pages down in backup preview.
 func (m Model) handleBackupPageDown() (Model, tea.Cmd) {
 	if m.currentView == ViewBackupPreview && !m.loading {
-		content, err := os.ReadFile(m.backup.PreviewPath)
-		if err == nil {
-			lines := strings.Split(string(content), "\n")
-			visibleHeight := m.height - 12
-			if visibleHeight < 5 {
-				visibleHeight = 5
-			}
-			m.backup.PreviewScroll += visibleHeight
-			maxScroll := len(lines) - visibleHeight
-			if maxScroll < 0 {
-				maxScroll = 0
-			}
-			if m.backup.PreviewScroll > maxScroll {
-				m.backup.PreviewScroll = maxScroll
-			}
-		}
+		m.backup.PreviewScroll = min(m.backup.PreviewScroll+m.backupPreviewRows(), m.backupMaxPreviewScroll())
 	}
 	return m, nil
 }
@@ -687,21 +667,7 @@ func (m Model) handleGoToBottom() (Model, tea.Cmd) {
 	}
 	// In backup preview: scroll to bottom
 	if m.currentView == ViewBackupPreview && !m.loading {
-		content, err := os.ReadFile(m.backup.PreviewPath)
-		if err == nil {
-			lines := strings.Split(string(content), "\n")
-			visibleHeight := m.height - 12
-			if visibleHeight < 5 {
-				visibleHeight = 5
-			}
-			// Scroll to show the last page
-			maxScroll := len(lines) - visibleHeight
-			if maxScroll > 0 {
-				m.backup.PreviewScroll = maxScroll
-			} else {
-				m.backup.PreviewScroll = 0
-			}
-		}
+		m.backup.PreviewScroll = m.backupMaxPreviewScroll()
 	}
 	return m, nil
 }

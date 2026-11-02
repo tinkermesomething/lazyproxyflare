@@ -104,10 +104,7 @@ func (m Model) renderBackupManagerView() string {
 	b.WriteString("\n\n")
 
 	// Calculate visible range
-	visibleHeight := m.height - 10
-	if visibleHeight < 1 {
-		visibleHeight = 10
-	}
+	visibleHeight := m.backupListRows()
 
 	start := m.backup.ScrollOffset
 	end := start + visibleHeight
@@ -193,18 +190,7 @@ func (m Model) renderBackupPreviewView() string {
 		return b.String()
 	}
 
-	// Calculate visible area for modal content
-	// Modal is 2/3 of screen height (from RenderModalOverlay)
-	// Account for: header (3 lines), scroll indicator (1 line), instructions (1 line), modal padding/borders (6 lines)
-	modalHeight := m.height * 2 / 3
-	if modalHeight < 15 {
-		modalHeight = 15
-	}
-	reservedLines := 11
-	visibleHeight := modalHeight - reservedLines
-	if visibleHeight < 5 {
-		visibleHeight = 5
-	}
+	visibleHeight := m.backupPreviewRows()
 
 	// Apply scroll offset
 	start := m.backup.PreviewScroll

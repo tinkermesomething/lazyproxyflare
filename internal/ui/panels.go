@@ -292,24 +292,44 @@ func RenderFullLayout(titleBar, panels, statusBar string) string {
 	return lipgloss.JoinVertical(lipgloss.Left, titleBar, panels, statusBar)
 }
 
+// modalDimensions returns the modal size for a screen. Normal modals follow
+// lazygit (4/7 wide capped at 80, 3/4 high). Large modals (diffs, logs) use
+// 9/10 of the screen so long lines are not cut off on wide terminals.
+func modalDimensions(width, height int, large bool) (int, int) {
+	var modalWidth, modalHeight int
+	if large {
+		modalWidth = width * 9 / 10
+		modalHeight = height * 9 / 10
+	} else {
+		modalWidth = width * 4 / 7
+		if modalWidth > 80 {
+			modalWidth = 80
+		}
+		modalHeight = height * 3 / 4
+	}
+	if modalWidth < 40 {
+		modalWidth = min(width-2, 40)
+	}
+	if modalHeight < 15 {
+		modalHeight = min(height-2, 15)
+	}
+	return max(modalWidth, 1), max(modalHeight, 1)
+}
+
 // RenderModalOverlay renders a centered modal/popup window.
 // Following lazygit's pattern: modals render on top without showing background.
 // This avoids ANSI code corruption from string slicing and the "black box" issue.
 func RenderModalOverlay(background, title, modalContent string, width, height int) string {
-	// Modal dimensions - 4/7 width like lazygit, capped at 80
-	modalWidth := width * 4 / 7
-	if modalWidth < 40 {
-		modalWidth = min(width-2, 40)
-	}
-	if modalWidth > 80 {
-		modalWidth = 80
-	}
+	return renderModalOverlay(title, modalContent, width, height, false)
+}
 
-	// Modal height - 3/4 of screen like lazygit
-	modalHeight := height * 3 / 4
-	if modalHeight < 15 {
-		modalHeight = min(height-2, 15)
-	}
+// RenderModalOverlayLarge is RenderModalOverlay for wide content such as diffs and logs.
+func RenderModalOverlayLarge(background, title, modalContent string, width, height int) string {
+	return renderModalOverlay(title, modalContent, width, height, true)
+}
+
+func renderModalOverlay(title, modalContent string, width, height int, large bool) string {
+	modalWidth, modalHeight := modalDimensions(width, height, large)
 
 	// Use lipgloss Border for clean rendering
 	modal := renderModalBox(title, modalContent, modalWidth, modalHeight)
