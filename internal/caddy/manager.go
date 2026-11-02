@@ -148,12 +148,14 @@ func RemoveEntry(caddyfilePath string, domain string) error {
 	skipMarker := false
 	braceCount := 0
 	marker := fmt.Sprintf("# === %s ===", domain)
+	removedAt := []int{} // index in newLines where each removed block began
 
 	for i, line := range lines {
 		// Check for marker comment (skip this line if found)
 		if strings.TrimSpace(line) == marker {
 			skipMarker = true
 			skipBlock = true
+			removedAt = append(removedAt, len(newLines))
 			continue
 		}
 
@@ -174,6 +176,7 @@ func RemoveEntry(caddyfilePath string, domain string) error {
 						newLines = newLines[:len(newLines)-1]
 					}
 				}
+				removedAt = append(removedAt, len(newLines))
 				continue
 			}
 		}
@@ -193,6 +196,18 @@ func RemoveEntry(caddyfilePath string, domain string) error {
 		}
 
 		newLines = append(newLines, line)
+	}
+
+	// AppendEntry put one blank line before the block it added. Take that line
+	// out again, so adding and deleting an entry leaves the file as it was.
+	// Go from the last removal to the first so earlier indexes stay valid.
+	for k := len(removedAt) - 1; k >= 0; k-- {
+		at := removedAt[k]
+		blankBefore := at > 0 && strings.TrimSpace(newLines[at-1]) == ""
+		blankOrEndAfter := at >= len(newLines) || strings.TrimSpace(newLines[at]) == ""
+		if blankBefore && blankOrEndAfter {
+			newLines = append(newLines[:at-1], newLines[at:]...)
+		}
 	}
 
 	// Write updated content with original permissions
