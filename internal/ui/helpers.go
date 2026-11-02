@@ -133,3 +133,10 @@ func getSelectedSnippetNames(selectedSnippets map[string]bool) []string {
 	sort.Strings(selected)
 	return selected
 }
+
+// caddyBlockIsManaged reports whether editing may regenerate the entry's Caddy
+// block without losing anything (see caddy.IsManagedBlock).
+func caddyBlockIsManaged(entry *caddy.CaddyEntry) bool {
+	managed, _ := caddy.IsManagedBlock(entry)
+	return managed
+}

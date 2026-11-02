@@ -432,8 +432,35 @@ func (m Model) shouldSuggestSnippet(snippetName string) bool {
 
 // renderEditFormContent renders the edit entry form modal content
 func (m Model) renderEditFormContent() string {
-	// Edit form is identical to add form content
+	// Edit form is the add form, plus a warning when the Caddy block is custom.
+	if note := m.customCaddyBlockNote(); note != "" {
+		return note + "\n\n" + m.renderAddFormContent()
+	}
 	return m.renderAddFormContent()
+}
+
+// customCaddyReason returns why the entry being edited cannot be safely
+// regenerated, or "" when it can. Saving an edit rewrites the Caddy block from
+// the form, which would drop custom directives, comments and extra domains.
+func (m Model) customCaddyReason() string {
+	if m.editingEntry == nil || m.editingEntry.Caddy == nil || m.addForm.DNSOnly {
+		return ""
+	}
+	if managed, reason := caddy.IsManagedBlock(m.editingEntry.Caddy); !managed {
+		return reason
+	}
+	return ""
+}
+
+// customCaddyBlockNote renders the warning shown for such entries.
+func (m Model) customCaddyBlockNote() string {
+	reason := m.customCaddyReason()
+	if reason == "" {
+		return ""
+	}
+	return StyleWarning.Render("! Custom Caddy config ("+reason+")") + "\n" +
+		dimStyle.Render("Only DNS changes are saved. The Caddyfile is left as is.") + "\n" +
+		dimStyle.Render("Edit the block with E in the main list.")
 }
 
 // renderPreviewContent renders the preview/confirmation modal content
@@ -452,6 +479,9 @@ func (m Model) renderPreviewContent() string {
 
 	// Different message for create vs update
 	if m.editingEntry != nil {
+		if note := m.customCaddyBlockNote(); note != "" {
+			b.WriteString(note + "\n\n")
+		}
 		b.WriteString(normalStyle.Render("Will update the entry to:"))
 	} else {
 		if len(fqdns) == 1 {

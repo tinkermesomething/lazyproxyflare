@@ -446,8 +446,10 @@ func updateEntryCmd(cfg *config.Config, form AddFormData, oldEntry diff.SyncedEn
 					backupPath: backupPath,
 				}
 			}
-		} else if oldEntry.Caddy != nil && !form.DNSOnly {
-			// Case 2: Had Caddy and staying in full mode - update Caddy entry
+		} else if oldEntry.Caddy != nil && !form.DNSOnly && caddyBlockIsManaged(oldEntry.Caddy) {
+			// Case 2: Had Caddy and staying in full mode - update Caddy entry.
+			// Custom blocks are skipped: regenerating them would drop their custom
+			// directives, comments and extra domains, so only DNS changes apply.
 			// Remove old Caddy block
 			err = caddy.RemoveEntry(cfg.Caddy.CaddyfilePath, oldEntry.Domain)
 			if err != nil {
