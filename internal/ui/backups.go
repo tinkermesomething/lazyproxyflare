@@ -9,7 +9,7 @@ import (
 	"lazyproxyflare/internal/caddy"
 	"lazyproxyflare/internal/textdiff"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // DiffLine represents a single line in a diff view

@@ -3,9 +3,9 @@ package ui
 import (
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/textarea"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/caddy"
 	"lazyproxyflare/internal/diff"

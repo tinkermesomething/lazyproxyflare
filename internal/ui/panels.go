@@ -2,9 +2,10 @@ package ui
 
 import (
 	"fmt"
+	"image/color"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // min returns the minimum of two integers
@@ -117,7 +118,7 @@ func RenderPanel(title, content string, width, height int, focused bool) string 
 	vertical := "│"
 
 	// Colors based on focus
-	var borderColor, titleColor lipgloss.Color
+	var borderColor, titleColor color.Color
 	if focused {
 		borderColor = ColorBlue
 		titleColor = ColorBlue

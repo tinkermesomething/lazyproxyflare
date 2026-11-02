@@ -1,12 +1,12 @@
 package ui
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // handleKeyMsg handles all keyboard input for the application.
 // This method was extracted from Update() to improve maintainability.
-func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
+func (m Model) handleKeyMsg(msg tea.KeyPressMsg) (Model, tea.Cmd) {
 	// Handle text input first — if consumed, skip the switch
 	if m, cmd, handled := m.handleTextInput(msg); handled {
 		return m, cmd
@@ -141,7 +141,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case "n":
 		return m.handleCancelConfirmation()
 
-	case " ":
+	case "space":
 		return m.handleSpaceKey()
 
 	case "backspace":

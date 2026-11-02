@@ -64,7 +64,7 @@ func TestRenderSnippetWizardTemplateParams(t *testing.T) {
 				wizardCursor: 0,
 			}
 
-			result := m.renderSnippetWizardTemplateParams()
+			result := stripANSI(m.renderSnippetWizardTemplateParams())
 
 			if result == "" {
 				t.Errorf("Expected non-empty render result")

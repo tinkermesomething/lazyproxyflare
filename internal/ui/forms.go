@@ -6,7 +6,7 @@ import (
 
 	"lazyproxyflare/internal/caddy"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // wrapText wraps text to fit within maxWidth, preserving existing newlines

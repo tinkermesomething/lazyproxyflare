@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/caddy"
 	"lazyproxyflare/internal/cloudflare"
@@ -72,7 +72,6 @@ func launchWizard() {
 	// Launch TUI with wizard view (no config, no data)
 	p := tea.NewProgram(
 		ui.NewModelWithWizard(),
-		tea.WithAltScreen(),
 	)
 
 	if _, err := p.Run(); err != nil {
@@ -101,7 +100,6 @@ func autoLoadProfile(profileName string) {
 	// Launch TUI with loaded data
 	p := tea.NewProgram(
 		ui.NewModelWithProfile(entries, snippets, cfg, profileName, ""), // No password
-		tea.WithAltScreen(),
 	)
 
 	if _, err := p.Run(); err != nil {
@@ -118,7 +116,6 @@ func launchProfileSelector(profiles []string) {
 	// Launch TUI with profile selector view (no config, no data)
 	p := tea.NewProgram(
 		ui.NewModelWithProfileSelector(profiles, lastUsed),
-		tea.WithAltScreen(),
 	)
 
 	if _, err := p.Run(); err != nil {

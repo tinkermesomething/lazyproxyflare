@@ -3,8 +3,8 @@ package ui
 import (
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	snippet_wizard "lazyproxyflare/internal/ui/snippet_wizard"
 )
@@ -43,7 +43,7 @@ var (
 
 // Init initializes the model
 func (m Model) Init() tea.Cmd {
-	return tea.EnableMouseAllMotion
+	return nil
 }
 
 // isValidIPAddress validates IPv4 address format
@@ -88,15 +88,29 @@ func isValidIPAddress(ip string) bool {
 // Update handles messages
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		return m.handleKeyMsg(msg)
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 
-	case tea.MouseMsg:
-		return m.handleMouseMsg(msg)
+	case tea.PasteMsg:
+		return m.handlePaste(msg)
+
+	case tea.MouseClickMsg:
+		if mouse := msg.Mouse(); mouse.Button == tea.MouseLeft {
+			return m.handleMouse(mouseEvent{Action: mouseClick, X: mouse.X, Y: mouse.Y})
+		}
+
+	case tea.MouseWheelMsg:
+		mouse := msg.Mouse()
+		switch mouse.Button {
+		case tea.MouseWheelUp:
+			return m.handleMouse(mouseEvent{Action: mouseWheelUp, X: mouse.X, Y: mouse.Y})
+		case tea.MouseWheelDown:
+			return m.handleMouse(mouseEvent{Action: mouseWheelDown, X: mouse.X, Y: mouse.Y})
+		}
 
 	default:
 		if m2, cmd, handled := m.handleAsyncMsg(msg); handled {
@@ -106,8 +120,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// View renders the UI
-func (m Model) View() string {
+// View wraps the rendered screen with the terminal modes this app needs.
+// Bubble Tea v2 sets alt screen and mouse mode on the view, not on the program.
+func (m Model) View() tea.View {
+	v := tea.NewView(m.renderView())
+	v.AltScreen = true
+	v.MouseMode = tea.MouseModeAllMotion
+	return v
+}
+
+// renderView renders the UI as a string
+func (m Model) renderView() string {
 	if m.quitting {
 		return ""
 	}

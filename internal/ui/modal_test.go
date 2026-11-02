@@ -258,7 +258,8 @@ func TestRenderModalWithTitleBorderCharactersCorrect(t *testing.T) {
 	width := 50
 	height := 10
 
-	result := renderModalWithTitle(title, content, width, height)
+	// Lip Gloss v2 always emits ANSI; check the visible text
+	result := stripANSI(renderModalWithTitle(title, content, width, height))
 
 	lines := strings.Split(result, "\n")
 
@@ -497,7 +498,7 @@ func TestRenderModalWithTitleVerySmallWidth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Should not panic
-			result := renderModalWithTitle("Test Title", "Content", tt.width, tt.height)
+			result := stripANSI(renderModalWithTitle("Test Title", "Content", tt.width, tt.height))
 
 			if result == "" {
 				t.Error("Expected non-empty result")
@@ -580,7 +581,7 @@ func TestRenderModalBoxNoBlackBoxes(t *testing.T) {
 	width := 60
 	height := 15
 
-	result := renderModalBox(title, content, width, height)
+	result := stripANSI(renderModalBox(title, content, width, height))
 
 	// Check that content lines have proper structure (no orphan spaces outside borders)
 	lines := strings.Split(result, "\n")

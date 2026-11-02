@@ -1,19 +1,36 @@
 package ui
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/caddy"
 )
 
-// handleMouseMsg handles all mouse input events
-func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
+// mouseAction is the part of a mouse event the app reacts to. Bubble Tea v2
+// splits mouse input into click, wheel and motion messages; Update maps them
+// to this so the handlers (and their tests) do not depend on library types.
+type mouseAction int
+
+const (
+	mouseWheelUp mouseAction = iota
+	mouseWheelDown
+	mouseClick // left button press
+)
+
+// mouseEvent is a mouse action at a screen position.
+type mouseEvent struct {
+	Action mouseAction
+	X, Y   int
+}
+
+// handleMouse handles all mouse input events
+func (m Model) handleMouse(msg mouseEvent) (Model, tea.Cmd) {
 	switch m.currentView {
 	case ViewList:
 		layout := NewPanelLayout(m.width, m.height)
 
-		switch msg.Type {
-		case tea.MouseWheelUp:
+		switch msg.Action {
+		case mouseWheelUp:
 			// Scroll up
 			if m.cursor > 0 {
 				m.cursor--
@@ -22,7 +39,7 @@ func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
 				}
 			}
 
-		case tea.MouseWheelDown:
+		case mouseWheelDown:
 			// Scroll down
 			filtered := m.getFilteredEntries()
 			if m.cursor < len(filtered)-1 {
@@ -33,7 +50,7 @@ func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
 				}
 			}
 
-		case tea.MouseLeft:
+		case mouseClick:
 			// Determine which panel was clicked
 			if msg.X < layout.LeftWidth {
 				// Left panel clicked
@@ -89,15 +106,15 @@ func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
 
 	case ViewBackupManager:
 		// Mouse support in backup manager
-		switch msg.Type {
-		case tea.MouseWheelUp:
+		switch msg.Action {
+		case mouseWheelUp:
 			// Scroll up
 			if m.backup.Cursor > 0 {
 				m.backup.Cursor--
 				m.backup.ScrollOffset = scrollIntoView(m.backup.Cursor, m.backup.ScrollOffset, m.backupListRows())
 			}
 
-		case tea.MouseWheelDown:
+		case mouseWheelDown:
 			// Scroll down
 			backups, _ := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 			if m.backup.Cursor < len(backups)-1 {
@@ -105,7 +122,7 @@ func (m Model) handleMouseMsg(msg tea.MouseMsg) (Model, tea.Cmd) {
 				m.backup.ScrollOffset = scrollIntoView(m.backup.Cursor, m.backup.ScrollOffset, m.backupListRows())
 			}
 
-		case tea.MouseLeft:
+		case mouseClick:
 			// Click to select a backup: map the screen row to a list row
 			relativeY := msg.Y - m.backupListTopY()
 

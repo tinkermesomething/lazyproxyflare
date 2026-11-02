@@ -3,7 +3,7 @@ package ui
 import (
 	"testing"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // TestWizardEnterKeyOnWelcome tests that Enter key advances from Welcome step
@@ -20,7 +20,7 @@ func TestWizardEnterKeyOnWelcome(t *testing.T) {
 	}
 
 	// Simulate Enter key press
-	enterKey := tea.KeyMsg{Type: tea.KeyEnter}
+	enterKey := tea.KeyPressMsg{Code: tea.KeyEnter}
 	newModel, _ := m.handleKeyMsg(enterKey)
 	m = newModel
 
@@ -44,7 +44,7 @@ func TestWizardTabKeyOnWelcome(t *testing.T) {
 	}
 
 	// Simulate Tab key press
-	tabKey := tea.KeyMsg{Type: tea.KeyTab}
+	tabKey := tea.KeyPressMsg{Code: tea.KeyTab}
 	newModel, _ := m.handleKeyMsg(tabKey)
 	m = newModel
 
@@ -84,7 +84,7 @@ func TestWizardStartFromProfileSelector(t *testing.T) {
 	}
 
 	// Simulate Enter to launch wizard
-	enterKey := tea.KeyMsg{Type: tea.KeyEnter}
+	enterKey := tea.KeyPressMsg{Code: tea.KeyEnter}
 	newModel, _ := m.handleKeyMsg(enterKey)
 	m = newModel
 
@@ -128,7 +128,7 @@ func TestWizardEnterKeyFullPath(t *testing.T) {
 	}
 	
 	// Simulate Enter key through Update() (the real path)
-	enterKey := tea.KeyMsg{Type: tea.KeyEnter}
+	enterKey := tea.KeyPressMsg{Code: tea.KeyEnter}
 	result, _ := m.Update(enterKey)
 	newModel := result.(Model)
 	

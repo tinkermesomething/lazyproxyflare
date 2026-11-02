@@ -5,7 +5,7 @@ import (
 	"lazyproxyflare/internal/caddy"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // MigrationWizardStep represents the current step in migration wizard

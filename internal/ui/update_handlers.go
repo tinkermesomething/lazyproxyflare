@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/audit"
 	"lazyproxyflare/internal/caddy"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/caddy"
 	"lazyproxyflare/internal/config"

@@ -7,7 +7,7 @@ import (
 	"lazyproxyflare/internal/caddy"
 	"lazyproxyflare/internal/diff"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // renderPanelLayout renders the main two-panel layout

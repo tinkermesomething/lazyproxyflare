@@ -6,8 +6,8 @@ import (
 	"lazyproxyflare/internal/config"
 	"lazyproxyflare/internal/diff"
 
-	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/textinput"
+	"charm.land/bubbles/v2/textarea"
+	"charm.land/bubbles/v2/textinput"
 )
 
 // ViewMode represents the current view

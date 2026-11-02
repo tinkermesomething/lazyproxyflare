@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/charmbracelet/bubbles/textinput"
+	"charm.land/bubbles/v2/textinput"
 
 	"lazyproxyflare/internal/audit"
 	"lazyproxyflare/internal/caddy"
@@ -67,7 +67,7 @@ func NewModelWithWizard() Model {
 	ti.Placeholder = "Enter value..."
 	ti.Focus()
 	ti.CharLimit = 256
-	ti.Width = 60
+	ti.SetWidth(60)
 
 	return Model{
 		entries:             []diff.SyncedEntry{},
@@ -111,7 +111,7 @@ func NewModelWithProfile(entries []diff.SyncedEntry, snippets []caddy.Snippet, c
 	ti.Placeholder = "Enter value..."
 	ti.Focus()
 	ti.CharLimit = 256
-	ti.Width = 60
+	ti.SetWidth(60)
 
 	return Model{
 		entries:             entries,
@@ -156,7 +156,7 @@ func NewModelWithProfileSelector(profiles []string, lastUsedProfile string) Mode
 	ti.Placeholder = "Enter value..."
 	ti.Focus()
 	ti.CharLimit = 256
-	ti.Width = 60
+	ti.SetWidth(60)
 
 	return Model{
 		entries:             []diff.SyncedEntry{},

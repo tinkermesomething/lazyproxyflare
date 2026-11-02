@@ -1,7 +1,7 @@
 package ui
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/caddy"
 	snippet_wizard "lazyproxyflare/internal/ui/snippet_wizard"

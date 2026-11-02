@@ -1,8 +1,8 @@
 package snippet_wizard
 
 import (
-	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/textinput"
+	"charm.land/bubbles/v2/textarea"
+	"charm.land/bubbles/v2/textinput"
 )
 
 // SnippetCategory represents a snippet category (temporary until caddy package is updated)

@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"lazyproxyflare/internal/cmdlog"
 )
 
-func key(s string) tea.KeyMsg {
+func key(s string) tea.KeyPressMsg {
 	if s == "esc" {
-		return tea.KeyMsg{Type: tea.KeyEsc}
+		return tea.KeyPressMsg{Code: tea.KeyEscape}
 	}
-	return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune(s)}
+	return tea.KeyPressMsg{Code: []rune(s)[0], Text: s}
 }
 
 // seedCommandLog replaces the process-wide log with n numbered API entries.

@@ -6,7 +6,7 @@ import (
 
 	"lazyproxyflare/internal/diff"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 )
 
 // renderConfirmDeleteView renders the delete confirmation screen

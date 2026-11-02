@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
-
 	"lazyproxyflare/internal/config"
 )
 
@@ -92,7 +90,7 @@ func TestBackupManagerMouseWheelKeepsCursorVisible(t *testing.T) {
 	const n = 60
 	m := newBackupModel(t, n, 179, 49)
 	for i := 0; i < n-1; i++ {
-		m, _ = m.handleMouseMsg(tea.MouseMsg{Type: tea.MouseWheelDown})
+		m, _ = m.handleMouse(mouseEvent{Action: mouseWheelDown})
 		want := "→ " + backupStamp(m.backup.Cursor)
 		if out := renderBackupManagerModal(m); !strings.Contains(out, want) {
 			t.Fatalf("wheel down: cursor %d not visible", m.backup.Cursor)
@@ -116,7 +114,7 @@ func TestBackupManagerClickSelectsRowUnderPointer(t *testing.T) {
 				if y < 0 {
 					continue // row not on this screen
 				}
-				clicked, _ := m.handleMouseMsg(tea.MouseMsg{Type: tea.MouseLeft, X: sz.w / 2, Y: y})
+				clicked, _ := m.handleMouse(mouseEvent{Action: mouseClick, X: sz.w / 2, Y: y})
 				if clicked.backup.Cursor != idx {
 					t.Errorf("click on screen row %d (backup %d) selected backup %d", y, idx, clicked.backup.Cursor)
 				}
