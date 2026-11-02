@@ -145,6 +145,18 @@ func (m Model) renderComplementaryPanel(height int) string {
 	return m.renderCaddyDetails(entry)
 }
 
+// entryLabel returns the row text for an entry: its own hostname, plus a
+// marker when it shares a Caddy block with other hostnames. Showing the
+// block's primary domain instead made several rows read the same.
+func entryLabel(entry diff.SyncedEntry) string {
+	if entry.Caddy != nil {
+		if n := caddy.GetDomainCount(entry.Caddy); n > 1 {
+			return fmt.Sprintf("%s (shared ×%d)", entry.Domain, n)
+		}
+	}
+	return entry.Domain
+}
+
 // renderLeftPanel renders the entry list for the left panel
 func (m Model) renderLeftPanel(width, height int) string {
 	var b strings.Builder
@@ -211,13 +223,7 @@ func (m Model) renderLeftPanel(width, height int) string {
 			icon = StyleIconOrphan.Render("⚠")
 		}
 
-		// Domain name - show multi-domain format if applicable
-		var domain string
-		if entry.Caddy != nil && len(entry.Caddy.Domains) > 0 {
-			domain = caddy.FormatDomainDisplay(entry.Caddy)
-		} else {
-			domain = entry.Domain
-		}
+		domain := entryLabel(entry)
 
 		// Truncate if needed
 		maxDomainLen := width - 10 // Account for checkbox, icon, padding
