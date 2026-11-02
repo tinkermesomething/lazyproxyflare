@@ -9,7 +9,7 @@ Complete keyboard shortcut reference organized by context. All keybindings are c
 - [Global Keys](#global-keys)
 - [Main List View](#main-list-view)
 - [Forms (Add/Edit)](#forms-addedit)
-- [Snippet Detail View](#snippet-detail-view)
+- [Snippet Manager](#snippet-manager)
 - [Snippet Wizard](#snippet-wizard)
 - [Backup Manager](#backup-manager)
 - [Audit Log Viewer](#audit-log-viewer)
@@ -63,7 +63,7 @@ The primary interface showing entries with sync status.
 | `Enter` | Edit entry | Edit the selected DNS entry |
 | `d` | Delete entry | Delete the selected entry |
 | `s` | Sync entry | Create missing DNS or Caddy for orphaned entries |
-| `w` | Snippet wizard | Open snippet wizard to create reusable Caddy config blocks |
+| `w` | Snippet manager | Browse, view, edit, delete and create reusable Caddy snippets |
 | `b` | Backup manager | View, restore, preview, and delete Caddyfile backups |
 | `p` | Profile selector | Switch between profiles or create new ones |
 | `r` | Refresh | Reload data from Cloudflare and Caddyfile |
@@ -182,7 +182,7 @@ View and manage Caddyfile backups.
 | `↓` | Move down | Navigate to next backup |
 | `↑` | Move up | Navigate to previous backup |
 | `p` | Preview backup | View full contents of selected backup file |
-| `R` | Restore backup | Restore selected backup (with confirmation + validation) |
+| `R` | Restore backup | Restore selected backup. The scope menu defaults to **Caddyfile Only** |
 | `x` | Delete backup | Delete selected backup file (with confirmation) |
 | `c` | Cleanup old backups | Delete backups older than retention period (default: 30 days) |
 | `ESC` | Close manager | Return to main view |
@@ -192,7 +192,13 @@ View and manage Caddyfile backups.
 - File size (e.g., "12.5 KB")
 - Age (e.g., "2 hours ago", "3 days ago")
 
+**Restore safety:**
+- The current Caddyfile is backed up first.
+- If validation or the Caddy restart fails, the previous file is put back.
+- Scope `All` also rewrites live DNS records, so it is not the default.
+
 **Cleanup Preview:**
+- Only backups named `Caddyfile.backup.YYYYMMDD_HHMMSS` are touched. Backups you named by hand are never listed or deleted by cleanup.
 - Shows which backups will be deleted
 - Displays total space to be freed
 - Requires confirmation before deletion
@@ -274,65 +280,53 @@ Interactive help display with all keybindings.
 
 ---
 
-## Snippet Detail View
+## Snippet Manager
 
-View and edit reusable Caddy configuration snippets.
+`w` opens one screen for reusable Caddy snippets: browse them, see what uses them, edit or delete them, and start the creation wizard.
 
-### View Mode (Read-Only)
+### Snippet List
 
 | Key | Action | Description |
 |-----|--------|-------------|
-| `e` | Edit snippet | Enter edit mode (editable textarea) |
-| `ESC` | Close detail | Return to main view |
+| `↑` `↓` / `j` `k` | Move | Select a snippet |
+| `PgUp` `PgDn` / `g` `G` | Jump | Page, or go to top/bottom |
+| `Enter` | View | Open the selected snippet. On `+ New snippet`, start the wizard |
+| `e` | Edit | Open the selected snippet in the editor |
+| `d` | Delete | Delete the selected snippet |
+| `n` | New | Start the creation wizard |
+| `ESC` / `q` / `w` | Close | Return to the main view |
 
-**Display Information:**
-- Snippet name and category badge
-- Description and auto-detection confidence (if applicable)
-- Usage statistics (X entries using this snippet)
-- List of entries importing this snippet
-- Location in Caddyfile (line numbers)
-- Full snippet content (syntax highlighted)
+Each snippet shows your own comment from the Caddyfile (the lines directly above it) and how many entries and snippets use it. The mouse wheel scrolls and a click selects.
+
+### Snippet Detail
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| `e` | Edit | Enter edit mode |
+| `d` | Delete | Ask to delete (blocked while anything imports the snippet) |
+| `↑` `↓` / `PgUp` `PgDn` | Scroll | Scroll long snippets |
+| `ESC` / `q` / `←` / `h` / `Backspace` | Back | Return to the list |
+
+Shows the snippet name, your comment, which entries and snippets import it, its line range, and its content.
 
 ### Edit Mode
 
-Press `e` in view mode to enter edit mode.
-
 | Key | Action | Description |
 |-----|--------|-------------|
-| `y` / `Enter` | Save changes | Validate and write to Caddyfile |
-| `d` | Delete snippet | Remove snippet (checks if in use first) |
-| `ESC` | Cancel edit | Discard changes, return to view mode |
-| `Type characters` | Edit content | Multi-line textarea with scrolling |
-| `Backspace` | Delete character | Standard text editing |
-| `Arrow keys` | Navigate cursor | Move within textarea |
-| `Tab` | Insert tab | (Not for navigation - inserts literal tab) |
+| `Ctrl+S` | Save | Back up, write, validate, restart Caddy |
+| `ESC` | Discard | Drop changes and return to the detail view |
+| any other key | Edit | Goes to the text area, including `y`, `d` and `Enter` |
 
-**Edit Mode Features:**
-- 70x15 textarea with syntax highlighting
-- Auto-backup before save
-- Caddyfile validation before commit
-- Automatic rollback on validation failure
-- Caddy auto-reload on success
-- Audit logging
+**Save safety:**
+- The snippet is found again in the current file. The save is refused if the file changed since you opened it.
+- Unbalanced braces are refused before anything is written.
+- Any failure to validate or restart restores the backup.
+- Every save and delete is written to the audit log.
 
-**Deletion Safety:**
-- Cannot delete snippet currently in use
-- Shows error: "cannot delete snippet 'X': currently used by N entries"
-- Must remove from entries first
-- No confirmation dialog (direct action)
-
-**Example Workflow:**
-```
-1. Navigate to snippet in snippets panel
-2. Press Enter → Opens detail view
-3. Press e → Enters edit mode
-4. Edit content in textarea
-5. Press y → Saves changes
-   - Creates backup
-   - Validates Caddyfile
-   - Reloads Caddy
-   - Returns to view mode
-```
+**Delete safety:**
+- A snippet that an entry or another snippet imports cannot be deleted. Remove those imports first.
+- `y` confirms. Any other key cancels.
+- Your comment lines above the snippet are removed with it. A `# === Snippets created by LazyProxyFlare ===` banner is removed once it is empty.
 
 ---
 
@@ -361,7 +355,7 @@ The wizard offers three creation modes:
 | `Space` | Toggle selection | Select/deselect templates or options |
 | `Enter` | Next step | Proceed to next wizard screen |
 | `b` | Go back | Return to previous wizard step |
-| `ESC` | Cancel wizard | Exit wizard, return to main view |
+| `ESC` | Cancel wizard | Exit wizard, return to where it was opened (snippet manager or main view) |
 
 **Navigation Pattern:** Snippet wizard uses `Tab` for field navigation (like Setup wizard) and `Enter` to proceed between steps.
 

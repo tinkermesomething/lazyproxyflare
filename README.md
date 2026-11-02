@@ -21,8 +21,8 @@ If you self-host behind Caddy and use Cloudflare for DNS, you know the pain: add
 - **Multi-profile** — manage multiple domains/environments with separate profiles, export/import as `.tar.gz`
 - **Setup wizard** — interactive first-run configuration, no manual YAML required
 - **Batch operations** — multi-select entries for bulk delete or sync
-- **Snippet system** — reusable Caddy config blocks (IP restrictions, security headers, compression) with an interactive wizard (`w`) and smart form suggestions
-- **Backup manager** — automatic Caddyfile backups before every change, with restore, cleanup, and configurable rotation limits
+- **Snippet system** — reusable Caddy config blocks (IP restrictions, security headers, compression) with a snippet manager (`w`) to view, edit, delete and create them (templates, paste your own, or a guided wizard), and smart form suggestions
+- **Backup manager** — automatic Caddyfile backups before every change, with restore (snapshots the current file first and rolls back on failure), cleanup (never touches hand-named backups), and configurable rotation limits
 - **Audit log** — full operation history with filtering by type, result, and domain search
 - **Command log** — every Cloudflare API call and Caddy command this session, with status and timing (`@`); request bodies and tokens are never logged
 - **Editor integration** — open your Caddyfile in `$EDITOR` directly from the UI (`E`)
@@ -87,7 +87,7 @@ Press `?` in the app for the full 5-page help screen. The essentials:
 | `/` | Search by domain |
 | `p` | Profile selector |
 | `b` | Backup manager |
-| `w` | Snippet wizard |
+| `w` | Snippet manager (view, edit, delete, create) |
 | `l` | Audit log |
 | `@` | Command log (API calls and Caddy commands, no secrets) |
 | `E` | Open Caddyfile in editor |
