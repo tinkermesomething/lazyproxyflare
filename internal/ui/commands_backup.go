@@ -37,37 +37,8 @@ func restoreBackupCmd(cfg *config.Config, backupPath string, scope RestoreScope,
 		// Handle based on restore scope
 		switch scope {
 		case RestoreCaddyOnly:
-			// Only restore Caddyfile
-			err := caddy.RestoreFromBackup(cfg.Caddy.CaddyfilePath, backupPath)
-			if err != nil {
-				return restoreBackupMsg{
-					success:    false,
-					err:        fmt.Errorf("restore failed: %w", err),
-					scope:      scope,
-					backupPath: backupPath,
-				}
-			}
-
-			// Validate restored Caddyfile
-			err = formatAndValidateCaddyfile(cfg)
-			if err != nil {
-				return restoreBackupMsg{
-					success:    false,
-					err:        fmt.Errorf("restored Caddyfile validation failed: %w", err),
-					scope:      scope,
-					backupPath: backupPath,
-				}
-			}
-
-			// Restart Caddy
-			err = caddy.RestartCaddy(cfg.Caddy.ContainerName)
-			if err != nil {
-				return restoreBackupMsg{
-					success:    false,
-					err:        fmt.Errorf("caddy restart failed: %w", err),
-					scope:      scope,
-					backupPath: backupPath,
-				}
+			if err := restoreCaddyfileSafely(cfg, backupPath); err != nil {
+				return restoreBackupMsg{success: false, err: err, scope: scope, backupPath: backupPath}
 			}
 
 		case RestoreDNSOnly:
@@ -83,45 +54,16 @@ func restoreBackupCmd(cfg *config.Config, backupPath string, scope RestoreScope,
 			}
 
 		case RestoreAll:
-			// Restore Caddyfile
-			err := caddy.RestoreFromBackup(cfg.Caddy.CaddyfilePath, backupPath)
-			if err != nil {
-				return restoreBackupMsg{
-					success:    false,
-					err:        fmt.Errorf("Caddyfile restore failed: %w", err),
-					scope:      scope,
-					backupPath: backupPath,
-				}
-			}
-
-			// Validate restored Caddyfile
-			err = formatAndValidateCaddyfile(cfg)
-			if err != nil {
-				return restoreBackupMsg{
-					success:    false,
-					err:        fmt.Errorf("restored Caddyfile validation failed: %w", err),
-					scope:      scope,
-					backupPath: backupPath,
-				}
-			}
-
-			// Restart Caddy
-			err = caddy.RestartCaddy(cfg.Caddy.ContainerName)
-			if err != nil {
-				return restoreBackupMsg{
-					success:    false,
-					err:        fmt.Errorf("caddy restart failed: %w", err),
-					scope:      scope,
-					backupPath: backupPath,
-				}
+			if err := restoreCaddyfileSafely(cfg, backupPath); err != nil {
+				return restoreBackupMsg{success: false, err: err, scope: scope, backupPath: backupPath}
 			}
 
 			// Restore DNS records
-			err = restoreDNSFromBackup(cfg, backupPath, apiToken)
+			err := restoreDNSFromBackup(cfg, backupPath, apiToken)
 			if err != nil {
 				return restoreBackupMsg{
 					success:    false,
-					err:        fmt.Errorf("DNS restore failed: %w", err),
+					err:        fmt.Errorf("DNS restore failed (the Caddyfile was already restored): %w", err),
 					scope:      scope,
 					backupPath: backupPath,
 				}
@@ -134,6 +76,29 @@ func restoreBackupCmd(cfg *config.Config, backupPath string, scope RestoreScope,
 			backupPath: backupPath,
 		}
 	}
+}
+
+// restoreCaddyfileSafely restores backupPath over the live Caddyfile. It first
+// snapshots the current file. If validation or the restart fails, it puts the
+// snapshot back, so a bad restore never leaves a broken live config.
+func restoreCaddyfileSafely(cfg *config.Config, backupPath string) error {
+	path := cfg.Caddy.CaddyfilePath
+	snapshot, err := caddy.BackupCaddyfile(path)
+	if err != nil {
+		return fmt.Errorf("could not snapshot the current Caddyfile, nothing changed: %w", err)
+	}
+	if err := caddy.RestoreFromBackup(path, backupPath); err != nil {
+		return restoreBackupWithError(path, snapshot, err, "restore")
+	}
+	if err := formatAndValidateCaddyfile(cfg); err != nil {
+		return restoreBackupWithError(path, snapshot, err, "restored Caddyfile validation")
+	}
+	if err := caddy.RestartCaddy(cfg.Caddy.ContainerName); err != nil {
+		rollback := restoreBackupWithError(path, snapshot, err, "caddy restart")
+		_ = caddy.RestartCaddy(cfg.Caddy.ContainerName) // best effort: reload the old config
+		return rollback
+	}
+	return nil
 }
 
 // restoreDNSFromBackup parses the backup Caddyfile and creates/updates DNS records

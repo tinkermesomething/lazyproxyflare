@@ -536,8 +536,9 @@ func (m Model) handleRestoreBackup() (Model, tea.Cmd) {
 		backups, err := caddy.ListBackups(m.config.Caddy.CaddyfilePath)
 		if err == nil && m.backup.Cursor < len(backups) {
 			m.backup.PreviewPath = backups[m.backup.Cursor].Path
-			m.backup.RestoreScopeCursor = 0    // Reset cursor
-			m.backup.RestoreScope = RestoreAll // Default to restore all
+			// Default to the Caddyfile only: "All" also rewrites live DNS records.
+			m.backup.RestoreScopeCursor = int(RestoreCaddyOnly)
+			m.backup.RestoreScope = RestoreCaddyOnly
 			m.currentView = ViewRestoreScope
 		}
 		return m, nil
