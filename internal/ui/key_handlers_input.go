@@ -87,9 +87,10 @@ func (m Model) handleTextInput(msg tea.KeyPressMsg) (Model, tea.Cmd, bool) {
 	if (m.currentView == ViewAdd || m.currentView == ViewEdit) &&
 		m.addForm.FocusedField == customConfigFieldIndex {
 		key := msg.String()
-		// Ctrl+M for newlines (Enter alone proceeds to preview)
-		// Note: Ctrl+Enter sends "ctrl+m" in bubbletea (both are ASCII 13)
-		if key == "ctrl+m" {
+		// Ctrl+J inserts a newline (Enter alone proceeds to preview).
+		// Ctrl+M and Ctrl+Enter are accepted too, but most terminals send
+		// plain Enter for them, so only Ctrl+J works everywhere.
+		if key == "ctrl+j" || key == "ctrl+m" || key == "ctrl+enter" {
 			m.addForm.CustomCaddyConfig += "\n"
 			return m, nil, true
 		}

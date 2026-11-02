@@ -196,3 +196,18 @@ func TestSpaceTogglesProfileEditBoolean(t *testing.T) {
 		t.Error("space did not toggle the SSL field")
 	}
 }
+
+// Ctrl+J must insert a newline in the custom Caddy config field. The help
+// screen promised Ctrl+M, which most terminals send as plain Enter.
+func TestCustomConfigNewlineKey(t *testing.T) {
+	m := createTestModel()
+	m.currentView = ViewAdd
+	m.addForm.FocusedField = 8 + len(m.snippets)
+
+	m, _ = m.handleKeyMsg(tea.KeyPressMsg{Code: 'a', Text: "a"})
+	m, _ = m.handleKeyMsg(tea.KeyPressMsg{Code: 'j', Mod: tea.ModCtrl})
+	m, _ = m.handleKeyMsg(tea.KeyPressMsg{Code: 'b', Text: "b"})
+	if got := m.addForm.CustomCaddyConfig; got != "a\nb" {
+		t.Errorf("CustomCaddyConfig = %q, want %q", got, "a\nb")
+	}
+}

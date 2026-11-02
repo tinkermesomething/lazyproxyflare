@@ -594,7 +594,7 @@ func (m Model) renderHelpPage3() string {
 	left.WriteString("\n")
 	left.WriteString(fmt.Sprintf("  %s  Next/Prev field\n", StyleKeybinding.Render("Tab/Shift+Tab")))
 	left.WriteString(fmt.Sprintf("  %s  Next/Prev field\n", StyleKeybinding.Render("↓/↑")))
-	left.WriteString(fmt.Sprintf("  %s  Newline (multi)\n", StyleKeybinding.Render("Ctrl+M")))
+	left.WriteString(fmt.Sprintf("  %s  Newline (multi)\n", StyleKeybinding.Render("Ctrl+J")))
 	left.WriteString(fmt.Sprintf("  %s  Next/Preview\n", StyleKeybinding.Render("Enter")))
 	left.WriteString(fmt.Sprintf("  %s  Toggle checkbox\n", StyleKeybinding.Render("Space")))
 	left.WriteString(fmt.Sprintf("  %s  Cancel form\n", StyleKeybinding.Render("Esc")))
