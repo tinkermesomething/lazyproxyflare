@@ -130,3 +130,20 @@ func TestRemoveSnippetBlock(t *testing.T) {
 		t.Error("removing an unknown snippet must fail")
 	}
 }
+
+func TestRemoveLastSnippetDropsTheEmptyCreatorBanner(t *testing.T) {
+	src := "# === Snippets created by LazyProxyFlare ===\n# Generated: 2026-11-02 22:04:32\n\n(one) {\n\tencode gzip\n}\n\n# === End of snippets ===\n\nexample.com {\n\treverse_proxy 1.2.3.4\n}\n"
+	got, err := RemoveSnippetBlock(src, "one")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "example.com {\n\treverse_proxy 1.2.3.4\n}\n"; got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+
+	two := "# === Snippets created by LazyProxyFlare ===\n# Generated: x\n\n(one) {\n\ta\n}\n\n(two) {\n\tb\n}\n\n# === End of snippets ===\n\nexample.com {\n}\n"
+	got, _ = RemoveSnippetBlock(two, "one")
+	if !strings.Contains(got, "Snippets created by LazyProxyFlare") || !strings.Contains(got, "(two)") {
+		t.Errorf("banner with a remaining snippet must stay:\n%s", got)
+	}
+}

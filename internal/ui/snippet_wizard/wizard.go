@@ -71,6 +71,17 @@ func RenderSummary(data SnippetWizardData) string {
 		}
 	}
 
+	// Custom, templated and guided modes generate their snippets from the
+	// wizard data. The summary must list exactly what Enter will create.
+	w := &Wizard{State: &WizardState{Data: &data}}
+	for _, gen := range w.GenerateSnippets() {
+		generatedSnippets = append(generatedSnippets, views.GeneratedSnippet{
+			Name:        gen.Name,
+			Category:    gen.Category,
+			Description: gen.Description,
+		})
+	}
+
 	viewData := toViewData(data)
 	viewData.GeneratedSnippets = generatedSnippets
 	return views.RenderSummary(viewData)

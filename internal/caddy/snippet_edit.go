@@ -107,5 +107,35 @@ func RemoveSnippetBlock(src, name string) (string, error) {
 		end++
 	}
 	out := append(append([]string{}, lines[:start]...), lines[end:]...)
-	return strings.Join(out, "\n"), nil
+	return strings.Join(dropEmptyCreatorBanner(out), "\n"), nil
+}
+
+const (
+	creatorBannerStart = "# === Snippets created by LazyProxyFlare ==="
+	creatorBannerEnd   = "# === End of snippets ==="
+)
+
+// dropEmptyCreatorBanner removes the banner the snippet wizard writes when
+// nothing is left between its start and end lines, plus the blank line after it.
+func dropEmptyCreatorBanner(lines []string) []string {
+	for i, l := range lines {
+		if strings.TrimSpace(l) != creatorBannerStart {
+			continue
+		}
+		for j := i + 1; j < len(lines); j++ {
+			t := strings.TrimSpace(lines[j])
+			if t == creatorBannerEnd {
+				end := j + 1
+				if end < len(lines) && strings.TrimSpace(lines[end]) == "" {
+					end++
+				}
+				return append(append([]string{}, lines[:i]...), lines[end:]...)
+			}
+			if t != "" && !strings.HasPrefix(t, "# Generated:") {
+				return lines // something still lives in the banner
+			}
+		}
+		return lines
+	}
+	return lines
 }

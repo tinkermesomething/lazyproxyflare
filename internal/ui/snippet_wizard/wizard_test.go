@@ -1,6 +1,7 @@
 package snippet_wizard
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -109,5 +110,22 @@ func TestValidateCIDR(t *testing.T) {
 					tt.cidr, result.Valid, tt.valid, result.Message)
 			}
 		})
+	}
+}
+
+func TestSummaryListsWhatEnterWillCreate(t *testing.T) {
+	custom := SnippetWizardData{Mode: ModeCustom, CustomSnippetName: "my_snip", CustomSnippetContent: "header X-A 1"}
+	out := RenderSummary(custom)
+	if strings.Contains(out, "No snippets selected") || !strings.Contains(out, "my_snip") {
+		t.Errorf("custom summary wrong:\n%s", out)
+	}
+
+	guided := SnippetWizardData{Mode: ModeGuided, CreatePerformance: true}
+	if out := RenderSummary(guided); strings.Contains(out, "No snippets selected") || !strings.Contains(out, "performance") {
+		t.Errorf("guided summary wrong:\n%s", out)
+	}
+
+	if out := RenderSummary(SnippetWizardData{}); !strings.Contains(out, "No snippets selected") {
+		t.Errorf("empty wizard should say nothing is selected:\n%s", out)
 	}
 }

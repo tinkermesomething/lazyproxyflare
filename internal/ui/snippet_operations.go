@@ -33,8 +33,7 @@ func (m Model) createSnippetsFromWizard() (Model, tea.Cmd) {
 	var snippetsToAdd []string
 	var snippetNames []string
 	for _, gen := range generatedSnippets {
-		// Wrap content in snippet syntax
-		snippetStr := fmt.Sprintf("(%s) {\n%s\n}", gen.Name, gen.Content)
+		snippetStr := snippetBlock(gen.Name, gen.Content)
 		snippetsToAdd = append(snippetsToAdd, snippetStr)
 		snippetNames = append(snippetNames, gen.Name)
 	}
@@ -361,4 +360,36 @@ func (m *Model) toggleSnippetTemplateParamCheckbox() {
 	}
 
 	m.snippetWizardData.SnippetConfigs[currentTemplate] = config
+}
+
+// snippetBlock returns the Caddyfile text for one snippet. Built-in templates
+// already return a complete "(name) { ... }" block. Custom snippets are just
+// the body, so wrap them and indent a flush-left body with one tab.
+func snippetBlock(name, content string) string {
+	content = strings.TrimSpace(content)
+	if strings.HasPrefix(content, "("+name+")") && strings.HasSuffix(content, "}") {
+		return content
+	}
+	return fmt.Sprintf("(%s) {\n%s\n}", name, indentFlushLeft(content))
+}
+
+// indentFlushLeft adds one tab to every non-empty line when the first
+// non-empty line has no indentation. Already-indented bodies are left alone.
+func indentFlushLeft(body string) string {
+	lines := strings.Split(body, "\n")
+	for _, l := range lines {
+		if strings.TrimSpace(l) == "" {
+			continue
+		}
+		if l[0] == ' ' || l[0] == '\t' {
+			return body
+		}
+		break
+	}
+	for i, l := range lines {
+		if strings.TrimSpace(l) != "" {
+			lines[i] = "\t" + l
+		}
+	}
+	return strings.Join(lines, "\n")
 }
