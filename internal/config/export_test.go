@@ -1,6 +1,9 @@
 package config
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"os"
 	"path/filepath"
 	"strings"
@@ -155,5 +158,64 @@ func TestGetDefaultExportDir(t *testing.T) {
 	}
 	if !strings.Contains(dir, "exports") {
 		t.Errorf("expected path to contain 'exports', got %s", dir)
+	}
+}
+
+// The archive holds the API token and the audit log, so it must be owner-only,
+// including when it overwrites an older world-readable file.
+func TestExportIsOwnerOnly(t *testing.T) {
+	tmpDir := t.TempDir()
+	origHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", origHome)
+	os.MkdirAll(filepath.Join(tmpDir, ".config", "lazyproxyflare", "profiles"), 0755)
+
+	profile := &ProfileConfig{
+		Profile:    ProfileMetadata{Name: "p"},
+		Domain:     "example.com",
+		Cloudflare: CloudflareConfig{APIToken: "secret", ZoneID: "0123456789abcdef0123456789abcdef"},
+		Proxy: ProxyConfig{Type: ProxyTypeCaddy, Deployment: DeploymentDocker,
+			Caddy: CaddyProxyConfig{CaddyfilePath: "/tmp/Caddyfile", ContainerName: "caddy"}},
+	}
+	if err := SaveProfile("p", profile); err != nil {
+		t.Fatal(err)
+	}
+
+	out := filepath.Join(tmpDir, "export", "p.tar.gz")
+	if err := ExportProfile("p", out); err != nil {
+		t.Fatal(err)
+	}
+	if fi, _ := os.Stat(out); fi.Mode().Perm() != 0o600 {
+		t.Errorf("new export mode = %v, want 0600", fi.Mode().Perm())
+	}
+
+	os.Chmod(out, 0o644)
+	if err := ExportProfile("p", out); err != nil {
+		t.Fatal(err)
+	}
+	if fi, _ := os.Stat(out); fi.Mode().Perm() != 0o600 {
+		t.Errorf("overwritten export mode = %v, want 0600", fi.Mode().Perm())
+	}
+}
+
+func TestImportRejectsOversizedProfile(t *testing.T) {
+	tmpDir := t.TempDir()
+	origHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", origHome)
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gz)
+	big := bytes.Repeat([]byte("a"), maxProfileArchiveBytes+10)
+	tw.WriteHeader(&tar.Header{Name: "profile.yaml", Mode: 0600, Size: int64(len(big))})
+	tw.Write(big)
+	tw.Close()
+	gz.Close()
+	path := filepath.Join(tmpDir, "big.tar.gz")
+	os.WriteFile(path, buf.Bytes(), 0600)
+
+	if _, err := ImportProfile(path, false); err == nil || !strings.Contains(err.Error(), "larger than") {
+		t.Errorf("want size error, got %v", err)
 	}
 }

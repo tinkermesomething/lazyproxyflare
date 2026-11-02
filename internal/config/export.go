@@ -36,16 +36,21 @@ func ExportProfile(profileName, outputPath string) error {
 	}
 
 	// Ensure output directory exists
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(outputPath), 0700); err != nil {
 		return fmt.Errorf("failed to create export directory: %w", err)
 	}
 
 	// Create the tar.gz file
-	outFile, err := os.Create(outputPath)
+	// The archive can hold the API token and the audit log: owner-only. The
+	// mode passed to OpenFile applies only on creation, so chmod a reused file.
+	outFile, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to create export file: %w", err)
 	}
 	defer outFile.Close()
+	if err := outFile.Chmod(0600); err != nil {
+		return fmt.Errorf("failed to restrict export file permissions: %w", err)
+	}
 
 	gzWriter := gzip.NewWriter(outFile)
 	defer gzWriter.Close()
@@ -98,15 +103,19 @@ func ImportProfile(archivePath string, overwrite bool) (string, error) {
 			return "", fmt.Errorf("failed to read tar entry: %w", err)
 		}
 
-		data, err := io.ReadAll(tarReader)
+		// Only profile.yaml is used. Skip the rest unread, and cap the read so a
+		// hostile archive cannot exhaust memory.
+		if header.Name != "profile.yaml" {
+			continue
+		}
+		data, err := io.ReadAll(io.LimitReader(tarReader, maxProfileArchiveBytes+1))
 		if err != nil {
 			return "", fmt.Errorf("failed to read entry data: %w", err)
 		}
-
-		switch header.Name {
-		case "profile.yaml":
-			profileData = data
+		if len(data) > maxProfileArchiveBytes {
+			return "", fmt.Errorf("profile.yaml in the archive is larger than %d bytes", maxProfileArchiveBytes)
 		}
+		profileData = data
 	}
 
 	if profileData == nil {
@@ -145,11 +154,14 @@ func ImportProfile(archivePath string, overwrite bool) (string, error) {
 	return profileName, nil
 }
 
+// maxProfileArchiveBytes is far above any real profile.yaml.
+const maxProfileArchiveBytes = 1 << 20
+
 // addToTar adds a file entry to a tar writer
 func addToTar(tw *tar.Writer, name string, data []byte) error {
 	header := &tar.Header{
 		Name: name,
-		Mode: 0644,
+		Mode: 0600,
 		Size: int64(len(data)),
 	}
 	if err := tw.WriteHeader(header); err != nil {
