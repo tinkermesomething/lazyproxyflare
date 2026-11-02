@@ -1,5 +1,11 @@
 package ui
 
+import (
+	"strings"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
 // Backup views render in a large modal. The renderers, key handlers and mouse
 // handler must agree on how many rows fit, or the cursor can land on a row
 // that is not drawn. Keep every such calculation here.
@@ -49,4 +55,34 @@ func scrollIntoView(cursor, offset, rows int) int {
 		return cursor - rows + 1
 	}
 	return offset
+}
+
+// fitLine expands tabs and shortens s to at most width display columns,
+// ending with an ellipsis when it had to cut.
+func fitLine(s string, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	s = strings.ReplaceAll(s, "\t", "    ")
+	if lipgloss.Width(s) <= width {
+		return s
+	}
+	var b strings.Builder
+	used := 0
+	for _, r := range s {
+		w := lipgloss.Width(string(r))
+		if used+w > width-1 {
+			break
+		}
+		b.WriteRune(r)
+		used += w
+	}
+	return b.String() + "…"
+}
+
+// backupDiffTextWidth is the columns available for diff text inside the
+// preview box: modal border and padding (4), box border and padding (4).
+func (m Model) backupDiffTextWidth() int {
+	w, _ := modalDimensions(m.width, m.height, true)
+	return max(w-8, 10)
 }

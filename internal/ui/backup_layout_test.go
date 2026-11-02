@@ -183,3 +183,51 @@ func TestBackupPreviewScrollStopsAtEndOfDiff(t *testing.T) {
 		})
 	}
 }
+
+func TestFitLine(t *testing.T) {
+	tests := []struct {
+		name, in string
+		width    int
+		want     string
+	}{
+		{"short unchanged", "abc", 10, "abc"},
+		{"exact fit unchanged", "abcde", 5, "abcde"},
+		{"long is cut with ellipsis", "abcdefghij", 5, "abcd…"},
+		{"tabs expand to spaces", "\tx", 10, "    x"},
+		{"multibyte not split", "ééééé", 3, "éé…"},
+		{"zero width", "abc", 0, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := fitLine(tt.in, tt.width); got != tt.want {
+				t.Errorf("fitLine(%q, %d) = %q, want %q", tt.in, tt.width, got, tt.want)
+			}
+		})
+	}
+}
+
+// A very long changed line must not push the diff box past the modal and hide its right border.
+func TestBackupPreviewBoxStaysInsideModal(t *testing.T) {
+	for _, sz := range screenSizes {
+		t.Run(fmt.Sprintf("%dx%d", sz.w, sz.h), func(t *testing.T) {
+			dir := t.TempDir()
+			cur, bak := filepath.Join(dir, "Caddyfile"), filepath.Join(dir, "Caddyfile.backup.1")
+			os.WriteFile(cur, []byte("a\nshort\nb\n"), 0600)
+			os.WriteFile(bak, []byte("a\n"+strings.Repeat("x", 600)+"\nb\n"), 0600)
+
+			m := createTestModel()
+			m.config = &config.Config{Caddy: config.CaddyConfig{CaddyfilePath: cur}}
+			m.width, m.height = sz.w, sz.h
+			m.currentView = ViewBackupPreview
+			m.backup.PreviewPath = bak
+
+			out := stripANSI(RenderModalOverlayLarge("", "Backup Preview", m.renderBackupPreviewContent(), m.width, m.height))
+			if !regexp.MustCompile(`╯\s*│`).MatchString(out) {
+				t.Errorf("inner box right border is missing:\n%s", out)
+			}
+			if !strings.Contains(out, "…") {
+				t.Errorf("long line was not shortened with an ellipsis:\n%s", out)
+			}
+		})
+	}
+}

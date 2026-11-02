@@ -205,48 +205,45 @@ func (m Model) renderBackupPreviewView() string {
 		}
 	}
 
-	// Build visible content with color coding
+	// Build visible content with color coding. Lines are fitted to the box so
+	// a very long line cannot widen it past the modal and hide its border.
+	textWidth := m.backupDiffTextWidth()
 	var visibleContent strings.Builder
 	for i := start; i < end; i++ {
-		if i < len(diffLines) {
-			line := diffLines[i]
+		line := diffLines[i]
 
-			// Style based on diff type
-			var styledLine string
-			switch line.Type {
-			case "removed":
-				// Red for lines that will be removed
-				styledLine = lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#FF6B6B")).
-					Render(fmt.Sprintf("- %s", line.Content))
-			case "added":
-				// Green for lines that will be added
-				styledLine = lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#51CF66")).
-					Render(fmt.Sprintf("+ %s", line.Content))
-			case "hunk":
-				styledLine = lipgloss.NewStyle().Foreground(ColorBlue).Render(line.Content)
-			case "context":
-				styledLine = StyleDim.Render("  " + line.Content)
-			case "same":
-				// Gray for no changes message
-				styledLine = StyleDim.Render(line.Content)
-			default:
-				styledLine = line.Content
-			}
+		var styledLine string
+		switch line.Type {
+		case "removed":
+			styledLine = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FF6B6B")).
+				Render("- " + fitLine(line.Content, textWidth-2))
+		case "added":
+			styledLine = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#51CF66")).
+				Render("+ " + fitLine(line.Content, textWidth-2))
+		case "hunk":
+			styledLine = lipgloss.NewStyle().Foreground(ColorBlue).Render(fitLine(line.Content, textWidth))
+		case "context":
+			styledLine = StyleDim.Render("  " + fitLine(line.Content, textWidth-2))
+		case "same":
+			styledLine = StyleDim.Render(fitLine(line.Content, textWidth))
+		default:
+			styledLine = fitLine(line.Content, textWidth)
+		}
 
-			visibleContent.WriteString(styledLine)
-			if i < end-1 {
-				visibleContent.WriteString("\n")
-			}
+		visibleContent.WriteString(styledLine)
+		if i < end-1 {
+			visibleContent.WriteString("\n")
 		}
 	}
 
-	// Show content in a box (let width adapt to modal, don't set explicit dimensions)
+	// Fixed width: the modal truncates anything wider than the box
 	contentBox := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorBlue).
-		Padding(0, 1)
+		Padding(0, 1).
+		Width(textWidth + 2)
 
 	b.WriteString(contentBox.Render(visibleContent.String()))
 	b.WriteString("\n")
